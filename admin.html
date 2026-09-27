@@ -1222,7 +1222,7 @@ async function initSupabase(){
   try{
 
     const response = await fetch(
-      "/.netlify/functions/public-config",
+      "/api/public-config"
       {
         method:"GET",
         cache:"no-store",
