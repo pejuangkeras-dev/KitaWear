@@ -1,4 +1,3 @@
-```
 <!doctype html>
 <html lang="id">
 <head>
@@ -39,7 +38,14 @@ body{
   margin:0;
   background:var(--bg);
   color:var(--ink);
-  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
 button,
@@ -57,6 +63,12 @@ a{
   text-decoration:none;
 }
 
+.hidden{
+  display:none!important;
+}
+
+/* ================= HEADER ================= */
+
 .top{
   position:sticky;
   top:0;
@@ -72,7 +84,7 @@ a{
   margin:auto;
   display:flex;
   align-items:center;
-  gap:22px;
+  gap:14px;
 }
 
 .logo{
@@ -105,7 +117,10 @@ a{
   display:flex;
   align-items:center;
   gap:8px;
+  flex-wrap:wrap;
 }
+
+/* ================= BUTTON ================= */
 
 .btn{
   border:1px solid var(--line);
@@ -121,6 +136,11 @@ a{
   background:#f0eee8;
 }
 
+.btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
 .btn-dark{
   background:var(--dark);
   color:#fff;
@@ -132,10 +152,12 @@ a{
 }
 
 .btn-danger{
-  color:#fff;
   background:var(--red);
+  color:#fff;
   border-color:var(--red);
 }
+
+/* ================= LAYOUT ================= */
 
 .wrap{
   width:min(1400px,94%);
@@ -163,7 +185,7 @@ main{
 }
 
 h1{
-  margin:8px 0 8px;
+  margin:8px 0;
   font-size:42px;
   line-height:1;
   letter-spacing:-.055em;
@@ -172,7 +194,7 @@ h1{
 .subtitle{
   margin:0;
   color:var(--muted);
-  max-width:650px;
+  max-width:680px;
   line-height:1.6;
 }
 
@@ -181,6 +203,8 @@ h1{
   gap:8px;
   flex-wrap:wrap;
 }
+
+/* ================= STATS ================= */
 
 .stats{
   display:grid;
@@ -215,6 +239,8 @@ h1{
   font-size:11px;
 }
 
+/* ================= PANEL ================= */
+
 .panel{
   background:var(--paper);
   border:1px solid var(--line);
@@ -246,7 +272,7 @@ h1{
 
 .search{
   min-height:40px;
-  width:270px;
+  width:280px;
   padding:0 13px;
   border:1px solid var(--line);
   border-radius:11px;
@@ -255,8 +281,10 @@ h1{
 }
 
 .search:focus,
-.select:focus{
+.select:focus,
+.field input:focus{
   border-color:#999;
+  box-shadow:0 0 0 3px rgba(40,123,79,.08);
 }
 
 .select{
@@ -268,6 +296,8 @@ h1{
   outline:none;
 }
 
+/* ================= TABLE ================= */
+
 .table-wrap{
   overflow:auto;
 }
@@ -275,7 +305,7 @@ h1{
 table{
   width:100%;
   border-collapse:collapse;
-  min-width:1050px;
+  min-width:1100px;
 }
 
 th,
@@ -321,6 +351,33 @@ tr:last-child td{
   font-weight:900;
 }
 
+.actions-cell{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+
+.small-btn{
+  min-height:34px;
+  padding:0 10px;
+  border-radius:9px;
+  border:1px solid var(--line);
+  background:#fff;
+  font-size:11px;
+  font-weight:800;
+}
+
+.small-btn:hover{
+  background:#f0eee8;
+}
+
+.small-btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+/* ================= STATUS ================= */
+
 .status{
   display:inline-flex;
   align-items:center;
@@ -356,25 +413,7 @@ tr:last-child td{
   color:var(--blue);
 }
 
-.actions-cell{
-  display:flex;
-  gap:6px;
-  flex-wrap:wrap;
-}
-
-.small-btn{
-  min-height:34px;
-  padding:0 10px;
-  border-radius:9px;
-  border:1px solid var(--line);
-  background:#fff;
-  font-size:11px;
-  font-weight:800;
-}
-
-.small-btn:hover{
-  background:#f0eee8;
-}
+/* ================= STATES ================= */
 
 .loading,
 .empty,
@@ -392,7 +431,7 @@ tr:last-child td{
   position:fixed;
   right:20px;
   bottom:20px;
-  z-index:100;
+  z-index:200;
   min-width:280px;
   max-width:420px;
   padding:15px 17px;
@@ -413,13 +452,14 @@ tr:last-child td{
 
 .notice.error{
   border-left:4px solid #ef6262;
-  text-align:left;
 }
+
+/* ================= MODAL ================= */
 
 .modal{
   position:fixed;
   inset:0;
-  z-index:80;
+  z-index:100;
   background:rgba(0,0,0,.52);
   display:none;
   align-items:center;
@@ -432,7 +472,7 @@ tr:last-child td{
 }
 
 .modal-card{
-  width:min(720px,100%);
+  width:min(760px,100%);
   max-height:90vh;
   overflow:auto;
   background:var(--paper);
@@ -461,6 +501,8 @@ tr:last-child td{
   border-radius:10px;
   border:1px solid var(--line);
   background:#fff;
+  font-size:20px;
+  line-height:1;
 }
 
 .modal-body{
@@ -471,7 +513,7 @@ tr:last-child td{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:12px;
-  margin-bottom:18px;
+  margin-bottom:20px;
 }
 
 .detail-box{
@@ -479,6 +521,10 @@ tr:last-child td{
   background:#fff;
   border-radius:13px;
   padding:13px;
+}
+
+.detail-box.full{
+  grid-column:1/-1;
 }
 
 .detail-label{
@@ -494,6 +540,7 @@ tr:last-child td{
   font-weight:800;
   font-size:13px;
   line-height:1.5;
+  word-break:break-word;
 }
 
 .items{
@@ -503,7 +550,7 @@ tr:last-child td{
 }
 
 .item{
-  padding:13px 15px;
+  padding:14px 15px;
   display:flex;
   align-items:center;
   justify-content:space-between;
@@ -533,6 +580,28 @@ tr:last-child td{
   flex-wrap:wrap;
 }
 
+/* ================= STATUS MODAL ================= */
+
+.status-modal-card{
+  width:min(520px,100%);
+}
+
+.status-current{
+  padding:12px 14px;
+  background:#faf8f3;
+  border:1px solid var(--line);
+  border-radius:13px;
+  margin-bottom:14px;
+}
+
+.status-current-label{
+  color:var(--muted);
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  font-weight:800;
+  margin-bottom:6px;
+}
 
 .status-option{
   width:100%;
@@ -570,6 +639,7 @@ tr:last-child td{
   height:10px;
   border-radius:50%;
   background:#aaa;
+  flex:0 0 auto;
 }
 
 .status-option.active .status-dot{
@@ -577,11 +647,13 @@ tr:last-child td{
 }
 
 .status-option-title{
+  display:block;
   font-weight:850;
   font-size:13px;
 }
 
 .status-option-desc{
+  display:block;
   color:var(--muted);
   font-size:11px;
   margin-top:2px;
@@ -597,6 +669,7 @@ tr:last-child td{
   color:#fff;
   font-size:12px;
   font-weight:900;
+  flex:0 0 auto;
 }
 
 .status-option.active .status-check{
@@ -604,26 +677,7 @@ tr:last-child td{
   border-color:var(--dark);
 }
 
-.status-modal-card{
-  width:min(520px,100%);
-}
-
-.status-current{
-  padding:12px 14px;
-  background:#faf8f3;
-  border:1px solid var(--line);
-  border-radius:13px;
-  margin-bottom:14px;
-}
-
-.status-current-label{
-  color:var(--muted);
-  font-size:10px;
-  text-transform:uppercase;
-  letter-spacing:.08em;
-  font-weight:800;
-  margin-bottom:6px;
-}
+/* ================= LOGIN ================= */
 
 .login-screen{
   min-height:100vh;
@@ -647,7 +701,7 @@ tr:last-child td{
 
 .login-card h1{
   font-size:32px;
-  margin-top:20px;
+  margin:20px 0 8px;
 }
 
 .field{
@@ -662,8 +716,7 @@ tr:last-child td{
   margin-bottom:7px;
 }
 
-.field input,
-.field select{
+.field input{
   width:100%;
   min-height:44px;
   padding:0 12px;
@@ -679,10 +732,6 @@ tr:last-child td{
   min-height:46px;
 }
 
-.hidden{
-  display:none!important;
-}
-
 .footer-note{
   margin-top:20px;
   color:var(--muted);
@@ -690,7 +739,10 @@ tr:last-child td{
   font-size:11px;
 }
 
+/* ================= MOBILE ================= */
+
 @media(max-width:1000px){
+
   .stats{
     grid-template-columns:repeat(2,1fr);
   }
@@ -702,6 +754,7 @@ tr:last-child td{
 }
 
 @media(max-width:650px){
+
   h1{
     font-size:34px;
   }
@@ -743,41 +796,68 @@ tr:last-child td{
   .detail-grid{
     grid-template-columns:1fr;
   }
+
+  .detail-box.full{
+    grid-column:auto;
+  }
+
+  .modal{
+    padding:10px;
+  }
+
+  .modal-card{
+    max-height:94vh;
+    border-radius:18px;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<!-- ================= LOGIN ================= -->
+<!-- =========================================================
+     LOGIN
+========================================================= -->
 
 <section id="loginScreen" class="login-screen">
 
   <div class="login-card">
 
     <div class="logo">
-      <svg class="logo-mark" viewBox="0 0 48 48" fill="none">
-        <path d="M24 7c-5 0-8 3-8 7 0 3 2 5 5 6"
-              stroke="currentColor"
-              stroke-width="3.2"
-              stroke-linecap="round"/>
-        <path d="M21 20 7 31c-3 2-2 7 2 8h30c4-1 5-6 2-8L27 20"
-              stroke="currentColor"
-              stroke-width="3.2"
-              stroke-linejoin="round"/>
-        <path d="m18 39 6-7 6 7"
-              stroke="currentColor"
-              stroke-width="3.2"
-              stroke-linecap="round"
-              stroke-linejoin="round"/>
+
+      <svg class="logo-mark" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+        <path
+          d="M24 7c-5 0-8 3-8 7 0 3 2 5 5 6"
+          stroke="currentColor"
+          stroke-width="3.2"
+          stroke-linecap="round"
+        />
+        <path
+          d="M21 20 7 31c-3 2-2 7 2 8h30c4-1 5-6 2-8L27 20"
+          stroke="currentColor"
+          stroke-width="3.2"
+          stroke-linejoin="round"
+        />
+        <path
+          d="m18 39 6-7 6 7"
+          stroke="currentColor"
+          stroke-width="3.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
 
       KitaWear
+
     </div>
 
-    <span class="badge-admin">ADMIN CENTER</span>
+    <span class="badge-admin">
+      ADMIN CENTER
+    </span>
 
-    <h1>Masuk sebagai Admin</h1>
+    <h1>
+      Masuk sebagai Admin
+    </h1>
 
     <p class="subtitle">
       Gunakan akun KitaWear yang memiliki role
@@ -785,27 +865,40 @@ tr:last-child td{
     </p>
 
     <div class="field">
-      <label>Email</label>
+
+      <label for="loginEmail">
+        Email
+      </label>
+
       <input
         id="loginEmail"
         type="email"
         placeholder="admin@email.com"
-        autocomplete="email">
+        autocomplete="email"
+      >
+
     </div>
 
     <div class="field">
-      <label>Password</label>
+
+      <label for="loginPassword">
+        Password
+      </label>
+
       <input
         id="loginPassword"
         type="password"
         placeholder="Password"
-        autocomplete="current-password">
+        autocomplete="current-password"
+      >
+
     </div>
 
     <button
       id="loginBtn"
       class="btn btn-dark login-btn"
-      type="button">
+      type="button"
+    >
       Masuk ke Admin
     </button>
 
@@ -818,7 +911,9 @@ tr:last-child td{
 </section>
 
 
-<!-- ================= ADMIN APP ================= -->
+<!-- =========================================================
+     ADMIN APP
+========================================================= -->
 
 <div id="adminApp" class="hidden">
 
@@ -828,27 +923,35 @@ tr:last-child td{
 
     <a href="/" class="logo">
 
-      <svg class="logo-mark" viewBox="0 0 48 48" fill="none">
-        <path d="M24 7c-5 0-8 3-8 7 0 3 2 5 5 6"
-              stroke="currentColor"
-              stroke-width="3.2"
-              stroke-linecap="round"/>
-        <path d="M21 20 7 31c-3 2-2 7 2 8h30c4-1 5-6 2-8L27 20"
-              stroke="currentColor"
-              stroke-width="3.2"
-              stroke-linejoin="round"/>
-        <path d="m18 39 6-7 6 7"
-              stroke="currentColor"
-              stroke-width="3.2"
-              stroke-linecap="round"
-              stroke-linejoin="round"/>
+      <svg class="logo-mark" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+        <path
+          d="M24 7c-5 0-8 3-8 7 0 3 2 5 5 6"
+          stroke="currentColor"
+          stroke-width="3.2"
+          stroke-linecap="round"
+        />
+        <path
+          d="M21 20 7 31c-3 2-2 7 2 8h30c4-1 5-6 2-8L27 20"
+          stroke="currentColor"
+          stroke-width="3.2"
+          stroke-linejoin="round"
+        />
+        <path
+          d="m18 39 6-7 6 7"
+          stroke="currentColor"
+          stroke-width="3.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
 
       KitaWear
 
     </a>
 
-    <span class="badge-admin">ADMIN</span>
+    <span class="badge-admin">
+      ADMIN
+    </span>
 
     <div class="top-actions">
 
@@ -863,7 +966,8 @@ tr:last-child td{
       <button
         id="logoutBtn"
         class="btn"
-        type="button">
+        type="button"
+      >
         Keluar
       </button>
 
@@ -888,11 +992,13 @@ tr:last-child td{
         KitaWear Marketplace
       </div>
 
-      <h1>Admin Center</h1>
+      <h1>
+        Admin Center
+      </h1>
 
       <p class="subtitle">
-        Kelola dan pantau semua pesanan marketplace KitaWear
-        dari satu tempat.
+        Kelola dan pantau semua pesanan marketplace
+        KitaWear dari satu tempat.
       </p>
 
     </div>
@@ -902,7 +1008,8 @@ tr:last-child td{
       <button
         id="refreshTopBtn"
         class="btn btn-dark"
-        type="button">
+        type="button"
+      >
         ↻ Refresh Pesanan
       </button>
 
@@ -921,7 +1028,10 @@ tr:last-child td{
         Total Pesanan
       </div>
 
-      <div id="statTotal" class="stat-value">
+      <div
+        id="statTotal"
+        class="stat-value"
+      >
         0
       </div>
 
@@ -938,7 +1048,10 @@ tr:last-child td{
         Menunggu
       </div>
 
-      <div id="statPending" class="stat-value">
+      <div
+        id="statPending"
+        class="stat-value"
+      >
         0
       </div>
 
@@ -955,7 +1068,10 @@ tr:last-child td{
         Diproses
       </div>
 
-      <div id="statProcessing" class="stat-value">
+      <div
+        id="statProcessing"
+        class="stat-value"
+      >
         0
       </div>
 
@@ -972,7 +1088,10 @@ tr:last-child td{
         Selesai
       </div>
 
-      <div id="statCompleted" class="stat-value">
+      <div
+        id="statCompleted"
+        class="stat-value"
+      >
         0
       </div>
 
@@ -1010,11 +1129,13 @@ tr:last-child td{
           id="searchInput"
           class="search"
           type="search"
-          placeholder="Cari order ID / customer...">
+          placeholder="Cari order ID / customer..."
+        >
 
         <select
           id="statusFilter"
-          class="select">
+          class="select"
+        >
 
           <option value="all">
             Semua status
@@ -1076,11 +1197,15 @@ tr:last-child td{
 </div>
 
 
-<!-- ================= DETAIL MODAL ================= -->
+<!-- =========================================================
+     DETAIL MODAL
+========================================================= -->
 
 <div
   id="detailModal"
-  class="modal">
+  class="modal"
+  aria-hidden="true"
+>
 
   <div class="modal-card">
 
@@ -1092,52 +1217,64 @@ tr:last-child td{
           Detail Pesanan
         </h2>
 
-        <div id="detailStatus">
-        </div>
+        <div id="detailStatus"></div>
 
       </div>
 
       <button
         id="closeModalBtn"
         class="close"
-        type="button">
+        type="button"
+        aria-label="Tutup"
+      >
         ×
       </button>
 
     </div>
 
-
     <div
       id="detailBody"
-      class="modal-body">
-
-    </div>
+      class="modal-body"
+    ></div>
 
   </div>
 
 </div>
 
 
-
-<!-- ================= STATUS MODAL ================= -->
+<!-- =========================================================
+     STATUS MODAL
+========================================================= -->
 
 <div
   id="statusModal"
-  class="modal">
+  class="modal"
+  aria-hidden="true"
+>
 
   <div class="modal-card status-modal-card">
 
     <div class="modal-head">
 
       <div>
-        <h2>Ubah Status Pesanan</h2>
-        <div id="statusOrderLabel" class="muted"></div>
+
+        <h2>
+          Ubah Status Pesanan
+        </h2>
+
+        <div
+          id="statusOrderLabel"
+          class="muted"
+        ></div>
+
       </div>
 
       <button
         id="closeStatusModalBtn"
         class="close"
-        type="button">
+        type="button"
+        aria-label="Tutup"
+      >
         ×
       </button>
 
@@ -1146,8 +1283,13 @@ tr:last-child td{
     <div class="modal-body">
 
       <div class="status-current">
-        <div class="status-current-label">Status saat ini</div>
+
+        <div class="status-current-label">
+          Status saat ini
+        </div>
+
         <div id="statusCurrent"></div>
+
       </div>
 
       <div id="statusOptions"></div>
@@ -1157,14 +1299,16 @@ tr:last-child td{
         <button
           id="cancelStatusBtn"
           class="btn"
-          type="button">
+          type="button"
+        >
           Batal
         </button>
 
         <button
           id="saveStatusBtn"
           class="btn btn-dark"
-          type="button">
+          type="button"
+        >
           Simpan Status
         </button>
 
@@ -1176,135 +1320,188 @@ tr:last-child td{
 
 </div>
 
-<!-- ================= NOTICE ================= -->
+
+<!-- =========================================================
+     NOTICE
+========================================================= -->
 
 <div
   id="notice"
-  class="notice">
-</div>
+  class="notice"
+  role="alert"
+></div>
 
 
 <script>
-
-/* =========================================================
-   KITAWear ADMIN
-   ========================================================= */
-
 /*
-  IMPORTANT:
-  Gunakan Publishable/Anon Key saja di browser.
+ * ============================================================
+ * KitaWear Admin Center
+ * ============================================================
+ *
+ * SECURITY:
+ *
+ * - Tidak ada Supabase URL hardcoded di file ini.
+ * - Tidak ada Supabase key hardcoded di file ini.
+ * - Tidak ada service-role key di browser.
+ * - Konfigurasi publik diambil dari Netlify Function.
+ * - Akses admin diverifikasi melalui tabel profiles.
+ * - Perubahan status menggunakan RPC admin_update_order_status.
+ *
+ * Netlify Function yang digunakan:
+ *
+ * /.netlify/functions/config
+ *
+ * RPC yang digunakan:
+ *
+ * admin_update_order_status
+ *
+ * ============================================================
+ */
 
-  JANGAN masukkan:
-  SUPABASE_SERVICE_ROLE_KEY
-*/
 
-/*
-  Konfigurasi Supabase TIDAK ditulis di HTML.
-  Admin mengambil URL + Publishable/Anon Key dari Netlify Function
-  /.netlify/functions/config agar secret scanning tidak menemukan
-  nilai environment variable di source code ini.
-*/
-
-let SUPABASE_URL = "";
-let SUPABASE_ANON_KEY = "";
+/* ============================================================
+   STATE
+============================================================ */
 
 let supabaseClient = null;
+
 let currentUser = null;
+
+let currentProfile = null;
+
 let orders = [];
+
 let selectedOrder = null;
 
+let selectedStatus = "";
 
-/* ================= INIT ================= */
+let selectedStatusOrderId = "";
 
-async function initSupabase(){
 
-  try{
+/* ============================================================
+   CONFIGURATION
+============================================================ */
 
-    const response = await fetch(
-      "/.netlify/functions/config",
-      {
-        method:"GET",
-        headers:{"Accept":"application/json"},
-        cache:"no-store"
-      }
-    );
+let supabaseUrlFromConfig = "";
 
-    const text = await response.text();
-    let config = {};
+let supabaseAnonKeyFromConfig = "";
 
-    try{
-      config = JSON.parse(text);
-    }catch(parseError){
-      throw new Error(
-        "Konfigurasi KitaWear tidak mengembalikan JSON yang valid."
-      );
-    }
 
-    if(!response.ok){
-      throw new Error(
-        config.error ||
-        "Konfigurasi KitaWear gagal dimuat."
-      );
-    }
+/* ============================================================
+   STATUS OPTIONS
+============================================================ */
 
-    SUPABASE_URL =
-      String(config.supabaseUrl || "").trim();
+const ADMIN_STATUS_OPTIONS = [
 
-    SUPABASE_ANON_KEY =
-      String(config.supabaseAnonKey || "").trim();
+  {
+    value:"pending",
+    title:"Pending",
+    desc:"Pesanan baru menunggu pembayaran atau tindakan."
+  },
 
-    if(!SUPABASE_URL || !SUPABASE_ANON_KEY){
-      throw new Error(
-        "Konfigurasi Supabase belum tersedia di Netlify."
-      );
-    }
+  {
+    value:"paid",
+    title:"Paid",
+    desc:"Pembayaran sudah diterima."
+  },
 
-    supabaseClient =
-      window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
-      );
+  {
+    value:"processing",
+    title:"Diproses",
+    desc:"Seller sedang menyiapkan pesanan."
+  },
 
-    return true;
+  {
+    value:"shipped",
+    title:"Dikirim",
+    desc:"Pesanan sudah diserahkan untuk pengiriman."
+  },
 
-  }catch(error){
+  {
+    value:"completed",
+    title:"Selesai",
+    desc:"Pesanan sudah selesai diterima."
+  },
 
-    console.error("KitaWear Supabase config:",error);
+  {
+    value:"cancelled",
+    title:"Dibatalkan",
+    desc:"Pesanan dibatalkan."
+  },
 
-    showNotice(
-      error.message ||
-      "Gagal memuat konfigurasi Supabase.",
-      "error"
-    );
+  {
+    value:"failed",
+    title:"Gagal",
+    desc:"Pembayaran atau transaksi gagal."
+  },
 
-    return false;
+  {
+    value:"refunded",
+    title:"Dikembalikan",
+    desc:"Dana sudah dikembalikan kepada pembeli."
   }
-}
+
+];
 
 
-/* ================= NOTICE ================= */
+/* ============================================================
+   NOTICE
+============================================================ */
 
 function showNotice(message,type="success"){
 
-  const el =
+  const element =
     document.getElementById("notice");
 
-  el.textContent = message;
+  if(!element){
+    return;
+  }
 
-  el.className =
+  element.textContent =
+    String(message || "");
+
+  element.className =
     "notice show " +
-    (type === "error" ? "error" : "success");
+    (
+      type === "error"
+        ? "error"
+        : "success"
+    );
 
-  clearTimeout(window.noticeTimer);
+  clearTimeout(
+    window.kitaWearNoticeTimer
+  );
 
-  window.noticeTimer =
+  window.kitaWearNoticeTimer =
     setTimeout(()=>{
-      el.className = "notice";
+
+      element.className =
+        "notice";
+
     },5000);
+
 }
 
 
-/* ================= HELPERS ================= */
+/* ============================================================
+   HTML ESCAPE
+============================================================ */
+
+function escapeHtml(value){
+
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+
+/* ============================================================
+   RUPIAH
+============================================================ */
 
 function formatRupiah(value){
 
@@ -1319,8 +1516,13 @@ function formatRupiah(value){
       maximumFractionDigits:0
     }
   ).format(number);
+
 }
 
+
+/* ============================================================
+   DATE
+============================================================ */
 
 function formatDate(value){
 
@@ -1328,33 +1530,27 @@ function formatDate(value){
     return "-";
   }
 
-  const d =
+  const date =
     new Date(value);
 
-  if(Number.isNaN(d.getTime())){
+  if(Number.isNaN(date.getTime())){
     return "-";
   }
 
-  return d.toLocaleString(
+  return date.toLocaleString(
     "id-ID",
     {
       dateStyle:"medium",
       timeStyle:"short"
     }
   );
+
 }
 
 
-function escapeHtml(value){
-
-  return String(value ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
+/* ============================================================
+   STATUS LABEL
+============================================================ */
 
 function statusLabel(status){
 
@@ -1374,17 +1570,25 @@ function statusLabel(status){
 
     failed:"Failed",
 
-    refunded:"Refunded"
+    refunded:"Dikembalikan"
 
   };
 
-  return map[status] || status || "-";
+  return map[status] ||
+    status ||
+    "-";
+
 }
 
+
+/* ============================================================
+   STATUS CLASS
+============================================================ */
 
 function statusClass(status){
 
   const allowed = [
+
     "pending",
     "paid",
     "processing",
@@ -1393,23 +1597,178 @@ function statusClass(status){
     "cancelled",
     "failed",
     "refunded"
+
   ];
 
   return allowed.includes(status)
     ? status
     : "pending";
+
 }
 
 
-/* ================= AUTH ================= */
+/* ============================================================
+   LOAD PUBLIC CONFIG
+============================================================ */
+
+async function initSupabase(){
+
+  try{
+
+    /*
+     * Konfigurasi diambil dari server.
+     *
+     * Tidak ada nilai rahasia maupun URL Supabase
+     * yang ditulis di file HTML ini.
+     */
+
+    const response =
+      await fetch(
+        "/.netlify/functions/config",
+        {
+          method:"GET",
+          headers:{
+            "Accept":"application/json"
+          },
+          cache:"no-store"
+        }
+      );
+
+
+    const rawText =
+      await response.text();
+
+
+    let config = null;
+
+
+    try{
+
+      config =
+        JSON.parse(rawText);
+
+    }catch(error){
+
+      console.error(
+        "Config response:",
+        rawText
+      );
+
+      throw new Error(
+        "Netlify Function config tidak mengembalikan JSON yang valid."
+      );
+
+    }
+
+
+    if(!response.ok){
+
+      throw new Error(
+        config?.error ||
+        "Konfigurasi KitaWear gagal dimuat."
+      );
+
+    }
+
+
+    supabaseUrlFromConfig =
+      String(
+        config?.supabaseUrl || ""
+      ).trim();
+
+
+    supabaseAnonKeyFromConfig =
+      String(
+        config?.supabaseAnonKey || ""
+      ).trim();
+
+
+    if(
+      !supabaseUrlFromConfig ||
+      !supabaseAnonKeyFromConfig
+    ){
+
+      throw new Error(
+        "Konfigurasi Supabase belum tersedia di Netlify."
+      );
+
+    }
+
+
+    if(
+      !window.supabase ||
+      typeof window.supabase.createClient !== "function"
+    ){
+
+      throw new Error(
+        "Library Supabase gagal dimuat."
+      );
+
+    }
+
+
+    supabaseClient =
+      window.supabase.createClient(
+        supabaseUrlFromConfig,
+        supabaseAnonKeyFromConfig
+      );
+
+
+    return true;
+
+
+  }catch(error){
+
+    console.error(
+      "KitaWear Supabase initialization:",
+      error
+    );
+
+
+    showNotice(
+      error.message ||
+      "Gagal memuat konfigurasi Supabase.",
+      "error"
+    );
+
+
+    return false;
+
+  }
+
+}
+
+
+/* ============================================================
+   LOGIN
+============================================================ */
 
 async function login(){
 
+  if(!supabaseClient){
+
+    showNotice(
+      "Supabase belum siap. Muat ulang halaman.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
   const email =
-    document.getElementById("loginEmail").value.trim();
+    document
+      .getElementById("loginEmail")
+      .value
+      .trim();
+
 
   const password =
-    document.getElementById("loginPassword").value;
+    document
+      .getElementById("loginPassword")
+      .value;
+
 
   if(!email || !password){
 
@@ -1419,34 +1778,62 @@ async function login(){
     );
 
     return;
+
   }
+
 
   const button =
     document.getElementById("loginBtn");
 
+
   button.disabled = true;
-  button.textContent = "Memproses...";
+
+  button.textContent =
+    "Memproses...";
+
 
   try{
 
-    const {data,error} =
+    const result =
       await supabaseClient.auth.signInWithPassword({
+
         email,
         password
+
       });
 
-    if(error){
-      throw error;
+
+    if(result.error){
+
+      throw result.error;
+
     }
 
+
     currentUser =
-      data.user;
+      result.data?.user ||
+      null;
+
+
+    if(!currentUser){
+
+      throw new Error(
+        "Session pengguna tidak ditemukan."
+      );
+
+    }
+
 
     await checkAdminAccess();
 
+
   }catch(error){
 
-    console.error(error);
+    console.error(
+      "Admin login:",
+      error
+    );
+
 
     showNotice(
       error.message ||
@@ -1454,16 +1841,22 @@ async function login(){
       "error"
     );
 
+
   }finally{
 
     button.disabled = false;
-    button.textContent = "Masuk ke Admin";
+
+    button.textContent =
+      "Masuk ke Admin";
 
   }
+
 }
 
 
-/* ================= ROLE CHECK ================= */
+/* ============================================================
+   ADMIN ROLE CHECK
+============================================================ */
 
 async function checkAdminAccess(){
 
@@ -1475,18 +1868,28 @@ async function checkAdminAccess(){
 
   }
 
-  const {data,error} =
+
+  const result =
     await supabaseClient
       .from("profiles")
-      .select("id,full_name,role,phone")
-      .eq("id",currentUser.id)
+      .select(
+        "id,full_name,role,phone"
+      )
+      .eq(
+        "id",
+        currentUser.id
+      )
       .maybeSingle();
 
-  if(error){
-    throw error;
+
+  if(result.error){
+
+    throw result.error;
+
   }
 
-  if(!data){
+
+  if(!result.data){
 
     await supabaseClient.auth.signOut();
 
@@ -1496,7 +1899,8 @@ async function checkAdminAccess(){
 
   }
 
-  if(data.role !== "admin"){
+
+  if(result.data.role !== "admin"){
 
     await supabaseClient.auth.signOut();
 
@@ -1506,20 +1910,29 @@ async function checkAdminAccess(){
 
   }
 
-  showAdminApp(data);
+
+  currentProfile =
+    result.data;
+
+
+  showAdminApp();
+
 
   await loadOrders();
 
 }
 
 
-/* ================= SHOW ADMIN ================= */
+/* ============================================================
+   SHOW ADMIN APP
+============================================================ */
 
-function showAdminApp(profile){
+function showAdminApp(){
 
   document
     .getElementById("loginScreen")
     .classList.add("hidden");
+
 
   document
     .getElementById("adminApp")
@@ -1528,97 +1941,187 @@ function showAdminApp(profile){
 }
 
 
-/* ================= SESSION ================= */
+/* ============================================================
+   SHOW LOGIN
+============================================================ */
+
+function showLogin(){
+
+  document
+    .getElementById("adminApp")
+    .classList.add("hidden");
+
+
+  document
+    .getElementById("loginScreen")
+    .classList.remove("hidden");
+
+}
+
+
+/* ============================================================
+   CHECK SESSION
+============================================================ */
 
 async function checkSession(){
 
-  const {
-    data:{
-      session
-    }
-  } =
-    await supabaseClient.auth.getSession();
+  if(!supabaseClient){
+    return;
+  }
 
-  if(session){
+
+  try{
+
+    const result =
+      await supabaseClient.auth.getSession();
+
+
+    if(result.error){
+
+      throw result.error;
+
+    }
+
+
+    const session =
+      result.data?.session;
+
+
+    if(!session){
+
+      showLogin();
+
+      return;
+
+    }
+
 
     currentUser =
       session.user;
 
-    try{
 
-      await checkAdminAccess();
+    await checkAdminAccess();
 
-    }catch(error){
 
-      console.error(error);
+  }catch(error){
 
-      showNotice(
-        error.message,
-        "error"
-      );
+    console.error(
+      "Admin session:",
+      error
+    );
 
-    }
+
+    showLogin();
+
+
+    showNotice(
+      error.message ||
+      "Session tidak dapat diverifikasi.",
+      "error"
+    );
 
   }
 
 }
 
 
-/* ================= LOGOUT ================= */
+/* ============================================================
+   LOGOUT
+============================================================ */
 
 async function logout(){
 
-  await supabaseClient.auth.signOut();
+  try{
+
+    if(supabaseClient){
+
+      await supabaseClient.auth.signOut();
+
+    }
+
+  }catch(error){
+
+    console.error(
+      "Logout:",
+      error
+    );
+
+  }
+
 
   currentUser = null;
+
+  currentProfile = null;
+
   orders = [];
 
-  document
-    .getElementById("adminApp")
-    .classList.add("hidden");
+  selectedOrder = null;
 
-  document
-    .getElementById("loginScreen")
-    .classList.remove("hidden");
+  showLogin();
 
 }
 
 
-/* ================= LOAD ORDERS ================= */
+/* ============================================================
+   LOAD ORDERS
+============================================================ */
 
 async function loadOrders(){
 
   const container =
-    document.getElementById("ordersContainer");
+    document.getElementById(
+      "ordersContainer"
+    );
+
+
+  if(!container){
+    return;
+  }
+
 
   container.innerHTML =
     '<div class="loading">Memuat pesanan...</div>';
 
+
+  if(!supabaseClient){
+
+    container.innerHTML =
+      '<div class="error">Supabase belum siap.</div>';
+
+    return;
+
+  }
+
+
   try{
 
-    /*
-      Kita ambil order terbaru.
-
-      Tidak menggunakan service role.
-      RLS admin harus sudah mengizinkan
-      admin membaca orders.
-    */
-
-    const {data,error} =
+    const result =
       await supabaseClient
         .from("orders")
         .select("*")
-        .order("created_at",{ascending:false});
+        .order(
+          "created_at",
+          {
+            ascending:false
+          }
+        );
 
-    if(error){
-      throw error;
+
+    if(result.error){
+
+      throw result.error;
+
     }
 
+
     orders =
-      data || [];
+      result.data || [];
+
 
     renderStats();
+
     renderOrders();
+
 
   }catch(error){
 
@@ -1627,11 +2130,17 @@ async function loadOrders(){
       error
     );
 
-    container.innerHTML =
-      `<div class="error">
+
+    container.innerHTML = `
+      <div class="error">
         Gagal memuat pesanan.<br>
-        ${escapeHtml(error.message || "Unknown error")}
-      </div>`;
+        ${escapeHtml(
+          error.message ||
+          "Unknown error"
+        )}
+      </div>
+    `;
+
 
     showNotice(
       "Gagal mengambil data pesanan.",
@@ -1643,51 +2152,68 @@ async function loadOrders(){
 }
 
 
-/* ================= STATS ================= */
+/* ============================================================
+   STATS
+============================================================ */
 
 function renderStats(){
 
   const total =
     orders.length;
 
+
   const pending =
     orders.filter(
-      o => o.status === "pending"
+      order =>
+        order.status === "pending"
     ).length;
+
 
   const processing =
     orders.filter(
-      o =>
-        o.status === "processing" ||
-        o.status === "paid" ||
-        o.status === "shipped"
+      order =>
+        order.status === "paid" ||
+        order.status === "processing" ||
+        order.status === "shipped"
     ).length;
+
 
   const completed =
     orders.filter(
-      o => o.status === "completed"
+      order =>
+        order.status === "completed"
     ).length;
 
-  document.getElementById(
-    "statTotal"
-  ).textContent = total;
 
-  document.getElementById(
-    "statPending"
-  ).textContent = pending;
+  document
+    .getElementById("statTotal")
+    .textContent =
+      total;
 
-  document.getElementById(
-    "statProcessing"
-  ).textContent = processing;
 
-  document.getElementById(
-    "statCompleted"
-  ).textContent = completed;
+  document
+    .getElementById("statPending")
+    .textContent =
+      pending;
+
+
+  document
+    .getElementById("statProcessing")
+    .textContent =
+      processing;
+
+
+  document
+    .getElementById("statCompleted")
+    .textContent =
+      completed;
 
 }
 
 
-/* ================= FILTER ================= */
+/* ============================================================
+   FILTER
+============================================================ */
 
 function getFilteredOrders(){
 
@@ -1698,38 +2224,57 @@ function getFilteredOrders(){
       .trim()
       .toLowerCase();
 
-  const status =
+
+  const selectedStatus =
     document
       .getElementById("statusFilter")
       .value;
 
+
   return orders.filter(order => {
 
     const matchesStatus =
-      status === "all" ||
-      order.status === status;
+      selectedStatus === "all" ||
+      order.status === selectedStatus;
+
 
     if(!matchesStatus){
+
       return false;
+
     }
+
 
     if(!search){
+
       return true;
+
     }
 
+
+    const values = [
+
+      order.id,
+      order.order_id,
+      order.order_number,
+      order.customer_name,
+      order.customer_email,
+      order.email,
+      order.customer_phone,
+      order.phone,
+      order.whatsapp,
+      order.payment_status,
+      order.transaction_status
+
+    ];
+
+
     const haystack =
-      [
-        order.id,
-        order.order_id,
-        order.customer_name,
-        order.email,
-        order.phone,
-        order.whatsapp,
-        order.payment_status
-      ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
+      values
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
 
     return haystack.includes(search);
 
@@ -1738,26 +2283,34 @@ function getFilteredOrders(){
 }
 
 
-/* ================= RENDER ORDERS ================= */
+/* ============================================================
+   RENDER ORDERS
+============================================================ */
 
 function renderOrders(){
 
   const container =
-    document.getElementById("ordersContainer");
+    document.getElementById(
+      "ordersContainer"
+    );
+
 
   const filtered =
     getFilteredOrders();
 
+
   if(!filtered.length){
 
-    container.innerHTML =
-      `<div class="empty">
+    container.innerHTML = `
+      <div class="empty">
         Tidak ada pesanan yang sesuai.
-      </div>`;
+      </div>
+    `;
 
     return;
 
   }
+
 
   let html = `
 
@@ -1770,17 +2323,11 @@ function renderOrders(){
           <tr>
 
             <th>Order</th>
-
             <th>Pelanggan</th>
-
             <th>Tanggal</th>
-
             <th>Total</th>
-
             <th>Status</th>
-
             <th>Pembayaran</th>
-
             <th>Aksi</th>
 
           </tr>
@@ -1788,25 +2335,31 @@ function renderOrders(){
         </thead>
 
         <tbody>
+
   `;
 
 
   filtered.forEach(order => {
 
-    const id =
+    const orderId =
       order.order_id ||
+      order.order_number ||
       order.id ||
       "-";
+
 
     const customer =
       order.customer_name ||
       order.name ||
       "Pelanggan";
 
+
     const phone =
+      order.customer_phone ||
       order.phone ||
       order.whatsapp ||
       "";
+
 
     const amount =
       order.total_amount ??
@@ -1814,14 +2367,21 @@ function renderOrders(){
       order.total ??
       0;
 
+
     const status =
       order.status ||
       "pending";
+
 
     const payment =
       order.payment_status ||
       order.transaction_status ||
       "-";
+
+
+    const internalId =
+      String(order.id || "");
+
 
     html += `
 
@@ -1830,12 +2390,12 @@ function renderOrders(){
         <td>
 
           <div class="order-id">
-            ${escapeHtml(id)}
+            ${escapeHtml(orderId)}
           </div>
 
           <div class="muted">
             ID ${escapeHtml(
-              String(order.id || "").slice(0,8)
+              internalId.slice(0,8)
             )}
           </div>
 
@@ -1850,9 +2410,11 @@ function renderOrders(){
 
           ${
             phone
-              ? `<div class="muted">
-                   ${escapeHtml(phone)}
-                 </div>`
+              ? `
+                <div class="muted">
+                  ${escapeHtml(phone)}
+                </div>
+              `
               : ""
           }
 
@@ -1861,7 +2423,9 @@ function renderOrders(){
 
         <td>
           ${escapeHtml(
-            formatDate(order.created_at)
+            formatDate(
+              order.created_at
+            )
           )}
         </td>
 
@@ -1877,12 +2441,12 @@ function renderOrders(){
 
         <td>
 
-          <span class="status ${statusClass(status)}">
-
+          <span
+            class="status ${statusClass(status)}"
+          >
             ${escapeHtml(
               statusLabel(status)
             )}
-
           </span>
 
         </td>
@@ -1904,14 +2468,18 @@ function renderOrders(){
             <button
               class="small-btn"
               type="button"
-              onclick="openOrderDetail('${escapeHtml(String(order.id || ""))}')">
+              data-action="detail"
+              data-order-id="${escapeHtml(internalId)}"
+            >
               Detail
             </button>
 
             <button
               class="small-btn"
               type="button"
-              onclick="changeStatus('${escapeHtml(String(order.id || ""))}')">
+              data-action="status"
+              data-order-id="${escapeHtml(internalId)}"
+            >
               Status
             </button>
 
@@ -1940,10 +2508,62 @@ function renderOrders(){
   container.innerHTML =
     html;
 
+
+  bindOrderButtons();
+
 }
 
 
-/* ================= FIND ORDER ================= */
+/* ============================================================
+   BIND ORDER BUTTONS
+============================================================ */
+
+function bindOrderButtons(){
+
+  const buttons =
+    document.querySelectorAll(
+      "[data-action][data-order-id]"
+    );
+
+
+  buttons.forEach(button => {
+
+    button.addEventListener(
+      "click",
+      ()=>{
+
+        const action =
+          button.dataset.action;
+
+
+        const id =
+          button.dataset.orderId;
+
+
+        if(action === "detail"){
+
+          openOrderDetail(id);
+
+        }
+
+
+        if(action === "status"){
+
+          changeStatus(id);
+
+        }
+
+      }
+    );
+
+  });
+
+}
+
+
+/* ============================================================
+   FIND ORDER
+============================================================ */
 
 function findOrder(id){
 
@@ -1955,12 +2575,15 @@ function findOrder(id){
 }
 
 
-/* ================= ORDER DETAIL ================= */
+/* ============================================================
+   OPEN ORDER DETAIL
+============================================================ */
 
 async function openOrderDetail(id){
 
   const order =
     findOrder(id);
+
 
   if(!order){
 
@@ -1973,64 +2596,100 @@ async function openOrderDetail(id){
 
   }
 
+
   selectedOrder =
     order;
 
-  document
-    .getElementById("detailModal")
-    .classList.add("show");
+
+  const modal =
+    document.getElementById(
+      "detailModal"
+    );
+
+
+  modal.classList.add("show");
+
+  modal.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
 
   document
     .getElementById("detailTitle")
     .textContent =
       order.order_id ||
+      order.order_number ||
       order.id ||
       "Detail Pesanan";
 
+
   document
     .getElementById("detailStatus")
-    .innerHTML =
-      `<span class="status ${statusClass(order.status)}">
+    .innerHTML = `
+      <span
+        class="status ${statusClass(order.status)}"
+      >
         ${escapeHtml(
           statusLabel(order.status)
         )}
-      </span>`;
+      </span>
+    `;
+
 
   const body =
-    document.getElementById("detailBody");
+    document.getElementById(
+      "detailBody"
+    );
+
 
   body.innerHTML =
-    `<div class="loading">
-      Memuat item pesanan...
-    </div>`;
+    '<div class="loading">Memuat item pesanan...</div>';
 
 
   let items = [];
 
+
   try{
 
-    const {data,error} =
+    const result =
       await supabaseClient
         .from("order_items")
         .select("*")
-        .eq("order_id",order.id);
+        .eq(
+          "order_id",
+          order.id
+        );
 
-    if(error){
-      throw error;
+
+    if(result.error){
+
+      throw result.error;
+
     }
 
+
     items =
-      data || [];
+      result.data || [];
+
 
   }catch(error){
 
-    console.error(error);
+    console.error(
+      "Order items:",
+      error
+    );
 
-    body.innerHTML =
-      `<div class="error">
+
+    body.innerHTML = `
+      <div class="error">
         Gagal memuat item pesanan.<br>
-        ${escapeHtml(error.message || "")}
-      </div>`;
+        ${escapeHtml(
+          error.message ||
+          "Unknown error"
+        )}
+      </div>
+    `;
 
     return;
 
@@ -2042,21 +2701,37 @@ async function openOrderDetail(id){
     order.name ||
     "-";
 
+
   const email =
+    order.customer_email ||
     order.email ||
     "-";
 
+
   const phone =
+    order.customer_phone ||
     order.phone ||
     order.whatsapp ||
     "-";
+
 
   const address =
     order.shipping_address ||
     order.address ||
     "-";
 
-  const amount =
+
+  const subtotal =
+    order.subtotal ??
+    0;
+
+
+  const shippingFee =
+    order.shipping_fee ??
+    0;
+
+
+  const total =
     order.total_amount ??
     order.gross_amount ??
     order.total ??
@@ -2064,15 +2739,16 @@ async function openOrderDetail(id){
 
 
   let itemsHtml =
-    `<div class="items">`;
+    '<div class="items">';
 
 
   if(!items.length){
 
-    itemsHtml +=
-      `<div class="empty">
+    itemsHtml += `
+      <div class="empty">
         Tidak ada item yang ditemukan.
-      </div>`;
+      </div>
+    `;
 
   }else{
 
@@ -2083,19 +2759,31 @@ async function openOrderDetail(id){
         item.name ||
         "Produk";
 
-      const qty =
-        item.quantity ||
-        item.qty ||
+
+      const quantity =
+        item.quantity ??
+        item.qty ??
         1;
+
 
       const size =
         item.size ||
         "-";
 
-      const price =
-        item.price ||
-        item.unit_price ||
+
+      const unitPrice =
+        item.unit_price ??
+        item.price ??
         0;
+
+
+      const lineTotal =
+        item.line_total ??
+        (
+          Number(unitPrice) *
+          Number(quantity)
+        );
+
 
       itemsHtml += `
 
@@ -2108,16 +2796,18 @@ async function openOrderDetail(id){
             </div>
 
             <div class="item-meta">
-              Ukuran: ${escapeHtml(size)}
-              · Qty: ${escapeHtml(qty)}
+              Ukuran:
+              ${escapeHtml(size)}
+              · Qty:
+              ${escapeHtml(quantity)}
+              · Harga:
+              ${formatRupiah(unitPrice)}
             </div>
 
           </div>
 
           <strong>
-            ${formatRupiah(
-              Number(price) * Number(qty)
-            )}
+            ${formatRupiah(lineTotal)}
           </strong>
 
         </div>
@@ -2130,7 +2820,7 @@ async function openOrderDetail(id){
 
 
   itemsHtml +=
-    `</div>`;
+    "</div>";
 
 
   body.innerHTML = `
@@ -2179,17 +2869,21 @@ async function openOrderDetail(id){
       <div class="detail-box">
 
         <div class="detail-label">
-          Total
+          Status Pembayaran
         </div>
 
         <div class="detail-value">
-          ${formatRupiah(amount)}
+          ${escapeHtml(
+            order.payment_status ||
+            order.transaction_status ||
+            "-"
+          )}
         </div>
 
       </div>
 
 
-      <div class="detail-box">
+      <div class="detail-box full">
 
         <div class="detail-label">
           Alamat Pengiriman
@@ -2205,12 +2899,53 @@ async function openOrderDetail(id){
       <div class="detail-box">
 
         <div class="detail-label">
+          Subtotal
+        </div>
+
+        <div class="detail-value">
+          ${formatRupiah(subtotal)}
+        </div>
+
+      </div>
+
+
+      <div class="detail-box">
+
+        <div class="detail-label">
+          Ongkir
+        </div>
+
+        <div class="detail-value">
+          ${formatRupiah(shippingFee)}
+        </div>
+
+      </div>
+
+
+      <div class="detail-box">
+
+        <div class="detail-label">
+          Total
+        </div>
+
+        <div class="detail-value">
+          ${formatRupiah(total)}
+        </div>
+
+      </div>
+
+
+      <div class="detail-box">
+
+        <div class="detail-label">
           Dibuat
         </div>
 
         <div class="detail-value">
           ${escapeHtml(
-            formatDate(order.created_at)
+            formatDate(
+              order.created_at
+            )
           )}
         </div>
 
@@ -2229,16 +2964,18 @@ async function openOrderDetail(id){
     <div class="modal-actions">
 
       <button
+        id="detailChangeStatusBtn"
         class="btn"
         type="button"
-        onclick="changeStatus('${escapeHtml(String(order.id))}')">
+      >
         Ubah Status
       </button>
 
       <button
+        id="detailCloseBtn"
         class="btn btn-dark"
         type="button"
-        onclick="closeOrderDetail()">
+      >
         Tutup
       </button>
 
@@ -2246,153 +2983,366 @@ async function openOrderDetail(id){
 
   `;
 
-}
-
-
-/* ================= CLOSE DETAIL ================= */
-
-function closeOrderDetail(){
 
   document
-    .getElementById("detailModal")
-    .classList.remove("show");
-
-}
-
-
-/* ================= CHANGE STATUS ================= */
-
-const ADMIN_STATUS_OPTIONS = [
-  {value:"pending",title:"Pending",desc:"Pesanan baru menunggu pembayaran atau tindakan."},
-  {value:"paid",title:"Paid",desc:"Pembayaran sudah diterima."},
-  {value:"processing",title:"Diproses",desc:"Seller sedang menyiapkan pesanan."},
-  {value:"shipped",title:"Dikirim",desc:"Pesanan sudah diserahkan untuk pengiriman."},
-  {value:"completed",title:"Selesai",desc:"Pesanan sudah selesai diterima."},
-  {value:"cancelled",title:"Dibatalkan",desc:"Pesanan dibatalkan."},
-  {value:"failed",title:"Gagal",desc:"Pembayaran atau transaksi gagal."},
-  {value:"refunded",title:"Dikembalikan",desc:"Dana sudah dikembalikan kepada pembeli."}
-];
-
-let selectedStatus = "";
-let selectedStatusOrderId = "";
-
-function changeStatus(id){
-
-  const order = findOrder(id);
-
-  if(!order){
-    showNotice("Pesanan tidak ditemukan.","error");
-    return;
-  }
-
-  selectedOrder = order;
-  selectedStatusOrderId = String(order.id);
-  selectedStatus = order.status || "pending";
-
-  document.getElementById("statusOrderLabel").textContent =
-    order.order_id || order.id || "Pesanan";
-
-  document.getElementById("statusCurrent").innerHTML =
-    `<span class="status ${statusClass(selectedStatus)}">${escapeHtml(statusLabel(selectedStatus))}</span>`;
-
-  renderStatusOptions();
-
-  document.getElementById("statusModal").classList.add("show");
-}
-
-function renderStatusOptions(){
-
-  const container = document.getElementById("statusOptions");
-
-  container.innerHTML = ADMIN_STATUS_OPTIONS.map(option => `
-    <button
-      class="status-option ${selectedStatus === option.value ? "active" : ""}"
-      type="button"
-      data-status="${escapeHtml(option.value)}">
-
-      <span class="status-option-left">
-        <span class="status-dot"></span>
-        <span>
-          <span class="status-option-title">${escapeHtml(option.title)}</span>
-          <span class="status-option-desc">${escapeHtml(option.desc)}</span>
-        </span>
-      </span>
-
-      <span class="status-check">${selectedStatus === option.value ? "✓" : ""}</span>
-    </button>
-  `).join("");
-
-  container.querySelectorAll("[data-status]").forEach(button => {
-    button.addEventListener("click",()=>{
-      selectedStatus = button.dataset.status;
-      renderStatusOptions();
-    });
-  });
-}
-
-function closeStatusModal(){
-  document.getElementById("statusModal").classList.remove("show");
-  selectedStatus = "";
-  selectedStatusOrderId = "";
-}
-
-async function saveOrderStatus(){
-
-  if(!selectedStatusOrderId || !selectedStatus){
-    return;
-  }
-
-  const button = document.getElementById("saveStatusBtn");
-  const originalText = button.textContent;
-
-  button.disabled = true;
-  button.textContent = "Menyimpan...";
-
-  try{
-
-    const {data,error} = await supabaseClient.rpc(
-      "admin_update_order_status",
-      {
-        p_order_id:selectedStatusOrderId,
-        p_status:selectedStatus
+    .getElementById(
+      "detailChangeStatusBtn"
+    )
+    .addEventListener(
+      "click",
+      ()=>{
+        changeStatus(order.id);
       }
     );
 
-    if(error){
-      throw error;
-    }
 
-    if(!data?.ok){
-      throw new Error("Status pesanan gagal diperbarui.");
-    }
-
-    closeStatusModal();
-
-    showNotice("Status pesanan berhasil diperbarui.");
-
-    await loadOrders();
-
-    if(document.getElementById("detailModal").classList.contains("show")){
-      await openOrderDetail(selectedOrder?.id || selectedStatusOrderId);
-    }
-
-  }catch(error){
-
-    console.error("Admin update order status:",error);
-
-    showNotice(
-      error.message || "Gagal mengubah status pesanan.",
-      "error"
+  document
+    .getElementById(
+      "detailCloseBtn"
+    )
+    .addEventListener(
+      "click",
+      closeOrderDetail
     );
 
-  }finally{
-    button.disabled = false;
-    button.textContent = originalText;
-  }
 }
 
 
-/* ================= EVENTS ================= */
+/* ============================================================
+   CLOSE DETAIL
+============================================================ */
+
+function closeOrderDetail(){
+
+  const modal =
+    document.getElementById(
+      "detailModal"
+    );
+
+
+  modal.classList.remove("show");
+
+  modal.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+}
+
+
+/* ============================================================
+   CHANGE STATUS
+============================================================ */
+
+function changeStatus(id){
+
+  const order =
+    findOrder(id);
+
+
+  if(!order){
+
+    showNotice(
+      "Pesanan tidak ditemukan.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  selectedOrder =
+    order;
+
+
+  selectedStatusOrderId =
+    String(order.id);
+
+
+  selectedStatus =
+    order.status ||
+    "pending";
+
+
+  document
+    .getElementById(
+      "statusOrderLabel"
+    )
+    .textContent =
+      order.order_id ||
+      order.order_number ||
+      order.id ||
+      "Pesanan";
+
+
+  document
+    .getElementById(
+      "statusCurrent"
+    )
+    .innerHTML = `
+      <span
+        class="status ${statusClass(selectedStatus)}"
+      >
+        ${escapeHtml(
+          statusLabel(selectedStatus)
+        )}
+      </span>
+    `;
+
+
+  renderStatusOptions();
+
+
+  const modal =
+    document.getElementById(
+      "statusModal"
+    );
+
+
+  modal.classList.add("show");
+
+  modal.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+}
+
+
+/* ============================================================
+   RENDER STATUS OPTIONS
+============================================================ */
+
+function renderStatusOptions(){
+
+  const container =
+    document.getElementById(
+      "statusOptions"
+    );
+
+
+  container.innerHTML =
+    ADMIN_STATUS_OPTIONS
+      .map(option => `
+
+        <button
+          class="status-option ${
+            selectedStatus === option.value
+              ? "active"
+              : ""
+          }"
+          type="button"
+          data-status="${escapeHtml(option.value)}"
+        >
+
+          <span class="status-option-left">
+
+            <span class="status-dot"></span>
+
+            <span>
+
+              <span class="status-option-title">
+                ${escapeHtml(option.title)}
+              </span>
+
+              <span class="status-option-desc">
+                ${escapeHtml(option.desc)}
+              </span>
+
+            </span>
+
+          </span>
+
+
+          <span class="status-check">
+            ${
+              selectedStatus === option.value
+                ? "✓"
+                : ""
+            }
+          </span>
+
+        </button>
+
+      `)
+      .join("");
+
+
+  container
+    .querySelectorAll(
+      "[data-status]"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        ()=>{
+
+          selectedStatus =
+            button.dataset.status;
+
+
+          renderStatusOptions();
+
+        }
+      );
+
+    });
+
+}
+
+
+/* ============================================================
+   CLOSE STATUS MODAL
+============================================================ */
+
+function closeStatusModal(){
+
+  const modal =
+    document.getElementById(
+      "statusModal"
+    );
+
+
+  modal.classList.remove("show");
+
+  modal.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+
+  selectedStatus = "";
+
+  selectedStatusOrderId = "";
+
+}
+
+
+/* ============================================================
+   SAVE ORDER STATUS
+============================================================ */
+
+async function saveOrderStatus(){
+
+  if(
+    !selectedStatusOrderId ||
+    !selectedStatus
+  ){
+
+    return;
+
+  }
+
+
+  const button =
+    document.getElementById(
+      "saveStatusBtn"
+    );
+
+
+  const originalText =
+    button.textContent;
+
+
+  button.disabled = true;
+
+  button.textContent =
+    "Menyimpan...";
+
+
+  try{
+
+    const result =
+      await supabaseClient.rpc(
+        "admin_update_order_status",
+        {
+          p_order_id:
+            selectedStatusOrderId,
+
+          p_status:
+            selectedStatus
+        }
+      );
+
+
+    if(result.error){
+
+      throw result.error;
+
+    }
+
+
+    if(!result.data?.ok){
+
+      throw new Error(
+        "Status pesanan gagal diperbarui."
+      );
+
+    }
+
+
+    const updatedOrderId =
+      selectedStatusOrderId;
+
+
+    closeStatusModal();
+
+
+    showNotice(
+      "Status pesanan berhasil diperbarui.",
+      "success"
+    );
+
+
+    await loadOrders();
+
+
+    if(
+      document
+        .getElementById("detailModal")
+        .classList
+        .contains("show")
+    ){
+
+      await openOrderDetail(
+        updatedOrderId
+      );
+
+    }
+
+
+  }catch(error){
+
+    console.error(
+      "Admin update order status:",
+      error
+    );
+
+
+    showNotice(
+      error.message ||
+      "Gagal mengubah status pesanan.",
+      "error"
+    );
+
+
+  }finally{
+
+    button.disabled = false;
+
+    button.textContent =
+      originalText;
+
+  }
+
+}
+
+
+/* ============================================================
+   EVENTS
+============================================================ */
 
 document
   .getElementById("loginBtn")
@@ -2409,7 +3359,9 @@ document
     event => {
 
       if(event.key === "Enter"){
+
         login();
+
       }
 
     }
@@ -2463,7 +3415,8 @@ document
     event => {
 
       if(
-        event.target.id === "detailModal"
+        event.target.id ===
+        "detailModal"
       ){
 
         closeOrderDetail();
@@ -2503,50 +3456,98 @@ document
   .addEventListener(
     "click",
     event => {
-      if(event.target.id === "statusModal"){
+
+      if(
+        event.target.id ===
+        "statusModal"
+      ){
+
         closeStatusModal();
+
       }
+
     }
   );
 
 
-document.addEventListener("keydown",event=>{
-  if(event.key === "Escape"){
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if(event.key !== "Escape"){
+      return;
+    }
+
     closeStatusModal();
+
     closeOrderDetail();
+
   }
-});
+);
 
 
-/* ================= START ================= */
+/* ============================================================
+   AUTH STATE
+============================================================ */
 
-(async function startAdmin(){
+async function setupAuthListener(){
 
-  const ready = await initSupabase();
-
-  if(!ready){
+  if(!supabaseClient){
     return;
   }
 
-  /* ================= AUTH STATE ================= */
 
   supabaseClient.auth.onAuthStateChange(
-    (event,session) => {
+    (event,session)=>{
 
       if(event === "SIGNED_OUT"){
 
-        document
-          .getElementById("adminApp")
-          .classList.add("hidden");
+        currentUser = null;
 
-        document
-          .getElementById("loginScreen")
-          .classList.remove("hidden");
+        currentProfile = null;
+
+        orders = [];
+
+        showLogin();
+
+      }
+
+
+      if(
+        event === "TOKEN_REFRESHED" &&
+        session
+      ){
+
+        currentUser =
+          session.user;
 
       }
 
     }
   );
+
+}
+
+
+/* ============================================================
+   START
+============================================================ */
+
+(async function startAdmin(){
+
+  const ready =
+    await initSupabase();
+
+
+  if(!ready){
+
+    return;
+
+  }
+
+
+  await setupAuthListener();
+
 
   await checkSession();
 
@@ -2556,4 +3557,3 @@ document.addEventListener("keydown",event=>{
 
 </body>
 </html>
-```
