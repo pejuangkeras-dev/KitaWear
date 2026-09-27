@@ -4,38 +4,775 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KitaWear — Simple Style. Everyday Confidence.</title>
-<style>
-:root{--ink:#20252b;--muted:#73777c;--bg:#fff;--soft:#f5f4f1;--line:#e8e7e3;--green:#19a85b}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,Arial,sans-serif;color:var(--ink);background:#fff}
-button,input,textarea,select{font:inherit}button,a{font:inherit}a{text-decoration:none;color:inherit}
-.nav{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-.navin{max-width:1180px;margin:auto;padding:14px 24px;display:flex;align-items:center;gap:30px}.logo{display:flex;align-items:center;gap:10px;font-weight:850;font-size:24px;letter-spacing:-1px;white-space:nowrap}.hanger{font-size:30px}.tag{display:block;font-size:9px;letter-spacing:.3px;color:var(--muted);font-weight:500;margin-top:-2px}
-.links{display:flex;gap:26px;margin:auto;font-size:14px}.icons{display:flex;align-items:center;gap:15px}.icon{font-size:20px}.cart{border:1px solid var(--ink);border-radius:999px;background:#fff;padding:9px 15px;cursor:pointer;font-weight:700}
-.hero{max-width:1180px;margin:auto;padding:0 24px}.heroBox{min-height:390px;border-radius:0 0 24px 24px;overflow:hidden;background:linear-gradient(90deg,#eee9e1 0%,#e7e1d8 45%,#d8d2c8 100%);position:relative;display:flex;align-items:center}
-.heroCopy{width:50%;padding:50px 52px;position:relative;z-index:2}.eyebrow{text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:800;color:#666;margin-bottom:14px}
-h1{font-size:clamp(40px,5vw,64px);line-height:1.02;letter-spacing:-3px;margin:0 0 18px}.heroCopy p{font-size:16px;line-height:1.55;color:#555;max-width:500px}
-.wa{display:inline-flex;align-items:center;gap:9px;background:var(--green);color:#fff;border:0;border-radius:999px;padding:13px 20px;font-weight:800;cursor:pointer;margin-top:10px}
-.models{position:absolute;right:0;bottom:0;width:58%;height:100%;overflow:hidden;background:url('https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=88') center/cover no-repeat}.models:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#e7e1d8 0%,rgba(231,225,216,.25) 45%,rgba(231,225,216,0) 100%)}
-.categories{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:18px 0}.cat{background:#f7f7f6;border:1px solid #eee;border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;cursor:pointer}.catpic{width:50px;height:50px;border-radius:9px;background:linear-gradient(145deg,#dedbd5,#f7f5f1);display:flex;align-items:center;justify-content:center;font-size:27px}.cat strong{font-size:13px;display:block}.cat span{font-size:11px;color:var(--muted)}
-.section{max-width:1180px;margin:auto;padding:38px 24px}.sectionHead{display:flex;justify-content:space-between;align-items:end;margin-bottom:18px}.section h2{font-size:29px;letter-spacing:-1.2px;margin:0}.see{font-weight:700;font-size:13px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
-.card{position:relative;border:1px solid #e5e3de;border-radius:16px;overflow:hidden;background:#fff;transition:transform .2s ease,box-shadow .2s ease}.card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(32,37,43,.08)}
-.photo{height:310px;background:#eeeae4;position:relative;overflow:hidden;cursor:zoom-in}.photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s ease}.card:hover .photo img{transform:scale(1.04)}
-.photo:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 70%,rgba(0,0,0,.08));pointer-events:none}.heart{position:absolute;right:10px;top:10px;background:#fff;border-radius:50%;width:30px;height:30px;border:1px solid #ddd;cursor:pointer}.badge{position:absolute;left:9px;top:9px;background:#e74c3c;color:#fff;border-radius:5px;padding:5px 8px;font-size:10px;font-weight:800}
-.body{padding:12px}.body h3{margin:0 0 5px;font-size:15px}.price{font-size:16px;font-weight:850}.swatches{display:flex;gap:6px;margin:9px 0 7px}.sw{width:12px;height:12px;border-radius:50%;border:1px solid #ccc}.sizes-label{font-size:11px;color:var(--muted);margin:0 0 7px}.size-select{width:100%;border:1px solid #d9d9d9;border-radius:9px;background:#fff;padding:9px 10px;font-size:13px;outline:none}.size-select:focus{border-color:#111}.smallbtn{width:100%;padding:10px;border-radius:8px;border:0;background:#20252b;color:#fff;font-weight:700;cursor:pointer;margin-top:9px}.smallbtn:hover{opacity:.9}.smallbtn:disabled{opacity:.45;cursor:not-allowed}
-.perks{background:#f7f7f6;border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr)}.perk{padding:22px 18px;text-align:center;border-right:1px solid #ddd}.perk:last-child{border:0}.perk b{display:block;font-size:13px;margin-bottom:5px}.perk span{font-size:11px;color:var(--muted)}
-footer{background:#20252b;color:#fff;padding:30px 24px}.foot{max-width:1180px;margin:auto;display:flex;justify-content:space-between;align-items:center}.foot .tag{color:#bbb}.footlinks{display:flex;gap:22px;font-size:12px;color:#ccc}
-.drawer{position:fixed;right:18px;bottom:18px;width:min(430px,calc(100% - 36px));background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 20px 60px #0002;z-index:30;display:none}.drawer.show{display:block}.drawer h3{margin-top:0}.close{float:right;border:0;background:none;font-size:23px;cursor:pointer}
-.item{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.item-main{min-width:0}.item-name{font-weight:750}.item-meta{color:#666;font-size:12px;margin-top:3px}.item-actions{display:flex;align-items:center;gap:7px}.qtybtn{width:28px;height:28px;border:1px solid #ddd;background:#fff;border-radius:7px;cursor:pointer}.remove{border:0;background:none;color:#888;cursor:pointer}.total{display:flex;justify-content:space-between;font-weight:850;padding:14px 0}
-.wa-alt{width:100%;margin-top:9px;border:1px solid #19a85b;border-radius:12px;background:#fff;color:#12833f;padding:12px;font-weight:800;cursor:pointer}
-.checkout-modal{position:fixed;inset:0;background:rgba(0,0,0,.62);display:none;align-items:center;justify-content:center;padding:20px;z-index:120;backdrop-filter:blur(4px)}.checkout-modal.show{display:flex}
-.checkout-box{width:min(560px,94vw);max-height:90vh;overflow:auto;background:#fff;border-radius:22px;padding:26px;box-shadow:0 30px 90px rgba(0,0,0,.35);position:relative}.checkout-box h3{margin:0 0 5px;font-size:24px}.checkout-sub{color:#666;font-size:13px;margin-bottom:20px}
-.checkout-close{position:absolute;right:16px;top:14px;width:38px;height:38px;border:0;border-radius:50%;background:#f2f2f2;font-size:24px;cursor:pointer}.checkout-form{display:grid;gap:12px}.checkout-form label{font-size:13px;font-weight:700}.checkout-form input,.checkout-form textarea{width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:12px;padding:12px 13px;font:inherit;outline:none}.checkout-form input:focus,.checkout-form textarea:focus{border-color:#111}.checkout-form textarea{min-height:82px;resize:vertical}
-.checkout-summary{background:#f7f7f7;border-radius:14px;padding:14px;margin:16px 0}.checkout-summary-row{display:flex;justify-content:space-between;gap:12px;font-size:13px;margin:7px 0}.checkout-summary-total{display:flex;justify-content:space-between;font-weight:800;font-size:17px;border-top:1px solid #ddd;padding-top:11px;margin-top:10px}.paybtn{width:100%;border:0;border-radius:12px;background:#111;color:#fff;padding:14px 16px;font-weight:800;font-size:15px;cursor:pointer}.paybtn:disabled{opacity:.55;cursor:wait}.payment-note{font-size:11px;color:#777;text-align:center;margin-top:10px;line-height:1.5}
-.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:24px;z-index:100;backdrop-filter:blur(5px)}.lightbox.show{display:flex}.lightbox-content{position:relative;width:min(980px,94vw);max-height:94vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 72px 20px}.lightbox-content>#lightboxImg{display:block;max-width:min(72vw,760px);max-height:68vh;width:auto;height:auto;object-fit:contain;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.45);background:#fff}.lightbox-caption{margin-top:12px;color:#fff;font-size:15px;line-height:1.3;font-weight:700;text-align:center;white-space:nowrap;text-shadow:0 2px 8px rgba(0,0,0,.5)}.lightbox-thumbs{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:12px;min-height:58px}.lightbox-thumb{display:block;width:58px;height:58px;object-fit:cover;flex:0 0 58px;border-radius:10px;border:2px solid rgba(255,255,255,.45);cursor:pointer;background:#fff;opacity:.72}.lightbox-thumb.active{border-color:#fff;opacity:1}.lightbox-close{position:absolute;top:0;right:0;width:42px;height:42px;border:0;border-radius:50%;background:#fff;color:#111;font-size:28px;cursor:pointer;box-shadow:0 8px 25px rgba(0,0,0,.25);z-index:5}.lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border:0;border-radius:50%;background:#fff;color:#111;font-size:34px;cursor:pointer;box-shadow:0 8px 25px rgba(0,0,0,.25);z-index:5}.lightbox-prev{left:8px}.lightbox-next{right:8px}
-@media(max-width:900px){.links{display:none}.heroBox{min-height:500px}.heroCopy{width:65%;padding:38px 28px}.models{width:55%;opacity:.75}.categories{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:repeat(2,1fr)}.perks{grid-template-columns:repeat(2,1fr)}.perk{border-bottom:1px solid #ddd}}
-@media(max-width:560px){.models{opacity:.55;width:100%}.navin{padding:12px 15px}.icons{display:none}.hero{padding:0 12px}.heroCopy{width:100%;padding:38px 22px}.heroBox{min-height:520px}.models{width:100%;opacity:.35}.categories{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr 1fr;gap:9px}.photo{height:210px}.body{padding:10px}.section{padding:30px 15px}.perks{grid-template-columns:1fr 1fr}.foot{display:block;text-align:center}.footlinks{justify-content:center;margin-top:18px}.item{grid-template-columns:1fr}.item-actions{justify-content:flex-end}.lightbox{padding:16px}.lightbox-content{width:100%;max-height:94vh;padding:20px 50px 16px}.lightbox-content>#lightboxImg{max-width:78vw;max-height:62vh;border-radius:12px}.lightbox-thumb{width:48px;height:48px;max-width:48px;flex-basis:48px}.lightbox-caption{max-width:78vw;white-space:normal;font-size:13px}}
 
-/* KitaWear custom centered notification */
+<style>
+:root{
+  --ink:#20252b;
+  --muted:#73777c;
+  --bg:#fff;
+  --soft:#f5f4f1;
+  --line:#e8e7e3;
+  --green:#19a85b
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+
+body{
+  margin:0;
+  font-family:Inter,Arial,"Noto Sans Thai","Noto Sans SC",sans-serif;
+  color:var(--ink);
+  background:#fff
+}
+
+button,input,textarea,select{font:inherit}
+button,a{font:inherit}
+a{text-decoration:none;color:inherit}
+
+.nav{
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:rgba(255,255,255,.96);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line)
+}
+
+.navin{
+  max-width:1180px;
+  margin:auto;
+  padding:14px 24px;
+  display:flex;
+  align-items:center;
+  gap:30px
+}
+
+.logo{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:850;
+  font-size:24px;
+  letter-spacing:-1px;
+  white-space:nowrap
+}
+
+.hanger{font-size:30px}
+
+.tag{
+  display:block;
+  font-size:9px;
+  letter-spacing:.3px;
+  color:var(--muted);
+  font-weight:500;
+  margin-top:-2px
+}
+
+.language-select{
+  border:1px solid #ddd;
+  border-radius:999px;
+  background:#fff;
+  padding:8px 12px;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  outline:none
+}
+
+.links{
+  display:flex;
+  gap:26px;
+  margin:auto;
+  font-size:14px
+}
+
+.icons{
+  display:flex;
+  align-items:center;
+  gap:15px
+}
+
+.icon{font-size:20px}
+
+.cart{
+  border:1px solid var(--ink);
+  border-radius:999px;
+  background:#fff;
+  padding:9px 15px;
+  cursor:pointer;
+  font-weight:700
+}
+
+.hero{
+  max-width:1180px;
+  margin:auto;
+  padding:0 24px
+}
+
+.heroBox{
+  min-height:390px;
+  border-radius:0 0 24px 24px;
+  overflow:hidden;
+  background:linear-gradient(
+    90deg,
+    #eee9e1 0%,
+    #e7e1d8 45%,
+    #d8d2c8 100%
+  );
+  position:relative;
+  display:flex;
+  align-items:center
+}
+
+.heroCopy{
+  width:50%;
+  padding:50px 52px;
+  position:relative;
+  z-index:2
+}
+
+.eyebrow{
+  text-transform:uppercase;
+  letter-spacing:2px;
+  font-size:11px;
+  font-weight:800;
+  color:#666;
+  margin-bottom:14px
+}
+
+h1{
+  font-size:clamp(40px,5vw,64px);
+  line-height:1.02;
+  letter-spacing:-3px;
+  margin:0 0 18px
+}
+
+.heroCopy p{
+  font-size:16px;
+  line-height:1.55;
+  color:#555;
+  max-width:500px
+}
+
+.wa{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  background:var(--green);
+  color:#fff;
+  border:0;
+  border-radius:999px;
+  padding:13px 20px;
+  font-weight:800;
+  cursor:pointer;
+  margin-top:10px
+}
+
+.models{
+  position:absolute;
+  right:0;
+  bottom:0;
+  width:58%;
+  height:100%;
+  overflow:hidden;
+  background:url(
+    'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=88'
+  ) center/cover no-repeat
+}
+
+.models:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    90deg,
+    #e7e1d8 0%,
+    rgba(231,225,216,.25) 45%,
+    rgba(231,225,216,0) 100%
+  )
+}
+
+.categories{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:12px;
+  margin:18px 0
+}
+
+.cat{
+  background:#f7f7f6;
+  border:1px solid #eee;
+  border-radius:12px;
+  padding:12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  cursor:pointer
+}
+
+.catpic{
+  width:50px;
+  height:50px;
+  border-radius:9px;
+  background:linear-gradient(145deg,#dedbd5,#f7f5f1);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:27px
+}
+
+.cat strong{
+  font-size:13px;
+  display:block
+}
+
+.cat span{
+  font-size:11px;
+  color:var(--muted)
+}
+
+.section{
+  max-width:1180px;
+  margin:auto;
+  padding:38px 24px
+}
+
+.sectionHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+  margin-bottom:18px
+}
+
+.section h2{
+  font-size:29px;
+  letter-spacing:-1.2px;
+  margin:0
+}
+
+.see{
+  font-weight:700;
+  font-size:13px
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:18px
+}
+
+.card{
+  position:relative;
+  border:1px solid #e5e3de;
+  border-radius:16px;
+  overflow:hidden;
+  background:#fff;
+  transition:transform .2s ease,box-shadow .2s ease
+}
+
+.card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 12px 30px rgba(32,37,43,.08)
+}
+
+.photo{
+  height:310px;
+  background:#eeeae4;
+  position:relative;
+  overflow:hidden;
+  cursor:zoom-in
+}
+
+.photo img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  transition:transform .35s ease
+}
+
+.card:hover .photo img{
+  transform:scale(1.04)
+}
+
+.photo:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    180deg,
+    transparent 70%,
+    rgba(0,0,0,.08)
+  );
+  pointer-events:none
+}
+
+.heart{
+  position:absolute;
+  right:10px;
+  top:10px;
+  background:#fff;
+  border-radius:50%;
+  width:30px;
+  height:30px;
+  border:1px solid #ddd;
+  cursor:pointer
+}
+
+.badge{
+  position:absolute;
+  left:9px;
+  top:9px;
+  background:#e74c3c;
+  color:#fff;
+  border-radius:5px;
+  padding:5px 8px;
+  font-size:10px;
+  font-weight:800
+}
+
+.body{padding:12px}
+
+.body h3{
+  margin:0 0 5px;
+  font-size:15px
+}
+
+.price{
+  font-size:16px;
+  font-weight:850
+}
+
+.swatches{
+  display:flex;
+  gap:6px;
+  margin:9px 0 7px
+}
+
+.sw{
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  border:1px solid #ccc
+}
+
+.sizes-label{
+  font-size:11px;
+  color:var(--muted);
+  margin:0 0 7px
+}
+
+.size-select{
+  width:100%;
+  border:1px solid #d9d9d9;
+  border-radius:9px;
+  background:#fff;
+  padding:9px 10px;
+  font-size:13px;
+  outline:none
+}
+
+.size-select:focus{
+  border-color:#111
+}
+
+.smallbtn{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:0;
+  background:#20252b;
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+  margin-top:9px
+}
+
+.smallbtn:hover{opacity:.9}
+
+.smallbtn:disabled{
+  opacity:.45;
+  cursor:not-allowed
+}
+
+.perks{
+  background:#f7f7f6;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  display:grid;
+  grid-template-columns:repeat(4,1fr)
+}
+
+.perk{
+  padding:22px 18px;
+  text-align:center;
+  border-right:1px solid #ddd
+}
+
+.perk:last-child{border:0}
+
+.perk b{
+  display:block;
+  font-size:13px;
+  margin-bottom:5px
+}
+
+.perk span{
+  font-size:11px;
+  color:var(--muted)
+}
+
+footer{
+  background:#20252b;
+  color:#fff;
+  padding:30px 24px
+}
+
+.foot{
+  max-width:1180px;
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  align-items:center
+}
+
+.foot .tag{color:#bbb}
+
+.footlinks{
+  display:flex;
+  gap:22px;
+  font-size:12px;
+  color:#ccc
+}
+
+.drawer{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  width:min(430px,calc(100% - 36px));
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:20px;
+  box-shadow:0 20px 60px #0002;
+  z-index:30;
+  display:none
+}
+
+.drawer.show{display:block}
+
+.drawer h3{margin-top:0}
+
+.close{
+  float:right;
+  border:0;
+  background:none;
+  font-size:23px;
+  cursor:pointer
+}
+
+.item{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:8px;
+  padding:10px 0;
+  border-bottom:1px solid var(--line);
+  font-size:13px
+}
+
+.item-main{min-width:0}
+
+.item-name{font-weight:750}
+
+.item-meta{
+  color:#666;
+  font-size:12px;
+  margin-top:3px
+}
+
+.item-actions{
+  display:flex;
+  align-items:center;
+  gap:7px
+}
+
+.qtybtn{
+  width:28px;
+  height:28px;
+  border:1px solid #ddd;
+  background:#fff;
+  border-radius:7px;
+  cursor:pointer
+}
+
+.remove{
+  border:0;
+  background:none;
+  color:#888;
+  cursor:pointer
+}
+
+.total{
+  display:flex;
+  justify-content:space-between;
+  font-weight:850;
+  padding:14px 0
+}
+
+.wa-alt{
+  width:100%;
+  margin-top:9px;
+  border:1px solid #19a85b;
+  border-radius:12px;
+  background:#fff;
+  color:#12833f;
+  padding:12px;
+  font-weight:800;
+  cursor:pointer
+}
+
+.checkout-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.62);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:120;
+  backdrop-filter:blur(4px)
+}
+
+.checkout-modal.show{display:flex}
+
+.checkout-box{
+  width:min(560px,94vw);
+  max-height:90vh;
+  overflow:auto;
+  background:#fff;
+  border-radius:22px;
+  padding:26px;
+  box-shadow:0 30px 90px rgba(0,0,0,.35);
+  position:relative
+}
+
+.checkout-box h3{
+  margin:0 0 5px;
+  font-size:24px
+}
+
+.checkout-sub{
+  color:#666;
+  font-size:13px;
+  margin-bottom:20px
+}
+
+.checkout-close{
+  position:absolute;
+  right:16px;
+  top:14px;
+  width:38px;
+  height:38px;
+  border:0;
+  border-radius:50%;
+  background:#f2f2f2;
+  font-size:24px;
+  cursor:pointer
+}
+
+.checkout-form{
+  display:grid;
+  gap:12px
+}
+
+.checkout-form label{
+  font-size:13px;
+  font-weight:700
+}
+
+.checkout-form input,
+.checkout-form textarea{
+  width:100%;
+  box-sizing:border-box;
+  border:1px solid #ddd;
+  border-radius:12px;
+  padding:12px 13px;
+  font:inherit;
+  outline:none
+}
+
+.checkout-form input:focus,
+.checkout-form textarea:focus{
+  border-color:#111
+}
+
+.checkout-form textarea{
+  min-height:82px;
+  resize:vertical
+}
+
+.checkout-summary{
+  background:#f7f7f7;
+  border-radius:14px;
+  padding:14px;
+  margin:16px 0
+}
+
+.checkout-summary-row{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  font-size:13px;
+  margin:7px 0
+}
+
+.checkout-summary-total{
+  display:flex;
+  justify-content:space-between;
+  font-weight:800;
+  font-size:17px;
+  border-top:1px solid #ddd;
+  padding-top:11px;
+  margin-top:10px
+}
+
+.paybtn{
+  width:100%;
+  border:0;
+  border-radius:12px;
+  background:#111;
+  color:#fff;
+  padding:14px 16px;
+  font-weight:800;
+  font-size:15px;
+  cursor:pointer
+}
+
+.paybtn:disabled{
+  opacity:.55;
+  cursor:wait
+}
+
+.payment-note{
+  font-size:11px;
+  color:#777;
+  text-align:center;
+  margin-top:10px;
+  line-height:1.5
+}
+
+.lightbox{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.82);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  z-index:100;
+  backdrop-filter:blur(5px)
+}
+
+.lightbox.show{display:flex}
+
+.lightbox-content{
+  position:relative;
+  width:min(980px,94vw);
+  max-height:94vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:24px 72px 20px
+}
+
+.lightbox-content>#lightboxImg{
+  display:block;
+  max-width:min(72vw,760px);
+  max-height:68vh;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+  border-radius:16px;
+  box-shadow:0 24px 80px rgba(0,0,0,.45);
+  background:#fff
+}
+
+.lightbox-caption{
+  margin-top:12px;
+  color:#fff;
+  font-size:15px;
+  line-height:1.3;
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  text-shadow:0 2px 8px rgba(0,0,0,.5)
+}
+
+.lightbox-thumbs{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  align-items:center;
+  margin-top:12px;
+  min-height:58px
+}
+
+.lightbox-thumb{
+  display:block;
+  width:58px;
+  height:58px;
+  object-fit:cover;
+  flex:0 0 58px;
+  border-radius:10px;
+  border:2px solid rgba(255,255,255,.45);
+  cursor:pointer;
+  background:#fff;
+  opacity:.72
+}
+
+.lightbox-thumb.active{
+  border-color:#fff;
+  opacity:1
+}
+
+.lightbox-close{
+  position:absolute;
+  top:0;
+  right:0;
+  width:42px;
+  height:42px;
+  border:0;
+  border-radius:50%;
+  background:#fff;
+  color:#111;
+  font-size:28px;
+  cursor:pointer;
+  box-shadow:0 8px 25px rgba(0,0,0,.25);
+  z-index:5
+}
+
+.lightbox-nav{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  width:46px;
+  height:46px;
+  border:0;
+  border-radius:50%;
+  background:#fff;
+  color:#111;
+  font-size:34px;
+  cursor:pointer;
+  box-shadow:0 8px 25px rgba(0,0,0,.25);
+  z-index:5
+}
+
+.lightbox-prev{left:8px}
+.lightbox-next{right:8px}
+
+/* Custom centered notification */
+
 #kwNoticeOverlay{
   position:fixed;
   inset:0;
@@ -45,19 +782,22 @@ footer{background:#20252b;color:#fff;padding:30px 24px}.foot{max-width:1180px;ma
   justify-content:center;
   padding:24px;
   background:rgba(0,0,0,.42);
-  backdrop-filter:blur(3px);
+  backdrop-filter:blur(3px)
 }
+
 #kwNoticeOverlay.show{display:flex}
+
 .kw-notice{
-  width:min(420px, calc(100vw - 40px));
+  width:min(420px,calc(100vw - 40px));
   background:#fff;
   color:#171717;
   border-radius:22px;
   padding:28px 26px 24px;
   box-shadow:0 24px 70px rgba(0,0,0,.28);
   text-align:center;
-  animation:kwNoticeIn .18s ease-out;
+  animation:kwNoticeIn .18s ease-out
 }
+
 .kw-notice-icon{
   width:54px;
   height:54px;
@@ -68,19 +808,22 @@ footer{background:#20252b;color:#fff;padding:30px 24px}.foot{max-width:1180px;ma
   background:#111;
   color:#fff;
   font-size:26px;
-  font-weight:800;
+  font-weight:800
 }
+
 .kw-notice h3{
   margin:0 0 8px;
   font-size:20px;
-  line-height:1.25;
+  line-height:1.25
 }
+
 .kw-notice p{
   margin:0 auto 20px;
   color:#555;
   font-size:15px;
-  line-height:1.55;
+  line-height:1.55
 }
+
 .kw-notice button{
   width:100%;
   border:0;
@@ -90,190 +833,2284 @@ footer{background:#20252b;color:#fff;padding:30px 24px}.foot{max-width:1180px;ma
   color:#fff;
   font:inherit;
   font-weight:700;
-  cursor:pointer;
-}
-.kw-notice button:hover{opacity:.9}
-@keyframes kwNoticeIn{
-  from{opacity:0;transform:translateY(10px) scale(.97)}
-  to{opacity:1;transform:translateY(0) scale(1)}
-}
-@media (max-width:520px){
-  #kwNoticeOverlay{padding:18px}
-  .kw-notice{padding:24px 20px 20px;border-radius:18px}
+  cursor:pointer
 }
 
+.kw-notice button:hover{opacity:.9}
+
+@keyframes kwNoticeIn{
+  from{
+    opacity:0;
+    transform:translateY(10px) scale(.97)
+  }
+  to{
+    opacity:1;
+    transform:translateY(0) scale(1)
+  }
+}
+
+@media(max-width:900px){
+  .links{display:none}
+  .heroBox{min-height:500px}
+  .heroCopy{
+    width:65%;
+    padding:38px 28px
+  }
+  .models{
+    width:55%;
+    opacity:.75
+  }
+  .categories{
+    grid-template-columns:repeat(3,1fr)
+  }
+  .grid{
+    grid-template-columns:repeat(2,1fr)
+  }
+  .perks{
+    grid-template-columns:repeat(2,1fr)
+  }
+  .perk{
+    border-bottom:1px solid #ddd
+  }
+}
+
+@media(max-width:560px){
+  .language-select{
+    padding:7px 9px;
+    font-size:11px
+  }
+
+  .links{display:none}
+
+  .models{
+    opacity:.55;
+    width:100%
+  }
+
+  .navin{
+    padding:12px 15px
+  }
+
+  .icons{
+    display:none
+  }
+
+  .hero{
+    padding:0 12px
+  }
+
+  .heroCopy{
+    width:100%;
+    padding:38px 22px
+  }
+
+  .heroBox{
+    min-height:520px
+  }
+
+  .models{
+    width:100%;
+    opacity:.35
+  }
+
+  .categories{
+    grid-template-columns:repeat(2,1fr)
+  }
+
+  .grid{
+    grid-template-columns:1fr 1fr;
+    gap:9px
+  }
+
+  .photo{
+    height:210px
+  }
+
+  .body{
+    padding:10px
+  }
+
+  .section{
+    padding:30px 15px
+  }
+
+  .perks{
+    grid-template-columns:1fr 1fr
+  }
+
+  .foot{
+    display:block;
+    text-align:center
+  }
+
+  .footlinks{
+    justify-content:center;
+    margin-top:18px
+  }
+
+  .item{
+    grid-template-columns:1fr
+  }
+
+  .item-actions{
+    justify-content:flex-end
+  }
+
+  .lightbox{
+    padding:16px
+  }
+
+  .lightbox-content{
+    width:100%;
+    max-height:94vh;
+    padding:20px 50px 16px
+  }
+
+  .lightbox-content>#lightboxImg{
+    max-width:78vw;
+    max-height:62vh;
+    border-radius:12px
+  }
+
+  .lightbox-thumb{
+    width:48px;
+    height:48px;
+    max-width:48px;
+    flex-basis:48px
+  }
+
+  .lightbox-caption{
+    max-width:78vw;
+    white-space:normal;
+    font-size:13px
+  }
+
+  #kwNoticeOverlay{
+    padding:18px
+  }
+
+  .kw-notice{
+    padding:24px 20px 20px;
+    border-radius:18px
+  }
+}
 </style>
 </head>
+
 <body>
 
 <div id="kwNoticeOverlay" aria-hidden="true">
-  <div class="kw-notice" role="alertdialog" aria-modal="true"
-       aria-labelledby="kwNoticeTitle" aria-describedby="kwNoticeMessage">
+  <div class="kw-notice"
+       role="alertdialog"
+       aria-modal="true"
+       aria-labelledby="kwNoticeTitle"
+       aria-describedby="kwNoticeMessage">
+
     <div class="kw-notice-icon" id="kwNoticeIcon">!</div>
+
     <h3 id="kwNoticeTitle">Perlu dilengkapi</h3>
+
     <p id="kwNoticeMessage"></p>
-    <button type="button" id="kwNoticeButton" onclick="closeKwNotice()">Mengerti</button>
+
+    <button type="button"
+            id="kwNoticeButton"
+            onclick="closeKwNotice()">
+      Mengerti
+    </button>
   </div>
 </div>
 
-<nav class="nav"><div class="navin">
-<div class="logo"><span class="hanger">♧</span><span>KitaWear<span class="tag">Simple Style. Everyday Confidence.</span></span></div>
-<div class="links"><a href="#home">Beranda</a><a href="#produk">Produk</a><a href="#cara">Cara Beli</a><a href="#tentang">Tentang Kami</a><a href="#kontak">Kontak</a></div>
-<div class="icons"><span class="icon">⌕</span><span class="icon">♡</span><button class="cart" onclick="toggleCart()">🛒 <span id="count">0</span></button></div>
-</div></nav>
+<nav class="nav">
+  <div class="navin">
 
-<header class="hero" id="home"><div class="heroBox">
-<div class="heroCopy"><div class="eyebrow">Koleksi KitaWear</div><h1>Pakaian Nyaman<br>untuk Setiap Aktivitas</h1><p>Temukan koleksi pakaian pria dan wanita dengan desain modern dan harga terjangkau. Tampil percaya diri setiap hari bersama KitaWear.</p><button class="wa" onclick="openWA('Halo KitaWear, saya ingin melihat koleksi terbaru.')">◉ &nbsp;Chat WhatsApp&nbsp; →</button></div>
-<div class="models"></div>
-</div></header>
+    <div class="logo">
+      <span class="hanger">♧</span>
+      <span>
+        KitaWear
+        <span class="tag">
+          Simple Style. Everyday Confidence.
+        </span>
+      </span>
+    </div>
+
+    <div class="links">
+      <a href="#home" data-i18n="nav.home">Beranda</a>
+      <a href="#produk" data-i18n="nav.products">Produk</a>
+      <a href="#cara" data-i18n="nav.how">Cara Beli</a>
+      <a href="#tentang" data-i18n="nav.about">Tentang Kami</a>
+      <a href="#kontak" data-i18n="nav.contact">Kontak</a>
+    </div>
+
+    <div class="icons">
+
+      <select id="languageSelect"
+              class="language-select"
+              aria-label="Language">
+
+        <option value="id">ID</option>
+        <option value="en">EN</option>
+        <option value="vi">VI</option>
+        <option value="th">TH</option>
+        <option value="zh">CH</option>
+
+      </select>
+
+      <span class="icon">⌕</span>
+      <span class="icon">♡</span>
+
+      <button class="cart" onclick="toggleCart()">
+        🛒 <span id="count">0</span>
+      </button>
+
+    </div>
+
+  </div>
+</nav>
+
+<header class="hero" id="home">
+
+  <div class="heroBox">
+
+    <div class="heroCopy">
+
+      <div class="eyebrow" data-i18n="hero.eyebrow">
+        Koleksi KitaWear
+      </div>
+
+      <h1>
+        <span data-i18n="hero.title1">
+          Pakaian Nyaman
+        </span>
+        <br>
+        <span data-i18n="hero.title2">
+          untuk Setiap Aktivitas
+        </span>
+      </h1>
+
+      <p data-i18n="hero.desc">
+        Temukan koleksi pakaian pria dan wanita dengan desain modern
+        dan harga terjangkau. Tampil percaya diri setiap hari bersama KitaWear.
+      </p>
+
+      <button class="wa"
+              onclick="openWA(t('wa.latest'))">
+
+        ◉ &nbsp;
+
+        <span data-i18n="wa.button">
+          Chat WhatsApp
+        </span>
+
+        &nbsp; →
+
+      </button>
+
+    </div>
+
+    <div class="models"></div>
+
+  </div>
+
+</header>
 
 <main>
-<section class="hero" style="padding-top:0"><div class="categories">
-<a class="cat" href="#produk"><div class="catpic">👕</div><div><strong>Kaos</strong><span>Lihat Semua →</span></div></a>
-<a class="cat" href="#produk"><div class="catpic">👔</div><div><strong>Kemeja</strong><span>Lihat Semua →</span></div></a>
-<a class="cat" href="#produk"><div class="catpic">👖</div><div><strong>Celana</strong><span>Lihat Semua →</span></div></a>
-<a class="cat" href="#produk"><div class="catpic">🧥</div><div><strong>Hoodie</strong><span>Lihat Semua →</span></div></a>
-<a class="cat" href="#produk"><div class="catpic">👚</div><div><strong>Atasan Wanita</strong><span>Lihat Semua →</span></div></a>
-<a class="cat" href="#produk"><div class="catpic">🧥</div><div><strong>Jaket</strong><span>Lihat Semua →</span></div></a>
-</div></section>
 
-<section class="section" id="produk"><div class="sectionHead"><div><h2>Produk Terbaru</h2><div style="color:#777;font-size:13px;margin-top:5px">Pilih ukuran sebelum memasukkan produk ke keranjang.</div></div><a class="see" href="#produk">Lihat Semua Produk →</a></div><div class="grid" id="products"></div></section>
-<section class="perks" id="cara"><div class="perk">🚚<b>Pengiriman Cepat</b><span>Seluruh Indonesia</span></div><div class="perk">🛡️<b>Produk Berkualitas</b><span>Kualitas terjaga</span></div><div class="perk">↻<b>Mudah Dikembalikan</b><span>Jika ada masalah</span></div><div class="perk">♧<b>Butuh Bantuan?</b><span>Chat kami di WhatsApp</span></div></section>
-<section class="section" id="tentang"><h2>Tentang KitaWear</h2><p style="color:#666;max-width:700px;line-height:1.7">KitaWear menghadirkan pakaian simpel, nyaman, dan mudah dipadukan untuk aktivitas sehari-hari.</p></section>
-<section class="section" id="kontak"><h2>Siap belanja?</h2><p style="color:#666">Pilih ukuran produk langsung di website, lalu lanjutkan pembayaran atau pesan melalui WhatsApp.</p><button class="wa" onclick="openWA('Halo KitaWear, saya ingin bertanya tentang produk.')">◉ &nbsp;Chat WhatsApp</button></section>
+<section class="hero" style="padding-top:0">
+
+  <div class="categories">
+
+    <a class="cat" href="#produk">
+      <div class="catpic">👕</div>
+      <div>
+        <strong data-i18n="cat.tshirts">Kaos</strong>
+        <span data-i18n="cat.all">Lihat Semua →</span>
+      </div>
+    </a>
+
+    <a class="cat" href="#produk">
+      <div class="catpic">👔</div>
+      <div>
+        <strong data-i18n="cat.shirts">Kemeja</strong>
+        <span data-i18n="cat.all">Lihat Semua →</span>
+      </div>
+    </a>
+
+    <a class="cat" href="#produk">
+      <div class="catpic">👖</div>
+      <div>
+        <strong data-i18n="cat.pants">Celana</strong>
+        <span data-i18n="cat.all">Lihat Semua →</span>
+      </div>
+    </a>
+
+    <a class="cat" href="#produk">
+      <div class="catpic">🧥</div>
+      <div>
+        <strong data-i18n="cat.hoodie">Hoodie</strong>
+        <span data-i18n="cat.all">Lihat Semua →</span>
+      </div>
+    </a>
+
+    <a class="cat" href="#produk">
+      <div class="catpic">👚</div>
+      <div>
+        <strong data-i18n="cat.women">Atasan Wanita</strong>
+        <span data-i18n="cat.all">Lihat Semua →</span>
+      </div>
+    </a>
+
+    <a class="cat" href="#produk">
+      <div class="catpic">🧥</div>
+      <div>
+        <strong data-i18n="cat.jacket">Jaket</strong>
+        <span data-i18n="cat.all">Lihat Semua →</span>
+      </div>
+    </a>
+
+  </div>
+
+</section>
+
+<section class="section" id="produk">
+
+  <div class="sectionHead">
+
+    <div>
+
+      <h2 data-i18n="products.title">
+        Produk Terbaru
+      </h2>
+
+      <div data-i18n="products.subtitle"
+           style="color:#777;font-size:13px;margin-top:5px">
+        Pilih ukuran sebelum memasukkan produk ke keranjang.
+      </div>
+
+    </div>
+
+    <a class="see"
+       href="#produk"
+       data-i18n="products.all">
+      Lihat Semua Produk →
+    </a>
+
+  </div>
+
+  <div class="grid" id="products"></div>
+
+</section>
+
+<section class="perks" id="cara">
+
+  <div class="perk">
+    🚚
+    <b data-i18n="perk.shipping">
+      Pengiriman Cepat
+    </b>
+    <span data-i18n="perk.shippingSub">
+      Seluruh Indonesia
+    </span>
+  </div>
+
+  <div class="perk">
+    🛡️
+    <b data-i18n="perk.quality">
+      Produk Berkualitas
+    </b>
+    <span data-i18n="perk.qualitySub">
+      Kualitas terjaga
+    </span>
+  </div>
+
+  <div class="perk">
+    ↻
+    <b data-i18n="perk.return">
+      Mudah Dikembalikan
+    </b>
+    <span data-i18n="perk.returnSub">
+      Jika ada masalah
+    </span>
+  </div>
+
+  <div class="perk">
+    ♧
+    <b data-i18n="perk.help">
+      Butuh Bantuan?
+    </b>
+    <span data-i18n="perk.helpSub">
+      Chat kami di WhatsApp
+    </span>
+  </div>
+
+</section>
+
+<section class="section" id="tentang">
+
+  <h2 data-i18n="about.title">
+    Tentang KitaWear
+  </h2>
+
+  <p data-i18n="about.desc"
+     style="color:#666;max-width:700px;line-height:1.7">
+    KitaWear menghadirkan pakaian simpel, nyaman,
+    dan mudah dipadukan untuk aktivitas sehari-hari.
+  </p>
+
+</section>
+
+<section class="section" id="kontak">
+
+  <h2 data-i18n="contact.title">
+    Siap belanja?
+  </h2>
+
+  <p data-i18n="contact.desc"
+     style="color:#666">
+
+    Pilih ukuran produk langsung di website,
+    lalu lanjutkan pembayaran atau pesan melalui WhatsApp.
+
+  </p>
+
+  <button class="wa"
+          onclick="openWA(t('wa.question'))">
+
+    ◉ &nbsp;
+
+    <span data-i18n="wa.button">
+      Chat WhatsApp
+    </span>
+
+  </button>
+
+</section>
+
 </main>
 
-<footer><div class="foot"><div class="logo">♧ KitaWear<span class="tag">Simple Style. Everyday Confidence.</span></div><div class="footlinks"><a href="#home">Beranda</a><a href="#produk">Produk</a><a href="#cara">Cara Beli</a><a href="#kontak">Kontak</a></div><small>© 2026 KitaWear</small></div></footer>
+<footer>
 
-<div class="drawer" id="drawer"><button class="close" onclick="toggleCart()">×</button><h3>Keranjang Kamu</h3><div id="cartItems"></div><div class="total"><span>Total</span><span id="total">Rp0</span></div><button class="smallbtn" style="background:#111" onclick="openCheckout()">💳 Bayar Sekarang</button><button class="wa-alt" onclick="checkout()">Pesan via WhatsApp</button></div>
+  <div class="foot">
 
-<div class="checkout-modal" id="checkoutModal" onclick="closeCheckout(event)" aria-hidden="true">
-<div class="checkout-box" onclick="event.stopPropagation()">
-<button class="checkout-close" onclick="closeCheckout()" aria-label="Tutup">×</button>
-<h3>Checkout KitaWear</h3><div class="checkout-sub">Pastikan ukuran setiap produk sudah benar sebelum membayar.</div>
-<form class="checkout-form" id="checkoutForm" onsubmit="startPayment(event)">
-<div><label for="buyerName">Nama lengkap</label><input id="buyerName" required autocomplete="name" placeholder="Nama penerima"></div>
-<div><label for="buyerEmail">Email</label><input id="buyerEmail" type="email" required autocomplete="email" placeholder="nama@email.com"></div>
-<div><label for="buyerPhone">No. WhatsApp</label><input id="buyerPhone" required autocomplete="tel" placeholder="08xxxxxxxxxx"></div>
-<div><label for="buyerAddress">Alamat pengiriman</label><textarea id="buyerAddress" required autocomplete="street-address" placeholder="Alamat lengkap + kecamatan + kota/kabupaten + kode pos"></textarea></div>
-<div class="checkout-summary"><div id="checkoutItems"></div><div class="checkout-summary-total"><span>Total</span><span id="checkoutTotal">Rp0</span></div></div>
-<button class="paybtn" id="payButton" type="submit">Lanjut ke Pembayaran</button>
-<div class="payment-note">Pembayaran diproses melalui Midtrans. Jangan memasukkan PIN/OTP kepada pihak KitaWear.</div>
-</form>
-</div></div>
+    <div class="logo">
+      ♧ KitaWear
+      <span class="tag">
+        Simple Style. Everyday Confidence.
+      </span>
+    </div>
 
-<div class="lightbox" id="lightbox" onclick="closeLightbox(event)" aria-hidden="true">
-<div class="lightbox-content"><button class="lightbox-close" onclick="closeLightbox(event)" aria-label="Tutup">×</button><button class="lightbox-nav lightbox-prev" onclick="changeLightbox(-1)" aria-label="Foto sebelumnya">‹</button><img id="lightboxImg" src="" alt=""><button class="lightbox-nav lightbox-next" onclick="changeLightbox(1)" aria-label="Foto berikutnya">›</button><div class="lightbox-caption" id="lightboxCaption"></div><div class="lightbox-thumbs" id="lightboxThumbs"></div></div>
+    <div class="footlinks">
+
+      <a href="#home" data-i18n="nav.home">
+        Beranda
+      </a>
+
+      <a href="#produk" data-i18n="nav.products">
+        Produk
+      </a>
+
+      <a href="#cara" data-i18n="nav.how">
+        Cara Beli
+      </a>
+
+      <a href="#kontak" data-i18n="nav.contact">
+        Kontak
+      </a>
+
+    </div>
+
+    <small>
+      © 2026 KitaWear
+    </small>
+
+  </div>
+
+</footer>
+
+<div class="drawer" id="drawer">
+
+  <button class="close"
+          onclick="toggleCart()">
+    ×
+  </button>
+
+  <h3 data-i18n="cart.title">
+    Keranjang Kamu
+  </h3>
+
+  <div id="cartItems"></div>
+
+  <div class="total">
+    <span data-i18n="cart.total">
+      Total
+    </span>
+
+    <span id="total">
+      Rp0
+    </span>
+  </div>
+
+  <button class="smallbtn"
+          style="background:#111"
+          onclick="openCheckout()">
+
+    💳
+
+    <span data-i18n="cart.pay">
+      Bayar Sekarang
+    </span>
+
+  </button>
+
+  <button class="wa-alt"
+          onclick="checkout()"
+          data-i18n="cart.whatsapp">
+
+    Pesan via WhatsApp
+
+  </button>
+
+</div>
+
+<div class="checkout-modal"
+     id="checkoutModal"
+     onclick="closeCheckout(event)"
+     aria-hidden="true">
+
+  <div class="checkout-box"
+       onclick="event.stopPropagation()">
+
+    <button class="checkout-close"
+            onclick="closeCheckout()"
+            aria-label="Tutup">
+
+      ×
+
+    </button>
+
+    <h3 data-i18n="checkout.title">
+      Checkout KitaWear
+    </h3>
+
+    <div class="checkout-sub"
+         data-i18n="checkout.sub">
+
+      Pastikan ukuran setiap produk
+      sudah benar sebelum membayar.
+
+    </div>
+
+    <form class="checkout-form"
+          id="checkoutForm"
+          onsubmit="startPayment(event)">
+
+      <div>
+
+        <label for="buyerName"
+               data-i18n="checkout.name">
+          Nama lengkap
+        </label>
+
+        <input id="buyerName"
+               required
+               autocomplete="name"
+               data-i18n-placeholder="checkout.namePh"
+               placeholder="Nama penerima">
+
+      </div>
+
+      <div>
+
+        <label for="buyerEmail"
+               data-i18n="checkout.email">
+          Email
+        </label>
+
+        <input id="buyerEmail"
+               type="email"
+               required
+               autocomplete="email"
+               placeholder="nama@email.com">
+
+      </div>
+
+      <div>
+
+        <label for="buyerPhone"
+               data-i18n="checkout.phone">
+          WhatsApp
+        </label>
+
+        <input id="buyerPhone"
+               required
+               autocomplete="tel"
+               placeholder="08xxxxxxxxxx">
+
+      </div>
+
+      <div>
+
+        <label for="buyerAddress"
+               data-i18n="checkout.address">
+          Alamat
+        </label>
+
+        <textarea id="buyerAddress"
+                  required
+                  data-i18n-placeholder="checkout.addressPh"
+                  placeholder="Alamat lengkap"></textarea>
+
+      </div>
+
+      <div class="checkout-summary">
+
+        <div id="checkoutItems"></div>
+
+        <div class="checkout-summary-total">
+
+          <span data-i18n="cart.total">
+            Total
+          </span>
+
+          <span id="checkoutTotal">
+            Rp0
+          </span>
+
+        </div>
+
+      </div>
+
+      <button class="paybtn"
+              id="payButton"
+              type="submit"
+              data-i18n="checkout.pay">
+
+        Lanjut ke Pembayaran
+
+      </button>
+
+      <div class="payment-note"
+           data-i18n="checkout.note">
+
+        Pembayaran melalui Midtrans.
+        Jangan berikan PIN atau OTP kepada siapa pun.
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+<div class="lightbox"
+     id="lightbox"
+     onclick="closeLightbox(event)">
+
+  <div class="lightbox-content">
+
+    <button class="lightbox-close"
+            onclick="closeLightbox(event)">
+      ×
+    </button>
+
+    <button class="lightbox-nav lightbox-prev"
+            onclick="changeLightbox(-1)">
+      ‹
+    </button>
+
+    <img id="lightboxImg"
+         src=""
+         alt="">
+
+    <button class="lightbox-nav lightbox-next"
+            onclick="changeLightbox(1)">
+      ›
+    </button>
+
+    <div class="lightbox-caption"
+         id="lightboxCaption">
+    </div>
+
+    <div class="lightbox-thumbs"
+         id="lightboxThumbs">
+    </div>
+
+  </div>
+
 </div>
 
 <script>
+
+const translations = {
+
+id: {
+"nav.home":"Beranda",
+"nav.products":"Produk",
+"nav.how":"Cara Beli",
+"nav.about":"Tentang Kami",
+"nav.contact":"Kontak",
+
+"hero.eyebrow":"Koleksi KitaWear",
+"hero.title1":"Pakaian Nyaman",
+"hero.title2":"untuk Setiap Aktivitas",
+"hero.desc":"Temukan koleksi pakaian pria dan wanita dengan desain modern dan harga terjangkau. Tampil percaya diri setiap hari bersama KitaWear.",
+
+"wa.button":"Chat WhatsApp",
+"wa.latest":"Halo KitaWear, saya ingin melihat koleksi terbaru.",
+"wa.question":"Halo KitaWear, saya ingin bertanya tentang produk.",
+
+"cat.tshirts":"Kaos",
+"cat.shirts":"Kemeja",
+"cat.pants":"Celana",
+"cat.hoodie":"Hoodie",
+"cat.women":"Atasan Wanita",
+"cat.jacket":"Jaket",
+"cat.all":"Lihat Semua →",
+
+"products.title":"Produk Terbaru",
+"products.subtitle":"Pilih ukuran sebelum memasukkan produk ke keranjang.",
+"products.all":"Lihat Semua Produk →",
+
+"perk.shipping":"Pengiriman Cepat",
+"perk.shippingSub":"Seluruh Indonesia",
+"perk.quality":"Produk Berkualitas",
+"perk.qualitySub":"Kualitas terjaga",
+"perk.return":"Mudah Dikembalikan",
+"perk.returnSub":"Jika ada masalah",
+"perk.help":"Butuh Bantuan?",
+"perk.helpSub":"Chat kami di WhatsApp",
+
+"about.title":"Tentang KitaWear",
+"about.desc":"KitaWear menghadirkan pakaian simpel, nyaman, dan mudah dipadukan untuk aktivitas sehari-hari.",
+
+"contact.title":"Siap belanja?",
+"contact.desc":"Pilih ukuran produk langsung di website, lalu lanjutkan pembayaran atau pesan melalui WhatsApp.",
+
+"cart.title":"Keranjang Kamu",
+"cart.total":"Total",
+"cart.pay":"Bayar Sekarang",
+"cart.whatsapp":"Pesan via WhatsApp",
+"cart.empty":"Keranjang masih kosong.",
+"cart.emptyTitle":"Keranjang Kosong",
+"cart.size":"Ukuran",
+"cart.qty":"Jumlah",
+
+"checkout.title":"Checkout KitaWear",
+"checkout.sub":"Pastikan ukuran setiap produk sudah benar sebelum membayar.",
+"checkout.name":"Nama lengkap",
+"checkout.namePh":"Nama penerima",
+"checkout.email":"Email",
+"checkout.phone":"Nomor WhatsApp",
+"checkout.address":"Alamat pengiriman",
+"checkout.addressPh":"Alamat lengkap + kecamatan + kota/provinsi + kode pos",
+"checkout.pay":"Lanjut ke Pembayaran",
+"checkout.preparing":"Menyiapkan pembayaran...",
+"checkout.note":"Pembayaran diproses melalui Midtrans. Jangan berikan PIN/OTP kepada KitaWear.",
+
+"product.sizeLabel":"Pilih ukuran:",
+"product.sizePlaceholder":"Pilih ukuran",
+"product.sizeAria":"Ukuran",
+"product.add":"Tambah ke Keranjang",
+"product.favorite":"Favorit",
+"product.selectSizeBefore":"Silakan pilih ukuran untuk",
+"product.badge":"Best Seller",
+
+"notice.title":"Perlu dilengkapi",
+
+"payment.success":"Pembayaran berhasil. Terima kasih telah berbelanja di KitaWear!",
+"payment.successTitle":"Pembayaran Berhasil",
+"payment.pending":"Pembayaran belum selesai. Silakan ikuti petunjuk pembayaran dari Midtrans.",
+"payment.pendingTitle":"Menunggu Pembayaran",
+"payment.failed":"Pembayaran gagal. Silakan coba lagi.",
+"payment.failedTitle":"Pembayaran Gagal",
+"payment.configError":"Konfigurasi pembayaran belum tersedia.",
+"payment.loadError":"Midtrans Snap tidak dapat dimuat.",
+"payment.transactionError":"Transaksi tidak dapat dibuat.",
+"payment.error":"Terjadi kesalahan saat menyiapkan pembayaran.",
+"payment.errorTitle":"Terjadi Kesalahan",
+
+"wa.orderIntro":"Halo KitaWear, saya ingin memesan:",
+"wa.confirm":"Mohon konfirmasi stok dan pengiriman."
+},
+
+en: {
+"nav.home":"Home",
+"nav.products":"Products",
+"nav.how":"How to Buy",
+"nav.about":"About Us",
+"nav.contact":"Contact",
+
+"hero.eyebrow":"KitaWear Collection",
+"hero.title1":"Comfortable Clothes",
+"hero.title2":"for Every Activity",
+"hero.desc":"Discover modern and affordable clothing for men and women. Feel confident every day with KitaWear.",
+
+"wa.button":"Chat on WhatsApp",
+"wa.latest":"Hi KitaWear, I'd like to see the latest collection.",
+"wa.question":"Hi KitaWear, I'd like to ask about a product.",
+
+"cat.tshirts":"T-Shirts",
+"cat.shirts":"Shirts",
+"cat.pants":"Pants",
+"cat.hoodie":"Hoodies",
+"cat.women":"Women's Tops",
+"cat.jacket":"Jackets",
+"cat.all":"View All →",
+
+"products.title":"Latest Products",
+"products.subtitle":"Choose a size before adding a product to your cart.",
+"products.all":"View All Products →",
+
+"perk.shipping":"Fast Shipping",
+"perk.shippingSub":"Across Indonesia",
+"perk.quality":"Quality Products",
+"perk.qualitySub":"Quality guaranteed",
+"perk.return":"Easy Returns",
+"perk.returnSub":"If there is a problem",
+"perk.help":"Need Help?",
+"perk.helpSub":"Chat with us on WhatsApp",
+
+"about.title":"About KitaWear",
+"about.desc":"KitaWear offers simple, comfortable and easy-to-style clothing for everyday activities.",
+
+"contact.title":"Ready to shop?",
+"contact.desc":"Choose your product size on the website, then continue to payment or order via WhatsApp.",
+
+"cart.title":"Your Cart",
+"cart.total":"Total",
+"cart.pay":"Pay Now",
+"cart.whatsapp":"Order via WhatsApp",
+"cart.empty":"Your cart is empty.",
+"cart.emptyTitle":"Empty Cart",
+"cart.size":"Size",
+"cart.qty":"Qty",
+
+"checkout.title":"KitaWear Checkout",
+"checkout.sub":"Make sure every product size is correct before payment.",
+"checkout.name":"Full name",
+"checkout.namePh":"Recipient name",
+"checkout.email":"Email",
+"checkout.phone":"WhatsApp number",
+"checkout.address":"Shipping address",
+"checkout.addressPh":"Full address + district + city/province + postal code",
+"checkout.pay":"Continue to Payment",
+"checkout.preparing":"Preparing payment...",
+"checkout.note":"Payment is processed through Midtrans. Never share your PIN/OTP with KitaWear.",
+
+"product.sizeLabel":"Choose size:",
+"product.sizePlaceholder":"Choose size",
+"product.sizeAria":"Size",
+"product.add":"Add to Cart",
+"product.favorite":"Favorite",
+"product.selectSizeBefore":"Please choose a size for",
+"product.badge":"Best Seller",
+
+"notice.title":"Please complete",
+
+"payment.success":"Payment successful. Thank you for shopping at KitaWear!",
+"payment.successTitle":"Payment Successful",
+"payment.pending":"Payment is not complete yet. Please follow the Midtrans payment instructions.",
+"payment.pendingTitle":"Payment Pending",
+"payment.failed":"Payment failed. Please try again.",
+"payment.failedTitle":"Payment Failed",
+"payment.configError":"Payment configuration is unavailable.",
+"payment.loadError":"Midtrans Snap could not be loaded.",
+"payment.transactionError":"Unable to create transaction.",
+"payment.error":"An error occurred while preparing payment.",
+"payment.errorTitle":"Error",
+
+"wa.orderIntro":"Hi KitaWear, I would like to order:",
+"wa.confirm":"Please confirm stock and shipping."
+},
+
+vi: {
+"nav.home":"Trang chủ",
+"nav.products":"Sản phẩm",
+"nav.how":"Cách mua",
+"nav.about":"Về chúng tôi",
+"nav.contact":"Liên hệ",
+
+"hero.eyebrow":"Bộ sưu tập KitaWear",
+"hero.title1":"Trang phục thoải mái",
+"hero.title2":"cho mọi hoạt động",
+"hero.desc":"Khám phá thời trang nam nữ với thiết kế hiện đại và giá hợp lý. Tự tin mỗi ngày cùng KitaWear.",
+
+"wa.button":"Chat WhatsApp",
+"wa.latest":"Xin chào KitaWear, tôi muốn xem bộ sưu tập mới nhất.",
+"wa.question":"Xin chào KitaWear, tôi muốn hỏi về một sản phẩm.",
+
+"cat.tshirts":"Áo thun",
+"cat.shirts":"Áo sơ mi",
+"cat.pants":"Quần",
+"cat.hoodie":"Áo hoodie",
+"cat.women":"Áo nữ",
+"cat.jacket":"Áo khoác",
+"cat.all":"Xem tất cả →",
+
+"products.title":"Sản phẩm mới",
+"products.subtitle":"Vui lòng chọn kích cỡ trước khi thêm sản phẩm vào giỏ.",
+"products.all":"Xem tất cả sản phẩm →",
+
+"perk.shipping":"Giao hàng nhanh",
+"perk.shippingSub":"Toàn Indonesia",
+"perk.quality":"Sản phẩm chất lượng",
+"perk.qualitySub":"Đảm bảo chất lượng",
+"perk.return":"Dễ dàng đổi trả",
+"perk.returnSub":"Nếu có vấn đề",
+"perk.help":"Cần trợ giúp?",
+"perk.helpSub":"Chat với chúng tôi qua WhatsApp",
+
+"about.title":"Về KitaWear",
+"about.desc":"KitaWear mang đến những trang phục đơn giản, thoải mái và dễ phối cho cuộc sống hàng ngày.",
+
+"contact.title":"Sẵn sàng mua sắm?",
+"contact.desc":"Chọn kích cỡ sản phẩm trên website, sau đó thanh toán hoặc đặt hàng qua WhatsApp.",
+
+"cart.title":"Giỏ hàng",
+"cart.total":"Tổng cộng",
+"cart.pay":"Thanh toán ngay",
+"cart.whatsapp":"Đặt hàng qua WhatsApp",
+"cart.empty":"Giỏ hàng đang trống.",
+"cart.emptyTitle":"Giỏ hàng trống",
+"cart.size":"Kích cỡ",
+"cart.qty":"Số lượng",
+
+"checkout.title":"Thanh toán KitaWear",
+"checkout.sub":"Hãy đảm bảo kích cỡ của từng sản phẩm chính xác trước khi thanh toán.",
+"checkout.name":"Họ và tên",
+"checkout.namePh":"Tên người nhận",
+"checkout.email":"Email",
+"checkout.phone":"Số WhatsApp",
+"checkout.address":"Địa chỉ giao hàng",
+"checkout.addressPh":"Địa chỉ đầy đủ + quận/huyện + thành phố/tỉnh + mã bưu điện",
+"checkout.pay":"Tiếp tục thanh toán",
+"checkout.preparing":"Đang chuẩn bị thanh toán...",
+"checkout.note":"Thanh toán được xử lý qua Midtrans. Không cung cấp mã PIN/OTP cho KitaWear.",
+
+"product.sizeLabel":"Chọn kích cỡ:",
+"product.sizePlaceholder":"Chọn kích cỡ",
+"product.sizeAria":"Kích cỡ",
+"product.add":"Thêm vào giỏ",
+"product.favorite":"Yêu thích",
+"product.selectSizeBefore":"Vui lòng chọn kích cỡ cho",
+"product.badge":"Bán chạy",
+
+"notice.title":"Vui lòng hoàn tất",
+
+"payment.success":"Thanh toán thành công. Cảm ơn bạn đã mua sắm tại KitaWear!",
+"payment.successTitle":"Thanh toán thành công",
+"payment.pending":"Thanh toán chưa hoàn tất. Vui lòng làm theo hướng dẫn của Midtrans.",
+"payment.pendingTitle":"Đang chờ thanh toán",
+"payment.failed":"Thanh toán thất bại. Vui lòng thử lại.",
+"payment.failedTitle":"Thanh toán thất bại",
+"payment.configError":"Cấu hình thanh toán chưa khả dụng.",
+"payment.loadError":"Không thể tải Midtrans Snap.",
+"payment.transactionError":"Không thể tạo giao dịch.",
+"payment.error":"Đã xảy ra lỗi khi chuẩn bị thanh toán.",
+"payment.errorTitle":"Đã xảy ra lỗi",
+
+"wa.orderIntro":"Xin chào KitaWear, tôi muốn đặt:",
+"wa.confirm":"Vui lòng xác nhận tồn kho và giao hàng."
+},
+
+th: {
+"nav.home":"หน้าหลัก",
+"nav.products":"สินค้า",
+"nav.how":"วิธีสั่งซื้อ",
+"nav.about":"เกี่ยวกับเรา",
+"nav.contact":"ติดต่อ",
+
+"hero.eyebrow":"คอลเลกชัน KitaWear",
+"hero.title1":"เสื้อผ้าที่สวมใส่สบาย",
+"hero.title2":"สำหรับทุกกิจกรรม",
+"hero.desc":"ค้นพบเสื้อผ้าผู้ชายและผู้หญิงดีไซน์ทันสมัยในราคาที่เข้าถึงได้ มั่นใจทุกวันกับ KitaWear",
+
+"wa.button":"แชท WhatsApp",
+"wa.latest":"สวัสดี KitaWear ฉันต้องการดูคอลเลกชันล่าสุด",
+"wa.question":"สวัสดี KitaWear ฉันต้องการสอบถามเกี่ยวกับสินค้า",
+
+"cat.tshirts":"เสื้อยืด",
+"cat.shirts":"เสื้อเชิ้ต",
+"cat.pants":"กางเกง",
+"cat.hoodie":"เสื้อฮู้ด",
+"cat.women":"เสื้อผู้หญิง",
+"cat.jacket":"แจ็กเก็ต",
+"cat.all":"ดูทั้งหมด →",
+
+"products.title":"สินค้าล่าสุด",
+"products.subtitle":"กรุณาเลือกไซซ์ก่อนเพิ่มสินค้าในตะกร้า",
+"products.all":"ดูสินค้าทั้งหมด →",
+
+"perk.shipping":"จัดส่งรวดเร็ว",
+"perk.shippingSub":"ทั่วอินโดนีเซีย",
+"perk.quality":"สินค้าคุณภาพ",
+"perk.qualitySub":"รับประกันคุณภาพ",
+"perk.return":"คืนสินค้าได้ง่าย",
+"perk.returnSub":"หากมีปัญหา",
+"perk.help":"ต้องการความช่วยเหลือ?",
+"perk.helpSub":"แชทกับเราทาง WhatsApp",
+
+"about.title":"เกี่ยวกับ KitaWear",
+"about.desc":"KitaWear นำเสนอเสื้อผ้าที่เรียบง่าย สวมใส่สบาย และแมตช์ง่ายสำหรับทุกวัน",
+
+"contact.title":"พร้อมช้อปแล้วหรือยัง?",
+"contact.desc":"เลือกไซซ์สินค้าบนเว็บไซต์ จากนั้นชำระเงินหรือสั่งซื้อผ่าน WhatsApp",
+
+"cart.title":"ตะกร้าของคุณ",
+"cart.total":"รวมทั้งหมด",
+"cart.pay":"ชำระเงิน",
+"cart.whatsapp":"สั่งซื้อผ่าน WhatsApp",
+"cart.empty":"ตะกร้ายังว่างอยู่",
+"cart.emptyTitle":"ตะกร้าว่าง",
+"cart.size":"ไซซ์",
+"cart.qty":"จำนวน",
+
+"checkout.title":"ชำระเงิน KitaWear",
+"checkout.sub":"ตรวจสอบไซซ์ของสินค้าแต่ละรายการให้ถูกต้องก่อนชำระเงิน",
+"checkout.name":"ชื่อ-นามสกุล",
+"checkout.namePh":"ชื่อผู้รับ",
+"checkout.email":"อีเมล",
+"checkout.phone":"หมายเลข WhatsApp",
+"checkout.address":"ที่อยู่จัดส่ง",
+"checkout.addressPh":"ที่อยู่เต็ม + เขต/อำเภอ + เมือง/จังหวัด + รหัสไปรษณีย์",
+"checkout.pay":"ดำเนินการชำระเงิน",
+"checkout.preparing":"กำลังเตรียมการชำระเงิน...",
+"checkout.note":"การชำระเงินดำเนินการผ่าน Midtrans กรุณาอย่าให้ PIN/OTP แก่ KitaWear",
+
+"product.sizeLabel":"เลือกไซซ์:",
+"product.sizePlaceholder":"เลือกไซซ์",
+"product.sizeAria":"ไซซ์",
+"product.add":"เพิ่มลงตะกร้า",
+"product.favorite":"รายการโปรด",
+"product.selectSizeBefore":"กรุณาเลือกไซซ์สำหรับ",
+"product.badge":"ขายดี",
+
+"notice.title":"กรุณากรอกข้อมูลให้ครบ",
+
+"payment.success":"ชำระเงินสำเร็จ ขอบคุณที่ช้อปกับ KitaWear!",
+"payment.successTitle":"ชำระเงินสำเร็จ",
+"payment.pending":"การชำระเงินยังไม่เสร็จ กรุณาทำตามคำแนะนำของ Midtrans",
+"payment.pendingTitle":"รอการชำระเงิน",
+"payment.failed":"ชำระเงินไม่สำเร็จ กรุณาลองอีกครั้ง",
+"payment.failedTitle":"ชำระเงินไม่สำเร็จ",
+"payment.configError":"ยังไม่มีการตั้งค่าการชำระเงิน",
+"payment.loadError":"ไม่สามารถโหลด Midtrans Snap ได้",
+"payment.transactionError":"ไม่สามารถสร้างรายการสั่งซื้อได้",
+"payment.error":"เกิดข้อผิดพลาดขณะเตรียมการชำระเงิน",
+"payment.errorTitle":"เกิดข้อผิดพลาด",
+
+"wa.orderIntro":"สวัสดี KitaWear ฉันต้องการสั่งซื้อ:",
+"wa.confirm":"โปรดยืนยันสต็อกและการจัดส่ง"
+},
+
+zh: {
+"nav.home":"首页",
+"nav.products":"产品",
+"nav.how":"购买方式",
+"nav.about":"关于我们",
+"nav.contact":"联系我们",
+
+"hero.eyebrow":"KitaWear 系列",
+"hero.title1":"舒适服装",
+"hero.title2":"适合每一种活动",
+"hero.desc":"探索现代设计、价格亲民的男装与女装。穿上 KitaWear，每天自信出发。",
+
+"wa.button":"WhatsApp 联系",
+"wa.latest":"你好 KitaWear，我想看看最新系列。",
+"wa.question":"你好 KitaWear，我想咨询一件商品。",
+
+"cat.tshirts":"T恤",
+"cat.shirts":"衬衫",
+"cat.pants":"裤装",
+"cat.hoodie":"卫衣",
+"cat.women":"女士上衣",
+"cat.jacket":"夹克",
+"cat.all":"查看全部 →",
+
+"products.title":"最新产品",
+"products.subtitle":"加入购物车前请选择尺码。",
+"products.all":"查看全部产品 →",
+
+"perk.shipping":"快速配送",
+"perk.shippingSub":"覆盖印度尼西亚",
+"perk.quality":"优质产品",
+"perk.qualitySub":"品质保障",
+"perk.return":"轻松退换",
+"perk.returnSub":"如有问题",
+"perk.help":"需要帮助？",
+"perk.helpSub":"通过 WhatsApp 联系我们",
+
+"about.title":"关于 KitaWear",
+"about.desc":"KitaWear 提供简约、舒适、易搭配的日常服装。",
+
+"contact.title":"准备好购物了吗？",
+"contact.desc":"在网站上选择商品尺码，然后继续付款或通过 WhatsApp 下单。",
+
+"cart.title":"购物车",
+"cart.total":"总计",
+"cart.pay":"立即付款",
+"cart.whatsapp":"通过 WhatsApp 下单",
+"cart.empty":"购物车为空。",
+"cart.emptyTitle":"购物车为空",
+"cart.size":"尺码",
+"cart.qty":"数量",
+
+"checkout.title":"KitaWear 结账",
+"checkout.sub":"付款前请确认每件商品的尺码正确。",
+"checkout.name":"姓名",
+"checkout.namePh":"收货人姓名",
+"checkout.email":"电子邮箱",
+"checkout.phone":"WhatsApp号码",
+"checkout.address":"收货地址",
+"checkout.addressPh":"完整地址 + 区/县 + 城市/省 + 邮政编码",
+"checkout.pay":"继续付款",
+"checkout.preparing":"正在准备付款...",
+"checkout.note":"付款通过 Midtrans 处理。请勿向 KitaWear 提供 PIN/OTP。",
+
+"product.sizeLabel":"选择尺码:",
+"product.sizePlaceholder":"选择尺码",
+"product.sizeAria":"尺码",
+"product.add":"加入购物车",
+"product.favorite":"收藏",
+"product.selectSizeBefore":"请选择尺码：",
+"product.badge":"热卖",
+
+"notice.title":"请完善信息",
+
+"payment.success":"付款成功。感谢您在 KitaWear 购物！",
+"payment.successTitle":"付款成功",
+"payment.pending":"付款尚未完成，请按照 Midtrans 的指引继续付款。",
+"payment.pendingTitle":"等待付款",
+"payment.failed":"付款失败，请重试。",
+"payment.failedTitle":"付款失败",
+"payment.configError":"付款配置不可用。",
+"payment.loadError":"无法加载 Midtrans Snap。",
+"payment.transactionError":"无法创建交易。",
+"payment.error":"准备付款时发生错误。",
+"payment.errorTitle":"发生错误",
+
+"wa.orderIntro":"你好 KitaWear，我想订购：",
+"wa.confirm":"请确认库存和配送。"
+}
+
+};
+
+let currentLang =
+  localStorage.getItem('kitawear-language') || 'id';
+
+function t(key){
+  return translations[currentLang]?.[key]
+      || translations.id[key]
+      || key;
+}
+
+function applyLanguage(lang){
+
+  currentLang =
+    translations[lang] ? lang : 'id';
+
+  localStorage.setItem(
+    'kitawear-language',
+    currentLang
+  );
+
+  document.documentElement.lang =
+    currentLang === 'zh'
+      ? 'zh-CN'
+      : currentLang;
+
+  document
+    .querySelectorAll('[data-i18n]')
+    .forEach(el=>{
+      el.textContent =
+        t(el.dataset.i18n);
+    });
+
+  document
+    .querySelectorAll('[data-i18n-placeholder]')
+    .forEach(el=>{
+      el.placeholder =
+        t(el.dataset.i18nPlaceholder);
+    });
+
+  const select =
+    document.getElementById('languageSelect');
+
+  if(select)
+    select.value=currentLang;
+
+  render();
+  updateCart();
+
+  const title =
+    document.getElementById('kwNoticeTitle');
+
+  if(
+    title &&
+    !document
+      .getElementById('kwNoticeOverlay')
+      .classList.contains('show')
+  ){
+    title.textContent =
+      t('notice.title');
+  }
+}
+
 const WA_NUMBER="6287797878149";
+
 const products=[
-{name:"Kita Oversize Tee",price:89000,desc:"Kaos oversize santai dengan gaya modern.",badge:"Best Seller",img:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=85",gallery:["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=85","https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=900&q=85"],colors:["#171717","#f5f5f5","#8994a0"],sizes:["M","L","XL","XXL"]},
-{name:"Kita Basic Tee",price:69000,desc:"Kaos basic unisex untuk sehari-hari.",img:"https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=900&q=85",colors:["#182431","#e8dfd0","#f4f4f4"],sizes:["M","L","XL","XXL"]},
-{name:"Kita Casual Shirt",price:119000,desc:"Kemeja casual untuk kerja maupun jalan.",img:"https://images.unsplash.com/photo-1603252110481-7ba873bf42ab?auto=format&fit=crop&w=900&q=85",colors:["#c8b89e","#eee","#222"],sizes:["M","L","XL","XXL"]},
-{name:"Kita Cargo Pants",price:129000,desc:"Cargo pants nyaman untuk aktivitas harian.",img:"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=85",colors:["#68745d","#222","#d0c6b7"],sizes:["M","L","XL","XXL"]},
-{name:"Kita Hoodie",price:149000,desc:"Hoodie hangat dengan tampilan minimal.",img:"https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=900&q=85",colors:["#222","#8b8b8b","#eee"],sizes:["M","L","XL","XXL"]},
-{name:"Kita Women's Top",price:79000,desc:"Atasan wanita simpel dan nyaman.",img:"https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=900&q=85",colors:["#eee","#d8c6b5","#222"],sizes:["S","M","L","XL"]},
-{name:"Kita Wide Pants",price:119000,desc:"Wide pants dengan siluet modern.",img:"https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=900&q=85",colors:["#d8cbb8","#222","#777"],sizes:["S","M","L","XL"]},
-{name:"Kita Denim Jacket",price:179000,desc:"Jaket denim klasik untuk gaya sehari-hari.",img:"https://images.unsplash.com/photo-1543076447-215ad9ba6923?auto=format&fit=crop&w=900&q=85",colors:["#55708a","#222","#b9b9b9"],sizes:["M","L","XL","XXL"]}
+
+{
+name:"Kita Oversize Tee",
+price:89000,
+desc:"Kaos oversize santai dengan gaya modern.",
+badge:"Best Seller",
+img:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=85",
+gallery:[
+"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=85",
+"https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=900&q=85"
+],
+colors:["#171717","#f5f5f5","#8994a0"],
+sizes:["M","L","XL","XXL"],
+i18n:{
+name:{
+id:"Kita Oversize Tee",
+en:"Kita Oversize Tee",
+vi:"Kita Oversize Tee",
+th:"Kita Oversize Tee",
+zh:"Kita 宽松T恤"
+},
+desc:{
+id:"Kaos oversize santai dengan gaya modern.",
+en:"Relaxed oversize tee with a modern look.",
+vi:"Áo thun oversize thoải mái với phong cách hiện đại.",
+th:"เสื้อยืดโอเวอร์ไซซ์ทรงสบายสไตล์โมเดิร์น",
+zh:"舒适宽松版型，打造现代风格。"
+}
+}
+},
+
+{
+name:"Kita Basic Tee",
+price:69000,
+desc:"Kaos basic unisex untuk sehari-hari.",
+img:"https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=900&q=85",
+colors:["#182431","#e8dfd0","#f4f4f4"],
+sizes:["M","L","XL","XXL"],
+i18n:{
+name:{
+id:"Kita Basic Tee",
+en:"Kita Basic Tee",
+vi:"Kita Basic Tee",
+th:"Kita Basic Tee",
+zh:"Kita 基础T恤"
+},
+desc:{
+id:"Kaos basic unisex untuk sehari-hari.",
+en:"Everyday unisex basic tee.",
+vi:"Áo thun basic unisex cho trang phục hằng ngày.",
+th:"เสื้อยืดเบสิกยูนิเซ็กซ์สำหรับทุกวัน",
+zh:"适合日常穿着的中性基础T恤。"
+}
+}
+},
+
+{
+name:"Kita Casual Shirt",
+price:119000,
+desc:"Kemeja casual untuk kerja maupun jalan.",
+img:"https://images.unsplash.com/photo-1603252110481-7ba873bf42ab?auto=format&fit=crop&w=900&q=85",
+colors:["#c8b89e","#eee","#222"],
+sizes:["M","L","XL","XXL"],
+i18n:{
+name:{
+id:"Kita Casual Shirt",
+en:"Kita Casual Shirt",
+vi:"Kita Casual Shirt",
+th:"Kita Casual Shirt",
+zh:"Kita 休闲衬衫"
+},
+desc:{
+id:"Kemeja casual untuk kerja maupun jalan.",
+en:"A casual shirt for work or weekends.",
+vi:"Áo sơ mi casual cho công việc hoặc đi chơi.",
+th:"เสื้อเชิ้ตลำลองสำหรับทำงานหรือวันสบายๆ",
+zh:"适合工作或休闲出行的休闲衬衫。"
+}
+}
+},
+
+{
+name:"Kita Cargo Pants",
+price:129000,
+desc:"Cargo pants nyaman untuk aktivitas harian.",
+img:"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=85",
+colors:["#68745d","#222","#d0c6b7"],
+sizes:["M","L","XL","XXL"],
+i18n:{
+name:{
+id:"Kita Cargo Pants",
+en:"Kita Cargo Pants",
+vi:"Kita Cargo Pants",
+th:"Kita Cargo Pants",
+zh:"Kita 工装裤"
+},
+desc:{
+id:"Cargo pants nyaman untuk aktivitas harian.",
+en:"Comfortable cargo pants for everyday activities.",
+vi:"Quần cargo thoải mái cho hoạt động hằng ngày.",
+th:"กางเกงคาร์โก้สบายสำหรับกิจกรรมประจำวัน",
+zh:"舒适工装裤，适合日常活动。"
+}
+}
+},
+
+{
+name:"Kita Hoodie",
+price:149000,
+desc:"Hoodie hangat dengan tampilan minimal.",
+img:"https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=900&q=85",
+colors:["#222","#8b8b8b","#eee"],
+sizes:["M","L","XL","XXL"],
+i18n:{
+name:{
+id:"Kita Hoodie",
+en:"Kita Hoodie",
+vi:"Kita Hoodie",
+th:"Kita Hoodie",
+zh:"Kita 连帽卫衣"
+},
+desc:{
+id:"Hoodie hangat dengan tampilan minimal.",
+en:"Warm hoodie with a clean minimal look.",
+vi:"Áo hoodie ấm áp với thiết kế tối giản.",
+th:"เสื้อฮู้ดอบอุ่นดีไซน์มินิมอล",
+zh:"温暖舒适的极简风连帽卫衣。"
+}
+}
+},
+
+{
+name:"Kita Women's Top",
+price:79000,
+desc:"Atasan wanita simpel dan nyaman.",
+img:"https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=900&q=85",
+colors:["#eee","#d8c6b5","#222"],
+sizes:["S","M","L","XL"],
+i18n:{
+name:{
+id:"Kita Women's Top",
+en:"Kita Women's Top",
+vi:"Kita Women's Top",
+th:"Kita Women's Top",
+zh:"Kita 女士上衣"
+},
+desc:{
+id:"Atasan wanita simpel dan nyaman.",
+en:"Simple and comfortable women's top.",
+vi:"Áo nữ đơn giản và thoải mái.",
+th:"เสื้อผู้หญิงเรียบง่ายและสวมใส่สบาย",
+zh:"简约舒适的女士上衣。"
+}
+}
+},
+
+{
+name:"Kita Wide Pants",
+price:119000,
+desc:"Wide pants dengan siluet modern.",
+img:"https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=900&q=85",
+colors:["#d8cbb8","#222","#777"],
+sizes:["S","M","L","XL"],
+i18n:{
+name:{
+id:"Kita Wide Pants",
+en:"Kita Wide Pants",
+vi:"Kita Wide Pants",
+th:"Kita Wide Pants",
+zh:"Kita 阔腿裤"
+},
+desc:{
+id:"Wide pants dengan siluet modern.",
+en:"Wide-leg pants with a modern silhouette.",
+vi:"Quần ống rộng với phom dáng hiện đại.",
+th:"กางเกงขากว้างทรงโมเดิร์น",
+zh:"现代廓形阔腿裤。"
+}
+}
+},
+
+{
+name:"Kita Denim Jacket",
+price:179000,
+desc:"Jaket denim klasik untuk gaya sehari-hari.",
+img:"https://images.unsplash.com/photo-1543076447-215ad9ba6923?auto=format&fit=crop&w=900&q=85",
+colors:["#55708a","#222","#b9b9b9"],
+sizes:["M","L","XL","XXL"],
+i18n:{
+name:{
+id:"Kita Denim Jacket",
+en:"Kita Denim Jacket",
+vi:"Kita Denim Jacket",
+th:"Kita Denim Jacket",
+zh:"Kita 牛仔夹克"
+},
+desc:{
+id:"Jaket denim klasik untuk gaya sehari-hari.",
+en:"Classic denim jacket for everyday style.",
+vi:"Áo khoác denim cổ điển cho phong cách hằng ngày.",
+th:"แจ็กเก็ตเดนิมคลาสสิกสำหรับลุคประจำวัน",
+zh:"经典牛仔夹克，适合日常穿搭。"
+}
+}
+}
+
 ];
+
 let cart=[];
-const rupiah=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n);
+
+const rupiah=n =>
+  new Intl.NumberFormat(
+    "id-ID",
+    {
+      style:"currency",
+      currency:"IDR",
+      maximumFractionDigits:0
+    }
+  ).format(n);
+
+function productText(p,field){
+
+  return p.i18n?.[field]?.[currentLang]
+      || p[field]
+      || "";
+
+}
 
 function render(){
-document.getElementById("products").innerHTML=products.map((p,i)=>`
+
+  document.getElementById("products").innerHTML =
+    products.map((p,i)=>`
+
 <article class="card">
-<div class="photo" onclick="openLightbox(${i})"><img src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">${p.badge?`<span class="badge">${p.badge}</span>`:""}<button class="heart" aria-label="Favorit" onclick="event.stopPropagation()">♡</button></div>
-<div class="body"><h3>${p.name}</h3><div class="price">${rupiah(p.price)}</div><div class="swatches">${p.colors.map(c=>`<span class="sw" style="background:${c}"></span>`).join("")}</div>
-<div class="sizes-label">Pilih ukuran:</div><select class="size-select" id="size-${i}" aria-label="Ukuran ${p.name}"><option value="">Pilih ukuran</option>${p.sizes.map(s=>`<option value="${s}">${s}</option>`).join("")}</select>
-<button class="smallbtn" id="add-${i}" onclick="add(${i})">🛒 &nbsp;Tambah ke Keranjang</button></div></article>`).join("");
+
+<div class="photo"
+     onclick="openLightbox(${i})">
+
+<img
+src="${p.img}"
+alt="${productText(p,"name")}"
+loading="lazy"
+onerror="this.style.display='none'">
+
+${p.badge
+ ? `<span class="badge">
+      ${currentLang==='id'
+        ? p.badge
+        : t('product.badge')}
+    </span>`
+ : ""}
+
+<button
+class="heart"
+aria-label="${t('product.favorite')}"
+onclick="event.stopPropagation()">
+♡
+</button>
+
+</div>
+
+<div class="body">
+
+<h3>
+${productText(p,"name")}
+</h3>
+
+<div class="price">
+${rupiah(p.price)}
+</div>
+
+<div class="swatches">
+
+${p.colors.map(c=>`
+<span
+class="sw"
+style="background:${c}">
+</span>
+`).join("")}
+
+</div>
+
+<div class="sizes-label">
+${t('product.sizeLabel')}
+</div>
+
+<select
+class="size-select"
+id="size-${i}"
+aria-label="${t('product.sizeAria')} ${productText(p,"name")}">
+
+<option value="">
+${t('product.sizePlaceholder')}
+</option>
+
+${p.sizes.map(sz=>`
+<option value="${sz}">
+${sz}
+</option>
+`).join("")}
+
+</select>
+
+<button
+class="smallbtn"
+id="add-${i}"
+onclick="add(${i})">
+
+🛒 &nbsp;
+${t('product.add')}
+
+</button>
+
+</div>
+</article>
+
+`).join("");
+
 }
 
 function add(i){
-const size=document.getElementById(`size-${i}`).value;
-if(!size){showKwNotice(`Silakan pilih ukuran untuk ${products[i].name}.`);document.getElementById(`size-${i}`).focus();return}
-cart.push({productIndex:i,name:products[i].name,price:products[i].price,size,quantity:1});
-updateCart();document.getElementById("drawer").classList.add("show");
+
+  const size =
+    document
+      .getElementById(`size-${i}`)
+      .value;
+
+  if(!size){
+
+    showKwNotice(
+      `${t("product.selectSizeBefore")} ${productText(products[i],"name")}.`
+    );
+
+    document
+      .getElementById(`size-${i}`)
+      .focus();
+
+    return;
+  }
+
+  cart.push({
+    productIndex:i,
+    name:products[i].name,
+    price:products[i].price,
+    size,
+    quantity:1
+  });
+
+  updateCart();
+
+  document
+    .getElementById("drawer")
+    .classList.add("show");
 }
 
+let kwNoticeTimer=null;
 
-let kwNoticeTimer = null;
+function showKwNotice(
+  message,
+  title=t("notice.title")
+){
 
-function showKwNotice(message, title="Perlu dilengkapi"){
-  const overlay = document.getElementById("kwNoticeOverlay");
-  const titleEl = document.getElementById("kwNoticeTitle");
-  const messageEl = document.getElementById("kwNoticeMessage");
-  const button = document.getElementById("kwNoticeButton");
-  if(!overlay || !titleEl || !messageEl || !button) return;
+  const overlay =
+    document.getElementById(
+      "kwNoticeOverlay"
+    );
 
-  titleEl.textContent = title;
-  messageEl.textContent = message;
+  const titleEl =
+    document.getElementById(
+      "kwNoticeTitle"
+    );
+
+  const messageEl =
+    document.getElementById(
+      "kwNoticeMessage"
+    );
+
+  const button =
+    document.getElementById(
+      "kwNoticeButton"
+    );
+
+  if(
+    !overlay ||
+    !titleEl ||
+    !messageEl ||
+    !button
+  ) return;
+
+  titleEl.textContent=title;
+  messageEl.textContent=message;
+
   button.focus();
+
   overlay.classList.add("show");
-  overlay.setAttribute("aria-hidden","false");
+
+  overlay.setAttribute(
+    "aria-hidden",
+    "false"
+  );
 
   clearTimeout(kwNoticeTimer);
 }
 
 function closeKwNotice(){
-  const overlay = document.getElementById("kwNoticeOverlay");
-  if(!overlay) return;
+
+  const overlay =
+    document.getElementById(
+      "kwNoticeOverlay"
+    );
+
+  if(!overlay)return;
+
   overlay.classList.remove("show");
-  overlay.setAttribute("aria-hidden","true");
+
+  overlay.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
 }
 
-document.addEventListener("keydown", e=>{
-  if(e.key==="Escape"){
-    const overlay=document.getElementById("kwNoticeOverlay");
-    if(overlay?.classList.contains("show")) closeKwNotice();
+document.addEventListener(
+  "keydown",
+  e=>{
+
+    if(e.key==="Escape"){
+
+      const overlay =
+        document.getElementById(
+          "kwNoticeOverlay"
+        );
+
+      if(
+        overlay?.classList.contains("show")
+      ){
+        closeKwNotice();
+      }
+
+    }
+
   }
-});
+);
 
 function updateCart(){
-document.getElementById("count").textContent=cart.reduce((s,x)=>s+x.quantity,0);
-document.getElementById("cartItems").innerHTML=cart.length?cart.map((x,i)=>`
-<div class="item"><div class="item-main"><div class="item-name">${x.name}</div><div class="item-meta">Ukuran: <strong>${x.size}</strong> · ${rupiah(x.price)}</div></div>
-<div class="item-actions"><button class="qtybtn" onclick="changeQty(${i},-1)">−</button><strong>${x.quantity}</strong><button class="qtybtn" onclick="changeQty(${i},1)">+</button><button class="remove" onclick="removeItem(${i})">×</button></div></div>`).join(""):"<p style='color:#666'>Keranjang masih kosong.</p>";
-document.getElementById("total").textContent=rupiah(cart.reduce((s,x)=>s+x.price*x.quantity,0));
+
+  document.getElementById("count")
+    .textContent =
+      cart.reduce(
+        (s,x)=>s+x.quantity,
+        0
+      );
+
+  document.getElementById("cartItems")
+    .innerHTML =
+      cart.length
+
+      ? cart.map((x,i)=>`
+
+<div class="item">
+
+<div class="item-main">
+
+<div class="item-name">
+${x.name}
+</div>
+
+<div class="item-meta">
+${t('cart.size')}:
+<strong>${x.size}</strong>
+·
+${rupiah(x.price)}
+</div>
+
+</div>
+
+<div class="item-actions">
+
+<button
+class="qtybtn"
+onclick="changeQty(${i},-1)">
+−
+</button>
+
+<strong>
+${x.quantity}
+</strong>
+
+<button
+class="qtybtn"
+onclick="changeQty(${i},1)">
++
+</button>
+
+<button
+class="remove"
+onclick="removeItem(${i})">
+×
+</button>
+
+</div>
+
+</div>
+
+`).join("")
+
+      : "<p style='color:#666'>"
+        +t('cart.empty')
+        +"</p>";
+
+  document.getElementById("total")
+    .textContent =
+      rupiah(
+        cart.reduce(
+          (s,x)=>s+x.price*x.quantity,
+          0
+        )
+      );
+
 }
 
-function changeQty(i,d){cart[i].quantity=Math.max(1,cart[i].quantity+d);updateCart()}
-function removeItem(i){cart.splice(i,1);updateCart()}
-function toggleCart(){document.getElementById("drawer").classList.toggle("show");updateCart()}
-function openWA(msg){window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`,"_blank")}
+function changeQty(i,d){
+
+  cart[i].quantity =
+    Math.max(
+      1,
+      cart[i].quantity+d
+    );
+
+  updateCart();
+
+}
+
+function removeItem(i){
+
+  cart.splice(i,1);
+
+  updateCart();
+
+}
+
+function toggleCart(){
+
+  document
+    .getElementById("drawer")
+    .classList.toggle("show");
+
+  updateCart();
+
+}
+
+function openWA(msg){
+
+  window.open(
+    `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`,
+    "_blank"
+  );
+
+}
+
 function checkout(){
-if(!cart.length){showKwNotice("Keranjang masih kosong.","Keranjang kosong");return}
-const lines=cart.map((x,i)=>`${i+1}. ${x.name} — Size ${x.size} — Qty ${x.quantity} — ${rupiah(x.price*x.quantity)}`).join("\n");
-const total=cart.reduce((s,x)=>s+x.price*x.quantity,0);
-openWA(`Halo KitaWear, saya ingin memesan:\n\n${lines}\n\nTotal: ${rupiah(total)}\n\nMohon konfirmasi stok dan pengiriman.`);
+
+  if(!cart.length){
+
+    showKwNotice(
+      t('cart.empty'),
+      t('cart.emptyTitle')
+    );
+
+    return;
+  }
+
+  const lines =
+    cart.map((x,i)=>
+      `${i+1}. ${x.name} — ${t('cart.size')} ${x.size} — ${t('cart.qty')} ${x.quantity} — ${rupiah(x.price*x.quantity)}`
+    ).join("\n");
+
+  const total =
+    cart.reduce(
+      (s,x)=>s+x.price*x.quantity,
+      0
+    );
+
+  openWA(
+    `${t('wa.orderIntro')}\n\n${lines}\n\n${t('cart.total')}: ${rupiah(total)}\n\n${t('wa.confirm')}`
+  );
+
 }
+
 function openCheckout(){
-if(!cart.length){showKwNotice("Keranjang masih kosong.","Keranjang kosong");return}
-document.getElementById("checkoutItems").innerHTML=cart.map(x=>`<div class="checkout-summary-row"><span>${x.name}<br><small>Size ${x.size} · Qty ${x.quantity}</small></span><span>${rupiah(x.price*x.quantity)}</span></div>`).join("");
-document.getElementById("checkoutTotal").textContent=rupiah(cart.reduce((s,x)=>s+x.price*x.quantity,0));
-document.getElementById("checkoutModal").classList.add("show");document.getElementById("checkoutModal").setAttribute("aria-hidden","false");
+
+  if(!cart.length){
+
+    showKwNotice(
+      t('cart.empty'),
+      t('cart.emptyTitle')
+    );
+
+    return;
+  }
+
+  document.getElementById(
+    "checkoutItems"
+  ).innerHTML =
+    cart.map(x=>`
+
+<div class="checkout-summary-row">
+
+<span>
+
+${x.name}
+
+<br>
+
+<small>
+${t('cart.size')} ${x.size}
+·
+${t('cart.qty')} ${x.quantity}
+</small>
+
+</span>
+
+<span>
+${rupiah(x.price*x.quantity)}
+</span>
+
+</div>
+
+`).join("");
+
+  document.getElementById(
+    "checkoutTotal"
+  ).textContent =
+    rupiah(
+      cart.reduce(
+        (s,x)=>s+x.price*x.quantity,
+        0
+      )
+    );
+
+  document
+    .getElementById("checkoutModal")
+    .classList.add("show");
+
+  document
+    .getElementById("checkoutModal")
+    .setAttribute(
+      "aria-hidden",
+      "false"
+    );
+
 }
-function closeCheckout(e){if(e&&e.target!==document.getElementById("checkoutModal"))return;document.getElementById("checkoutModal").classList.remove("show");document.getElementById("checkoutModal").setAttribute("aria-hidden","true")}
+
+function closeCheckout(e){
+
+  if(
+    e &&
+    e.target !==
+      document.getElementById(
+        "checkoutModal"
+      )
+  ) return;
+
+  document
+    .getElementById("checkoutModal")
+    .classList.remove("show");
+
+  document
+    .getElementById("checkoutModal")
+    .setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+}
+
 async function startPayment(e){
-e.preventDefault();if(!cart.length){showKwNotice("Keranjang masih kosong.","Keranjang kosong");return}
-const btn=document.getElementById("payButton");btn.disabled=true;btn.textContent="Menyiapkan pembayaran...";
-try{
-const configRes=await fetch("/.netlify/functions/config");const config=await configRes.json();if(!configRes.ok||!config.clientKey)throw new Error(config.error||"Konfigurasi pembayaran belum tersedia.");
-if(!window.snap){await new Promise((resolve,reject)=>{const s=document.createElement("script");s.src=config.snapUrl;s.setAttribute("data-client-key",config.clientKey);s.onload=resolve;s.onerror=()=>reject(new Error("Gagal memuat Midtrans Snap."));document.head.appendChild(s)})}
-const payload={customer:{name:document.getElementById("buyerName").value.trim(),email:document.getElementById("buyerEmail").value.trim(),phone:document.getElementById("buyerPhone").value.trim(),address:document.getElementById("buyerAddress").value.trim()},items:cart.map(x=>({name:x.name,size:x.size,quantity:x.quantity}))};
-const res=await fetch("/.netlify/functions/create-transaction",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const data=await res.json();if(!res.ok||!data.token)throw new Error(data.error||"Gagal membuat transaksi.");
-window.snap.pay(data.token,{onSuccess:function(){showKwNotice("Pembayaran berhasil. Terima kasih sudah belanja di KitaWear!","Pembayaran berhasil");},onPending:function(){alert("Pembayaran belum selesai. Silakan lanjutkan pembayaran sesuai instruksi Midtrans.");},onError:function(){alert("Pembayaran gagal. Silakan coba lagi.");},onClose:function(){}});
-}catch(err){showKwNotice(err.message||"Terjadi kesalahan saat menyiapkan pembayaran.","Terjadi kesalahan");}finally{btn.disabled=false;btn.textContent="Lanjut ke Pembayaran";}
+
+  e.preventDefault();
+
+  if(!cart.length){
+
+    showKwNotice(
+      t('cart.empty'),
+      t('cart.emptyTitle')
+    );
+
+    return;
+  }
+
+  const btn =
+    document.getElementById(
+      "payButton"
+    );
+
+  btn.disabled=true;
+
+  btn.textContent =
+    t('checkout.preparing');
+
+  try{
+
+    const configRes =
+      await fetch(
+        "/.netlify/functions/config"
+      );
+
+    const config =
+      await configRes.json();
+
+    if(
+      !configRes.ok ||
+      !config.clientKey
+    ){
+      throw new Error(
+        config.error ||
+        t('payment.configError')
+      );
+    }
+
+    if(!window.snap){
+
+      await new Promise(
+        (resolve,reject)=>{
+
+          const s =
+            document.createElement(
+              "script"
+            );
+
+          s.src=config.snapUrl;
+
+          s.setAttribute(
+            "data-client-key",
+            config.clientKey
+          );
+
+          s.onload=resolve;
+
+          s.onerror=()=>reject(
+            new Error(
+              t('payment.loadError')
+            )
+          );
+
+          document.head.appendChild(s);
+
+        }
+      );
+
+    }
+
+    const payload={
+
+      customer:{
+
+        name:
+          document
+            .getElementById(
+              "buyerName"
+            )
+            .value.trim(),
+
+        email:
+          document
+            .getElementById(
+              "buyerEmail"
+            )
+            .value.trim(),
+
+        phone:
+          document
+            .getElementById(
+              "buyerPhone"
+            )
+            .value.trim(),
+
+        address:
+          document
+            .getElementById(
+              "buyerAddress"
+            )
+            .value.trim()
+
+      },
+
+      items:
+        cart.map(x=>({
+          name:x.name,
+          size:x.size,
+          quantity:x.quantity
+        }))
+
+    };
+
+    const res =
+      await fetch(
+        "/.netlify/functions/create-transaction",
+        {
+          method:"POST",
+          headers:{
+            "Content-Type":
+              "application/json"
+          },
+          body:
+            JSON.stringify(payload)
+        }
+      );
+
+    const data =
+      await res.json();
+
+    if(
+      !res.ok ||
+      !data.token
+    ){
+
+      throw new Error(
+        data.error ||
+        t('payment.transactionError')
+      );
+
+    }
+
+    window.snap.pay(
+      data.token,
+      {
+
+        onSuccess:function(){
+
+          showKwNotice(
+            t('payment.success'),
+            t('payment.successTitle')
+          );
+
+        },
+
+        onPending:function(){
+
+          showKwNotice(
+            t('payment.pending'),
+            t('payment.pendingTitle')
+          );
+
+        },
+
+        onError:function(){
+
+          showKwNotice(
+            t('payment.failed'),
+            t('payment.failedTitle')
+          );
+
+        },
+
+        onClose:function(){}
+
+      }
+    );
+
+  }
+  catch(err){
+
+    showKwNotice(
+      err.message ||
+      t('payment.error'),
+      t('payment.errorTitle')
+    );
+
+  }
+  finally{
+
+    btn.disabled=false;
+
+    btn.textContent =
+      t('checkout.pay');
+
+  }
+
 }
 
 let lightboxIndex=0;
-function openLightbox(i){lightboxIndex=i;const p=products[i];const imgs=p.gallery||[p.img];document.getElementById("lightboxImg").src=imgs[0];document.getElementById("lightboxImg").alt=p.name;document.getElementById("lightboxCaption").textContent=`${p.name} — ${rupiah(p.price)}`;document.getElementById("lightboxThumbs").innerHTML=imgs.map((src,j)=>`<img class="lightbox-thumb ${j===0?"active":""}" src="${src}" onclick="setLightboxImage(${i},${j},event)" alt="">`).join("");document.getElementById("lightbox").classList.add("show")}
-function setLightboxImage(i,j,e){if(e)e.stopPropagation();const p=products[i];const imgs=p.gallery||[p.img];document.getElementById("lightboxImg").src=imgs[j];document.querySelectorAll(".lightbox-thumb").forEach((el,k)=>el.classList.toggle("active",k===j))}
-function changeLightbox(d){const p=products[lightboxIndex];const imgs=p.gallery||[p.img];let current=Array.from(document.querySelectorAll(".lightbox-thumb")).findIndex(x=>x.classList.contains("active"));current=(current+d+imgs.length)%imgs.length;setLightboxImage(lightboxIndex,current)}
-function closeLightbox(e){if(e&&e.target!==document.getElementById("lightbox")&&!e.currentTarget?.classList.contains("lightbox-close"))return;document.getElementById("lightbox").classList.remove("show")}
-document.addEventListener("keydown",e=>{if(e.key==="Escape"){document.getElementById("lightbox").classList.remove("show");document.getElementById("checkoutModal").classList.remove("show")}if(e.key==="ArrowLeft"&&document.getElementById("lightbox").classList.contains("show"))changeLightbox(-1);if(e.key==="ArrowRight"&&document.getElementById("lightbox").classList.contains("show"))changeLightbox(1)});
-render();updateCart();
+
+function openLightbox(i){
+
+  lightboxIndex=i;
+
+  const p=products[i];
+
+  const imgs =
+    p.gallery || [p.img];
+
+  document.getElementById(
+    "lightboxImg"
+  ).src=imgs[0];
+
+  document.getElementById(
+    "lightboxImg"
+  ).alt=
+    productText(p,"name");
+
+  document.getElementById(
+    "lightboxCaption"
+  ).textContent=
+    `${productText(p,"name")} — ${rupiah(p.price)}`;
+
+  document.getElementById(
+    "lightboxThumbs"
+  ).innerHTML =
+    imgs.map((src,j)=>`
+
+<img
+class="lightbox-thumb ${j===0?"active":""}"
+src="${src}"
+onclick="setLightboxImage(${i},${j},event)"
+alt="">
+
+`).join("");
+
+  document
+    .getElementById("lightbox")
+    .classList.add("show");
+
+}
+
+function setLightboxImage(i,j,e){
+
+  if(e)e.stopPropagation();
+
+  const p=products[i];
+
+  const imgs =
+    p.gallery || [p.img];
+
+  document.getElementById(
+    "lightboxImg"
+  ).src=imgs[j];
+
+  document
+    .querySelectorAll(
+      ".lightbox-thumb"
+    )
+    .forEach(
+      (el,k)=>
+        el.classList.toggle(
+          "active",
+          k===j
+        )
+    );
+
+}
+
+function changeLightbox(d){
+
+  const p =
+    products[lightboxIndex];
+
+  const imgs =
+    p.gallery || [p.img];
+
+  let current =
+    Array.from(
+      document.querySelectorAll(
+        ".lightbox-thumb"
+      )
+    ).findIndex(
+      x=>
+        x.classList.contains(
+          "active"
+        )
+    );
+
+  current =
+    (current+d+imgs.length)
+    %imgs.length;
+
+  setLightboxImage(
+    lightboxIndex,
+    current
+  );
+
+}
+
+function closeLightbox(e){
+
+  if(
+    e &&
+    e.target !==
+      document.getElementById(
+        "lightbox"
+      ) &&
+    !e.currentTarget?.classList.contains(
+      "lightbox-close"
+    )
+  ) return;
+
+  document
+    .getElementById("lightbox")
+    .classList.remove("show");
+
+}
+
+document.addEventListener(
+  "keydown",
+  e=>{
+
+    if(e.key==="Escape"){
+
+      document
+        .getElementById("lightbox")
+        .classList.remove("show");
+
+      document
+        .getElementById("checkoutModal")
+        .classList.remove("show");
+
+    }
+
+    if(
+      e.key==="ArrowLeft" &&
+      document
+        .getElementById("lightbox")
+        .classList.contains("show")
+    ){
+      changeLightbox(-1);
+    }
+
+    if(
+      e.key==="ArrowRight" &&
+      document
+        .getElementById("lightbox")
+        .classList.contains("show")
+    ){
+      changeLightbox(1);
+    }
+
+  }
+);
+
+document
+  .getElementById('languageSelect')
+  ?.addEventListener(
+    'change',
+    e=>
+      applyLanguage(
+        e.target.value
+      )
+  );
+
+applyLanguage(currentLang);
+
 </script>
+
 </body>
 </html>
