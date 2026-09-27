@@ -34,9 +34,88 @@ footer{background:#20252b;color:#fff;padding:30px 24px}.foot{max-width:1180px;ma
 .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:24px;z-index:100;backdrop-filter:blur(5px)}.lightbox.show{display:flex}.lightbox-content{position:relative;width:min(980px,94vw);max-height:94vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 72px 20px}.lightbox-content>#lightboxImg{display:block;max-width:min(72vw,760px);max-height:68vh;width:auto;height:auto;object-fit:contain;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.45);background:#fff}.lightbox-caption{margin-top:12px;color:#fff;font-size:15px;line-height:1.3;font-weight:700;text-align:center;white-space:nowrap;text-shadow:0 2px 8px rgba(0,0,0,.5)}.lightbox-thumbs{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:12px;min-height:58px}.lightbox-thumb{display:block;width:58px;height:58px;object-fit:cover;flex:0 0 58px;border-radius:10px;border:2px solid rgba(255,255,255,.45);cursor:pointer;background:#fff;opacity:.72}.lightbox-thumb.active{border-color:#fff;opacity:1}.lightbox-close{position:absolute;top:0;right:0;width:42px;height:42px;border:0;border-radius:50%;background:#fff;color:#111;font-size:28px;cursor:pointer;box-shadow:0 8px 25px rgba(0,0,0,.25);z-index:5}.lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border:0;border-radius:50%;background:#fff;color:#111;font-size:34px;cursor:pointer;box-shadow:0 8px 25px rgba(0,0,0,.25);z-index:5}.lightbox-prev{left:8px}.lightbox-next{right:8px}
 @media(max-width:900px){.links{display:none}.heroBox{min-height:500px}.heroCopy{width:65%;padding:38px 28px}.models{width:55%;opacity:.75}.categories{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:repeat(2,1fr)}.perks{grid-template-columns:repeat(2,1fr)}.perk{border-bottom:1px solid #ddd}}
 @media(max-width:560px){.models{opacity:.55;width:100%}.navin{padding:12px 15px}.icons{display:none}.hero{padding:0 12px}.heroCopy{width:100%;padding:38px 22px}.heroBox{min-height:520px}.models{width:100%;opacity:.35}.categories{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr 1fr;gap:9px}.photo{height:210px}.body{padding:10px}.section{padding:30px 15px}.perks{grid-template-columns:1fr 1fr}.foot{display:block;text-align:center}.footlinks{justify-content:center;margin-top:18px}.item{grid-template-columns:1fr}.item-actions{justify-content:flex-end}.lightbox{padding:16px}.lightbox-content{width:100%;max-height:94vh;padding:20px 50px 16px}.lightbox-content>#lightboxImg{max-width:78vw;max-height:62vh;border-radius:12px}.lightbox-thumb{width:48px;height:48px;max-width:48px;flex-basis:48px}.lightbox-caption{max-width:78vw;white-space:normal;font-size:13px}}
+
+/* KitaWear custom centered notification */
+#kwNoticeOverlay{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:rgba(0,0,0,.42);
+  backdrop-filter:blur(3px);
+}
+#kwNoticeOverlay.show{display:flex}
+.kw-notice{
+  width:min(420px, calc(100vw - 40px));
+  background:#fff;
+  color:#171717;
+  border-radius:22px;
+  padding:28px 26px 24px;
+  box-shadow:0 24px 70px rgba(0,0,0,.28);
+  text-align:center;
+  animation:kwNoticeIn .18s ease-out;
+}
+.kw-notice-icon{
+  width:54px;
+  height:54px;
+  margin:0 auto 14px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#111;
+  color:#fff;
+  font-size:26px;
+  font-weight:800;
+}
+.kw-notice h3{
+  margin:0 0 8px;
+  font-size:20px;
+  line-height:1.25;
+}
+.kw-notice p{
+  margin:0 auto 20px;
+  color:#555;
+  font-size:15px;
+  line-height:1.55;
+}
+.kw-notice button{
+  width:100%;
+  border:0;
+  border-radius:12px;
+  padding:13px 18px;
+  background:#111;
+  color:#fff;
+  font:inherit;
+  font-weight:700;
+  cursor:pointer;
+}
+.kw-notice button:hover{opacity:.9}
+@keyframes kwNoticeIn{
+  from{opacity:0;transform:translateY(10px) scale(.97)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+@media (max-width:520px){
+  #kwNoticeOverlay{padding:18px}
+  .kw-notice{padding:24px 20px 20px;border-radius:18px}
+}
+
 </style>
 </head>
 <body>
+
+<div id="kwNoticeOverlay" aria-hidden="true">
+  <div class="kw-notice" role="alertdialog" aria-modal="true"
+       aria-labelledby="kwNoticeTitle" aria-describedby="kwNoticeMessage">
+    <div class="kw-notice-icon" id="kwNoticeIcon">!</div>
+    <h3 id="kwNoticeTitle">Perlu dilengkapi</h3>
+    <p id="kwNoticeMessage"></p>
+    <button type="button" id="kwNoticeButton" onclick="closeKwNotice()">Mengerti</button>
+  </div>
+</div>
+
 <nav class="nav"><div class="navin">
 <div class="logo"><span class="hanger">♧</span><span>KitaWear<span class="tag">Simple Style. Everyday Confidence.</span></span></div>
 <div class="links"><a href="#home">Beranda</a><a href="#produk">Produk</a><a href="#cara">Cara Beli</a><a href="#tentang">Tentang Kami</a><a href="#kontak">Kontak</a></div>
@@ -113,10 +192,43 @@ document.getElementById("products").innerHTML=products.map((p,i)=>`
 
 function add(i){
 const size=document.getElementById(`size-${i}`).value;
-if(!size){alert(`Silakan pilih ukuran untuk ${products[i].name}.`);document.getElementById(`size-${i}`).focus();return}
+if(!size){showKwNotice(`Silakan pilih ukuran untuk ${products[i].name}.`);document.getElementById(`size-${i}`).focus();return}
 cart.push({productIndex:i,name:products[i].name,price:products[i].price,size,quantity:1});
 updateCart();document.getElementById("drawer").classList.add("show");
 }
+
+
+let kwNoticeTimer = null;
+
+function showKwNotice(message, title="Perlu dilengkapi"){
+  const overlay = document.getElementById("kwNoticeOverlay");
+  const titleEl = document.getElementById("kwNoticeTitle");
+  const messageEl = document.getElementById("kwNoticeMessage");
+  const button = document.getElementById("kwNoticeButton");
+  if(!overlay || !titleEl || !messageEl || !button) return;
+
+  titleEl.textContent = title;
+  messageEl.textContent = message;
+  button.focus();
+  overlay.classList.add("show");
+  overlay.setAttribute("aria-hidden","false");
+
+  clearTimeout(kwNoticeTimer);
+}
+
+function closeKwNotice(){
+  const overlay = document.getElementById("kwNoticeOverlay");
+  if(!overlay) return;
+  overlay.classList.remove("show");
+  overlay.setAttribute("aria-hidden","true");
+}
+
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape"){
+    const overlay=document.getElementById("kwNoticeOverlay");
+    if(overlay?.classList.contains("show")) closeKwNotice();
+  }
+});
 
 function updateCart(){
 document.getElementById("count").textContent=cart.reduce((s,x)=>s+x.quantity,0);
@@ -131,28 +243,28 @@ function removeItem(i){cart.splice(i,1);updateCart()}
 function toggleCart(){document.getElementById("drawer").classList.toggle("show");updateCart()}
 function openWA(msg){window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`,"_blank")}
 function checkout(){
-if(!cart.length){alert("Keranjang masih kosong.");return}
+if(!cart.length){showKwNotice("Keranjang masih kosong.","Keranjang kosong");return}
 const lines=cart.map((x,i)=>`${i+1}. ${x.name} — Size ${x.size} — Qty ${x.quantity} — ${rupiah(x.price*x.quantity)}`).join("\n");
 const total=cart.reduce((s,x)=>s+x.price*x.quantity,0);
 openWA(`Halo KitaWear, saya ingin memesan:\n\n${lines}\n\nTotal: ${rupiah(total)}\n\nMohon konfirmasi stok dan pengiriman.`);
 }
 function openCheckout(){
-if(!cart.length){alert("Keranjang masih kosong.");return}
+if(!cart.length){showKwNotice("Keranjang masih kosong.","Keranjang kosong");return}
 document.getElementById("checkoutItems").innerHTML=cart.map(x=>`<div class="checkout-summary-row"><span>${x.name}<br><small>Size ${x.size} · Qty ${x.quantity}</small></span><span>${rupiah(x.price*x.quantity)}</span></div>`).join("");
 document.getElementById("checkoutTotal").textContent=rupiah(cart.reduce((s,x)=>s+x.price*x.quantity,0));
 document.getElementById("checkoutModal").classList.add("show");document.getElementById("checkoutModal").setAttribute("aria-hidden","false");
 }
 function closeCheckout(e){if(e&&e.target!==document.getElementById("checkoutModal"))return;document.getElementById("checkoutModal").classList.remove("show");document.getElementById("checkoutModal").setAttribute("aria-hidden","true")}
 async function startPayment(e){
-e.preventDefault();if(!cart.length){alert("Keranjang masih kosong.");return}
+e.preventDefault();if(!cart.length){showKwNotice("Keranjang masih kosong.","Keranjang kosong");return}
 const btn=document.getElementById("payButton");btn.disabled=true;btn.textContent="Menyiapkan pembayaran...";
 try{
 const configRes=await fetch("/.netlify/functions/config");const config=await configRes.json();if(!configRes.ok||!config.clientKey)throw new Error(config.error||"Konfigurasi pembayaran belum tersedia.");
 if(!window.snap){await new Promise((resolve,reject)=>{const s=document.createElement("script");s.src=config.snapUrl;s.setAttribute("data-client-key",config.clientKey);s.onload=resolve;s.onerror=()=>reject(new Error("Gagal memuat Midtrans Snap."));document.head.appendChild(s)})}
 const payload={customer:{name:document.getElementById("buyerName").value.trim(),email:document.getElementById("buyerEmail").value.trim(),phone:document.getElementById("buyerPhone").value.trim(),address:document.getElementById("buyerAddress").value.trim()},items:cart.map(x=>({name:x.name,size:x.size,quantity:x.quantity}))};
 const res=await fetch("/.netlify/functions/create-transaction",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});const data=await res.json();if(!res.ok||!data.token)throw new Error(data.error||"Gagal membuat transaksi.");
-window.snap.pay(data.token,{onSuccess:function(){alert("Pembayaran berhasil. Terima kasih sudah belanja di KitaWear!");},onPending:function(){alert("Pembayaran belum selesai. Silakan lanjutkan pembayaran sesuai instruksi Midtrans.");},onError:function(){alert("Pembayaran gagal. Silakan coba lagi.");},onClose:function(){}});
-}catch(err){alert(err.message||"Terjadi kesalahan saat menyiapkan pembayaran.");}finally{btn.disabled=false;btn.textContent="Lanjut ke Pembayaran";}
+window.snap.pay(data.token,{onSuccess:function(){showKwNotice("Pembayaran berhasil. Terima kasih sudah belanja di KitaWear!","Pembayaran berhasil");},onPending:function(){alert("Pembayaran belum selesai. Silakan lanjutkan pembayaran sesuai instruksi Midtrans.");},onError:function(){alert("Pembayaran gagal. Silakan coba lagi.");},onClose:function(){}});
+}catch(err){showKwNotice(err.message||"Terjadi kesalahan saat menyiapkan pembayaran.","Terjadi kesalahan");}finally{btn.disabled=false;btn.textContent="Lanjut ke Pembayaran";}
 }
 
 let lightboxIndex=0;
