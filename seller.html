@@ -2,79 +2,1216 @@
 <html lang="id">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>KitaWear — Dashboard Penjual</title>
+<title>KitaWear — Seller Center</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--bg:#f7f5f0;--paper:#fffdf9;--ink:#171817;--muted:#77736c;--line:#ded9cf;--green:#2f6b4f}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}.wrap{width:min(1120px,92%);margin:auto}.top{background:#171817;color:#fff;padding:18px 0}.top .wrap{display:flex;justify-content:space-between;align-items:center;gap:20px}.brand{font-weight:950;font-size:22px}.back{color:#ddd;text-decoration:none;font-size:13px}.main{padding:35px 0 70px}.hero{margin-bottom:22px}.hero h1{margin:0 0 8px;font-size:42px;letter-spacing:-.06em}.hero p{color:var(--muted)}.grid{display:grid;grid-template-columns:1fr 1.4fr;gap:18px}.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:22px}.card h2{font-size:20px;margin:0 0 16px}.field{margin-bottom:12px}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;font:inherit}.field textarea{min-height:85px;resize:vertical}.btn{border:0;background:var(--ink);color:#fff;border-radius:10px;padding:12px 16px;font-weight:850;cursor:pointer}.btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}.msg{min-height:20px;color:var(--muted);font-size:13px;line-height:1.5;margin-top:10px}.role{display:inline-block;padding:5px 9px;background:#e6efe9;color:var(--green);border-radius:999px;font-size:11px;font-weight:900}.product{display:grid;grid-template-columns:80px 1fr auto;gap:13px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}.product:last-child{border-bottom:0}.thumb{width:80px;height:95px;border-radius:10px;overflow:hidden;background:#eee}.thumb img{width:100%;height:100%;object-fit:cover}.product strong{display:block}.product small{color:var(--muted);line-height:1.6}.notice{padding:15px;border-radius:12px;background:#f0eee8;color:#5e5b55;font-size:13px;line-height:1.6}.storebox{padding:13px;background:#f5f2eb;border-radius:12px;margin-bottom:16px}.storebox strong{display:block}.empty{color:var(--muted);padding:20px 0}.wide{grid-column:1/-1}.logout{float:right}@media(max-width:800px){.grid{grid-template-columns:1fr}.hero h1{font-size:35px}.product{grid-template-columns:65px 1fr}.product .btn{grid-column:2;justify-self:start}.thumb{width:65px;height:78px}}
+:root{--bg:#f5f2eb;--paper:#fffdf9;--ink:#171817;--muted:#746f67;--line:#ded8ce;--green:#2f6b4f;--soft:#edf3ef;--amber:#9a6a12;--red:#a83d35}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}.top{background:#171817;color:#fff;position:sticky;top:0;z-index:20}.wrap{width:min(1180px,94%);margin:auto}.nav{height:72px;display:flex;align-items:center;justify-content:space-between}.brand{font-size:22px;font-weight:950}.links{display:flex;gap:8px}.links a,.links button{color:#ddd;text-decoration:none;border:0;background:transparent;padding:9px 11px;border-radius:9px;font:inherit;cursor:pointer}.links a:hover,.links button:hover{background:#252625;color:#fff}.main{padding:32px 0 70px}.hero{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:22px}.hero h1{margin:0 0 7px;font-size:44px;letter-spacing:-.06em}.hero p{margin:0;color:var(--muted)}.role{display:inline-flex;padding:7px 10px;border-radius:999px;background:var(--soft);color:var(--green);font-size:11px;font-weight:900}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.stat{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px}.stat span{display:block;color:var(--muted);font-size:12px;font-weight:800}.stat strong{display:block;font-size:27px;margin-top:6px;letter-spacing:-.04em}.grid{display:grid;grid-template-columns:1fr 1.25fr;gap:18px}.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:20px}.wide{grid-column:1/-1}.card h2{font-size:19px;margin:0 0 15px}.field{margin-bottom:12px}.field label{display:block;font-size:12px;font-weight:850;margin-bottom:6px}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;font:inherit}.field textarea{min-height:80px;resize:vertical}.btn{border:0;background:var(--ink);color:#fff;border-radius:10px;padding:11px 14px;font-weight:850;cursor:pointer}.btn.green{background:var(--green)}.btn.light{background:#fff;color:var(--ink);border:1px solid var(--line)}.msg{min-height:20px;color:var(--muted);font-size:13px;line-height:1.55;margin-top:10px}.notice{padding:15px;border-radius:12px;background:#f0eee8;color:#5e5b55;font-size:13px;line-height:1.6}.storebox{padding:13px;background:#f5f2eb;border-radius:12px;margin-bottom:15px}.storebox strong{display:block}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px}.table{width:100%;border-collapse:collapse;min-width:720px}.table th,.table td{padding:12px 13px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;vertical-align:top}.table th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:#faf8f3}.table tr:last-child td{border-bottom:0}.pill{display:inline-flex;padding:5px 8px;border-radius:999px;background:#eeeae2;font-size:11px;font-weight:850}.pill.green{background:#e6f0ea;color:var(--green)}.pill.amber{background:#f6eddc;color:var(--amber)}.pill.red{background:#f7e4e2;color:var(--red)}.product{display:grid;grid-template-columns:72px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}.product:last-child{border-bottom:0}.thumb{width:72px;height:82px;border-radius:10px;overflow:hidden;background:#eee}.thumb img{width:100%;height:100%;object-fit:cover}.product strong{display:block}.product small{color:var(--muted);line-height:1.7}.empty{color:var(--muted);padding:15px 0}.toast{position:fixed;right:20px;bottom:20px;z-index:50;background:#171817;color:#fff;padding:13px 16px;border-radius:12px;box-shadow:0 15px 45px #0002;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:none}.order-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.order-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 13px}.order-toolbar input,.order-toolbar select{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 11px;font:inherit}.order-toolbar input{flex:1;min-width:180px}.order-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.mini{background:#f5f2eb;border-radius:12px;padding:12px}.mini small{display:block;color:var(--muted);font-size:11px}.mini strong{display:block;font-size:20px;margin-top:4px}@media(max-width:700px){.order-summary{grid-template-columns:repeat(2,1fr)}}.modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:18px;z-index:100}.modal.show{display:flex}.modalbox{width:min(720px,100%);max-height:88vh;overflow:auto;background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 25px 80px #0004}.modalhead{display:flex;justify-content:space-between;gap:15px;align-items:start}.modalhead h2{margin:0}.close{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 11px;cursor:pointer}.detailgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}.detailitem{padding:12px;background:#f5f2eb;border-radius:12px}.detailitem small{display:block;color:var(--muted);font-size:11px;margin-bottom:4px}.detailrows{border:1px solid var(--line);border-radius:12px;overflow:hidden}.detailrow{display:grid;grid-template-columns:1fr auto;gap:12px;padding:12px;border-bottom:1px solid var(--line)}.detailrow:last-child{border-bottom:0}@media(max-width:600px){.detailgrid{grid-template-columns:1fr}}@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.hero{align-items:flex-start;flex-direction:column}}@media(max-width:600px){.hero h1{font-size:35px}.links a{display:none}}
 </style>
 </head>
 <body>
-<header class="top"><div class="wrap"><div class="brand">KitaWear · Seller</div><div><a class="back" href="/">← Kembali ke toko</a></div></div></header>
-<main class="main"><div class="wrap">
-<section class="hero"><h1>Dashboard Penjual</h1><p id="welcome">Memuat akun...</p></section>
-<div id="loading" class="notice">Menghubungkan ke KitaWear...</div>
-<div id="buyerPanel" style="display:none"><div class="card"><h2>Ajukan menjadi penjual</h2><p class="notice">Akun kamu belum memiliki role seller. Isi pengajuan toko. Admin KitaWear dapat meninjau dan mengubah role menjadi seller setelah disetujui.</p><form id="applicationForm"><div class="field"><label>Nama toko</label><input id="appStoreName" required></div><div class="field"><label>Slug toko</label><input id="appSlug" required placeholder="contoh: toko-ahmad"></div><div class="field"><label>Deskripsi</label><textarea id="appDescription"></textarea></div><button class="btn">Kirim Pengajuan</button></form><div id="appMsg" class="msg"></div></div></div>
-<div id="sellerPanel" class="grid" style="display:none">
-  <div class="card"><h2>Toko saya</h2><div id="storeInfo" class="storebox">Memuat toko...</div><form id="storeForm"><div class="field"><label>Nama toko</label><input id="storeName" required></div><div class="field"><label>Slug toko</label><input id="storeSlug" required></div><div class="field"><label>Deskripsi</label><textarea id="storeDescription"></textarea></div><button class="btn">Buat / Simpan Toko</button></form><div id="storeMsg" class="msg"></div></div>
-  <div class="card"><h2>Tambah produk</h2><form id="productForm"><div class="field"><label>Nama produk</label><input id="productName" required></div><div class="field"><label>Harga (Rupiah)</label><input id="productPrice" type="number" min="0" required></div><div class="field"><label>Kategori</label><input id="productCategory" placeholder="T-Shirt, Pants, Jacket..."></div><div class="field"><label>URL foto utama</label><input id="productImage" type="url" placeholder="https://..."></div><div class="field"><label>Deskripsi</label><textarea id="productDescription"></textarea></div><div class="field"><label>Ukuran & stok</label><input id="productSizes" placeholder="M:10,L:8,XL:5,XXL:2" required></div><button class="btn">Simpan Produk</button></form><div id="productMsg" class="msg"></div></div>
-  <div class="card wide"><h2>Produk saya</h2><div id="productList" class="empty">Memuat produk...</div></div>
+
+<header class="top">
+<div class="wrap nav">
+<div class="brand">KitaWear · Seller Center</div>
+<div class="links">
+<a href="/">Toko</a>
+<a href="/admin.html">Admin</a>
+<button id="logout">Keluar</button>
 </div>
-</div></main>
+</div>
+</header>
+
+<main class="main">
+<div class="wrap">
+
+<section class="hero">
+<div>
+<h1>Seller Center</h1>
+<p id="welcome">Memuat akun...</p>
+</div>
+<span class="role">PENJUAL</span>
+</section>
+
+<div id="loading" class="notice">Menghubungkan ke KitaWear...</div>
+
+<div id="buyerPanel" style="display:none">
+<div class="card">
+<h2>Mulai berjualan di KitaWear</h2>
+<p class="notice">
+Akun kamu masih buyer. Ajukan nama toko untuk ditinjau admin.
+Setelah disetujui, menu produk dan pesanan akan terbuka.
+</p>
+
+<form id="applicationForm">
+<div class="field">
+<label>Nama toko</label>
+<input id="appName" required>
+</div>
+
+<div class="field">
+<label>Slug toko</label>
+<input id="appSlug" placeholder="contoh: kita-style" required>
+</div>
+
+<div class="field">
+<label>Deskripsi</label>
+<textarea id="appDesc"></textarea>
+</div>
+
+<button class="btn">Kirim pengajuan</button>
+</form>
+
+<div id="appMsg" class="msg"></div>
+</div>
+</div>
+
+<section id="sellerPanel" style="display:none">
+
+<div class="stats">
+<div class="stat">
+<span>Produk</span>
+<strong id="sProducts">0</strong>
+</div>
+
+<div class="stat">
+<span>Pesanan</span>
+<strong id="sOrders">0</strong>
+</div>
+
+<div class="stat">
+<span>Penjualan</span>
+<strong id="sSales">Rp0</strong>
+</div>
+
+<div class="stat">
+<span>Payout</span>
+<strong id="sPayout">Rp0</strong>
+</div>
+</div>
+
+<div class="grid">
+
+<div class="card">
+<h2>Toko saya</h2>
+
+<div id="storeInfo" class="storebox">Memuat...</div>
+
+<form id="storeForm">
+
+<div class="field">
+<label>Nama toko</label>
+<input id="storeName" required>
+</div>
+
+<div class="field">
+<label>Slug toko</label>
+<input id="storeSlug" required>
+</div>
+
+<div class="field">
+<label>Deskripsi</label>
+<textarea id="storeDescription"></textarea>
+</div>
+
+<button class="btn">Simpan toko</button>
+</form>
+
+<div id="storeMsg" class="msg"></div>
+</div>
+
+<div class="card">
+<h2>Tambah produk</h2>
+
+<form id="productForm">
+
+<div class="field">
+<label>Nama produk</label>
+<input id="productName" required>
+</div>
+
+<div class="field">
+<label>Harga (Rupiah)</label>
+<input id="productPrice" type="number" min="0" required>
+</div>
+
+<div class="field">
+<label>Kategori</label>
+<input id="productCategory" placeholder="T-Shirt, Pants, Jacket...">
+</div>
+
+<div class="field">
+<label>URL foto utama</label>
+<input id="productImage" type="url" placeholder="https://...">
+</div>
+
+<div class="field">
+<label>Deskripsi</label>
+<textarea id="productDescription"></textarea>
+</div>
+
+<div class="field">
+<label>Ukuran & stok</label>
+<input id="productSizes" placeholder="M:10,L:8,XL:5,XXL:2" required>
+</div>
+
+<button class="btn green">Tambah produk</button>
+</form>
+
+<div id="productMsg" class="msg"></div>
+</div>
+
+<div class="card wide">
+<h2>Produk saya</h2>
+<div id="productList" class="empty">Memuat...</div>
+</div>
+
+<div class="card wide">
+<h2>Pesanan toko</h2>
+
+<div class="order-summary">
+
+<div class="mini">
+<small>Menunggu proses</small>
+<strong id="oPaid">0</strong>
+</div>
+
+<div class="mini">
+<small>Diproses</small>
+<strong id="oProcessing">0</strong>
+</div>
+
+<div class="mini">
+<small>Dikirim</small>
+<strong id="oShipped">0</strong>
+</div>
+
+<div class="mini">
+<small>Selesai</small>
+<strong id="oDone">0</strong>
+</div>
+
+</div>
+
+<div class="order-toolbar">
+
+<input
+id="sellerOrderSearch"
+placeholder="Cari nomor pesanan / pembeli / produk"
+>
+
+<select id="sellerOrderStatus">
+<option value="">Semua status</option>
+<option value="pending_payment">Menunggu pembayaran</option>
+<option value="paid">Sudah dibayar</option>
+<option value="processing">Diproses</option>
+<option value="shipped">Dikirim</option>
+<option value="delivered">Diterima</option>
+<option value="completed">Selesai</option>
+<option value="cancelled">Dibatalkan</option>
+<option value="disputed">Sengketa</option>
+</select>
+
+<button class="btn light" onclick="refreshSellerOrders()">
+Refresh
+</button>
+
+<button class="btn light" onclick="exportSellerOrders()">
+Export CSV
+</button>
+
+</div>
+
+<div id="orderList" class="empty">
+Memuat...
+</div>
+
+</div>
+
+<div class="card wide">
+<h2>Payout</h2>
+<div id="payoutList" class="empty">Memuat...</div>
+</div>
+
+</div>
+</section>
+
+</div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<div
+id="orderModal"
+class="modal"
+onclick="if(event.target===this)closeOrderModal()"
+>
+<div class="modalbox">
+
+<div class="modalhead">
+<div>
+<h2 id="orderTitle">Detail Pesanan</h2>
+<div id="orderSubtitle" class="msg"></div>
+</div>
+
+<button class="close" onclick="closeOrderModal()">
+Tutup
+</button>
+</div>
+
+<div id="orderDetail"></div>
+
+</div>
+</div>
+
 <script>
 let sb=null,user=null,profile=null,store=null;
+
 const $=id=>document.getElementById(id);
+
+const money=n=>
+new Intl.NumberFormat('id-ID',{
+style:'currency',
+currency:'IDR',
+maximumFractionDigits:0
+}).format(n||0);
+
+const esc=v=>
+String(v??'').replace(
+/[&<>'"]/g,
+c=>({
+'&':'&amp;',
+'<':'&lt;',
+'>':'&gt;',
+"'":'&#39;',
+'"':'&quot;'
+}[c])
+);
+
+const toast=m=>{
+$('toast').textContent=m;
+$('toast').classList.add('show');
+setTimeout(()=>$('toast').classList.remove('show'),2400)
+};
+
+function pill(s){
+const x=String(s||'');
+const c=
+['paid','completed','active','eligible','delivered'].includes(x)
+?'green':
+['pending','pending_payment','processing','reviewing','shipped'].includes(x)
+?'amber':
+['cancelled','refunded','disputed','held'].includes(x)
+?'red':'';
+
+return `<span class="pill ${c}">${esc(x)}</span>`
+}
+
 async function init(){
-  try{
-    const cfgRes=await fetch('/.netlify/functions/config',{cache:'no-store'}); const cfg=await cfgRes.json();
-    if(!cfg.supabaseUrl||!cfg.supabaseAnonKey) throw new Error('Konfigurasi Supabase belum tersedia di Netlify.');
-    sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
-    const {data}=await sb.auth.getSession();
-    if(!data.session){location.href='/?account=login';return;}
-    user=data.session.user;
-    const p=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
-    if(p.error) throw p.error; profile=p.data;
-    $('welcome').innerHTML=`${profile?.full_name||user.email} · <span class="role">${profile?.role||'buyer'}</span>`;
-    $('loading').style.display='none';
-    if(!['seller','admin'].includes(profile?.role)){
-      $('buyerPanel').style.display='block';
-      return;
-    }
-    $('sellerPanel').style.display='grid';
-    await loadStore();
-    await loadProducts();
-  }catch(e){$('loading').textContent=e.message||'Gagal memuat dashboard.';}
+
+try{
+
+const r=await fetch(
+'/.netlify/functions/config',
+{cache:'no-store'}
+);
+
+const cfg=await r.json();
+
+if(!cfg.supabaseUrl||!cfg.supabaseAnonKey)
+throw Error('Konfigurasi Supabase belum tersedia.');
+
+sb=window.supabase.createClient(
+cfg.supabaseUrl,
+cfg.supabaseAnonKey
+);
+
+const s=await sb.auth.getSession();
+
+if(!s.data.session){
+location.href='/?account=login';
+return
 }
+
+user=s.data.session.user;
+
+const p=await sb
+.from('profiles')
+.select('*')
+.eq('id',user.id)
+.maybeSingle();
+
+if(p.error)throw p.error;
+
+profile=p.data;
+
+$('welcome').innerHTML=
+`${esc(profile?.full_name||user.email)} · ${pill(profile?.role||'buyer')}`;
+
+$('loading').style.display='none';
+
+if(!['seller','admin'].includes(profile?.role)){
+$('buyerPanel').style.display='block';
+return
+}
+
+$('sellerPanel').style.display='block';
+
+await loadStore();
+
+if(store){
+await Promise.all([
+loadProducts(),
+loadOrders(),
+loadPayouts()
+])
+}
+
+}catch(e){
+
+$('loading').innerHTML=
+`<strong>Gagal membuka Seller Center.</strong><br>${esc(e.message||'Terjadi kesalahan.')}`
+
+}
+
+}
+
 async function loadStore(){
-  const q=await sb.from('stores').select('*').eq('owner_id',user.id).maybeSingle();
-  if(q.error) throw q.error; store=q.data;
-  $('storeInfo').innerHTML=store?`<strong>${escapeHtml(store.name)}</strong><small>${escapeHtml(store.slug)} · ${escapeHtml(store.status)}</small>`:'Belum ada toko.';
-  if(store){$('storeName').value=store.name||'';$('storeSlug').value=store.slug||'';$('storeDescription').value=store.description||'';}
+
+const q=await sb
+.from('stores')
+.select('*')
+.eq('owner_id',user.id)
+.maybeSingle();
+
+if(q.error)throw q.error;
+
+store=q.data;
+
+$('storeInfo').innerHTML=
+store
+?
+`<strong>${esc(store.name)}</strong>
+<small>${esc(store.slug)} · ${pill(store.status)}</small>`
+:
+'Belum ada toko. Isi form untuk membuat toko.';
+
+if(store){
+
+$('storeName').value=store.name||'';
+$('storeSlug').value=store.slug||'';
+$('storeDescription').value=store.description||''
+
 }
-async function saveStore(e){e.preventDefault();$('storeMsg').textContent='Menyimpan...';try{
-  const payload={owner_id:user.id,name:$('storeName').value.trim(),slug:$('storeSlug').value.trim().toLowerCase(),description:$('storeDescription').value.trim(),status:'active'};
-  let q=store?await sb.from('stores').update(payload).eq('id',store.id).select().single():await sb.from('stores').insert(payload).select().single();
-  if(q.error) throw q.error; store=q.data; $('storeMsg').textContent='Toko tersimpan.'; await loadStore();
-}catch(e){$('storeMsg').textContent=e.message||'Gagal menyimpan toko.';}}
-async function saveProduct(e){e.preventDefault();$('productMsg').textContent='Menyimpan...';try{
-  if(!store) throw new Error('Buat toko terlebih dahulu.');
-  const slug=$('productName').value.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+Date.now();
-  const p=await sb.from('products').insert({store_id:store.id,name:$('productName').value.trim(),slug,description:$('productDescription').value.trim(),category:$('productCategory').value.trim(),price:Number($('productPrice').value),image_url:$('productImage').value.trim(),gallery:$('productImage').value.trim()?[ $('productImage').value.trim() ]:[],colors:[],status:'active'}).select().single();
-  if(p.error) throw p.error;
-  const sizes=$('productSizes').value.split(',').map(x=>x.trim()).filter(Boolean).map(x=>{const [size,stock]=x.split(':');return{product_id:p.data.id,size:size.trim().toUpperCase(),stock:Number(stock||0)}});
-  const s=await sb.from('product_sizes').insert(sizes); if(s.error) throw s.error;
-  $('productMsg').textContent='Produk berhasil ditambahkan.'; e.target.reset(); await loadProducts();
-}catch(e){$('productMsg').textContent=e.message||'Gagal menyimpan produk.';}}
+
+}
+
+async function saveStore(e){
+
+e.preventDefault();
+
+$('storeMsg').textContent='Menyimpan...';
+
+try{
+
+const payload={
+owner_id:user.id,
+name:$('storeName').value.trim(),
+slug:$('storeSlug').value.trim().toLowerCase(),
+description:$('storeDescription').value.trim(),
+status:'active'
+};
+
+const q=store
+?
+await sb.from('stores')
+.update(payload)
+.eq('id',store.id)
+.select()
+.single()
+:
+await sb.from('stores')
+.insert(payload)
+.select()
+.single();
+
+if(q.error)throw q.error;
+
+store=q.data;
+
+$('storeMsg').textContent='Toko tersimpan.';
+
+await loadStore();
+
+await Promise.all([
+loadProducts(),
+loadOrders(),
+loadPayouts()
+]);
+
+}catch(e){
+
+$('storeMsg').textContent=
+e.message||'Gagal menyimpan toko.'
+
+}
+
+}
+
+async function saveProduct(e){
+
+e.preventDefault();
+
+$('productMsg').textContent='Menyimpan...';
+
+try{
+
+if(!store)
+throw Error('Buat toko terlebih dahulu.');
+
+const slug=
+$('productName').value
+.trim()
+.toLowerCase()
+.replace(/[^a-z0-9]+/g,'-')
+.replace(/^-|-$/g,'')
++'-'+Date.now();
+
+const image=$('productImage').value.trim();
+
+const p=await sb
+.from('products')
+.insert({
+store_id:store.id,
+name:$('productName').value.trim(),
+slug,
+description:$('productDescription').value.trim(),
+category:$('productCategory').value.trim(),
+price:Number($('productPrice').value),
+image_url:image,
+gallery:image?[image]:[],
+colors:[],
+status:'active'
+})
+.select()
+.single();
+
+if(p.error)throw p.error;
+
+const sizes=$('productSizes')
+.value
+.split(',')
+.map(x=>x.trim())
+.filter(Boolean)
+.map(x=>{
+
+const z=x.split(':');
+
+return{
+product_id:p.data.id,
+size:z[0].trim().toUpperCase(),
+stock:Number(z[1]||0)
+}
+
+});
+
+const s=await sb
+.from('product_sizes')
+.insert(sizes);
+
+if(s.error)throw s.error;
+
+$('productMsg').textContent=
+'Produk berhasil ditambahkan.';
+
+e.target.reset();
+
+await loadProducts();
+
+}catch(e){
+
+$('productMsg').textContent=
+e.message||'Gagal menyimpan produk.'
+
+}
+
+}
+
 async function loadProducts(){
-  const q=await sb.from('products').select('id,name,price,image_url,status,product_sizes(size,stock)').eq('store_id',store?.id||'00000000-0000-0000-0000-000000000000').order('created_at',{ascending:false});
-  if(q.error) throw q.error;
-  const rows=q.data||[]; $('productList').innerHTML=rows.length?rows.map(p=>`<div class="product"><div class="thumb"><img src="${escapeAttr(p.image_url||'')}" alt=""></div><div><strong>${escapeHtml(p.name)}</strong><small>${money(p.price)} · ${escapeHtml(p.status)}<br>${(p.product_sizes||[]).map(s=>`${escapeHtml(s.size)}:${s.stock}`).join(' · ')}</small></div><span></span></div>`).join(''):'<div class="empty">Belum ada produk.</div>';
+
+const q=await sb
+.from('products')
+.select(
+'id,name,price,image_url,status,product_sizes(size,stock)'
+)
+.eq('store_id',store.id)
+.order('created_at',{ascending:false});
+
+if(q.error)throw q.error;
+
+const rows=q.data||[];
+
+$('sProducts').textContent=rows.length;
+
+$('productList').innerHTML=
+rows.length
+?
+rows.map(p=>`
+
+<div class="product">
+
+<div class="thumb">
+<img src="${esc(p.image_url||'')}" alt="">
+</div>
+
+<div>
+<strong>${esc(p.name)}</strong>
+
+<small>
+${money(p.price)} · ${pill(p.status)}
+<br>
+${(p.product_sizes||[])
+.map(s=>`${esc(s.size)}:${s.stock}`)
+.join(' · ')}
+</small>
+
+</div>
+
+<span></span>
+
+</div>
+
+`).join('')
+:
+'<div class="empty">Belum ada produk.</div>'
+
 }
-function money(n){return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n||0)}
-function escapeHtml(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-function escapeAttr(v){return escapeHtml(v)}
-$('storeForm').addEventListener('submit',saveStore);$('productForm').addEventListener('submit',saveProduct);
-$('applicationForm').addEventListener('submit',async e=>{e.preventDefault();$('appMsg').textContent='Mengirim...';try{const q=await sb.from('seller_applications').insert({user_id:user.id,requested_store_name:$('appStoreName').value.trim(),requested_slug:$('appSlug').value.trim().toLowerCase(),description:$('appDescription').value.trim()});if(q.error)throw q.error;$('appMsg').textContent='Pengajuan berhasil dikirim. Tunggu persetujuan admin KitaWear.';e.target.reset()}catch(err){$('appMsg').textContent=err.message||'Gagal mengirim pengajuan.'}});
+
+async function loadOrders(){
+
+const q=await sb
+.from('order_items')
+.select(
+'id,order_id,product_name,size,quantity,unit_price,line_total,store_id,orders(id,order_number,customer_name,customer_email,customer_phone,shipping_address,status,payment_status,subtotal,shipping_fee,total,created_at)'
+)
+.eq('store_id',store.id)
+.order('created_at',{ascending:false});
+
+if(q.error)throw q.error;
+
+const rows=q.data||[];
+
+window.sellerOrderRows=rows;
+
+const byOrder=new Map();
+
+rows.forEach(x=>byOrder.set(x.order_id,x));
+
+const ordersOnly=
+[...byOrder.values()]
+.map(x=>x.orders||{});
+
+$('sOrders').textContent=byOrder.size;
+
+$('sSales').textContent=
+money(
+rows.reduce(
+(a,x)=>a+(Number(x.line_total)||0),
+0
+)
+);
+
+$('oPaid').textContent=
+ordersOnly.filter(o=>o.status==='paid').length;
+
+$('oProcessing').textContent=
+ordersOnly.filter(o=>o.status==='processing').length;
+
+$('oShipped').textContent=
+ordersOnly.filter(o=>o.status==='shipped').length;
+
+$('oDone').textContent=
+ordersOnly.filter(
+o=>['delivered','completed'].includes(o.status)
+).length;
+
+renderSellerOrders();
+
+}
+
+function renderSellerOrders(){
+
+const term=
+($('sellerOrderSearch').value||'')
+.toLowerCase()
+.trim();
+
+const st=$('sellerOrderStatus').value;
+
+const all=window.sellerOrderRows||[];
+
+const rows=all.filter(x=>{
+
+const o=x.orders||{};
+
+const hay=
+`${o.order_number||''} ${o.customer_name||''} ${o.customer_email||''} ${x.product_name||''}`
+.toLowerCase();
+
+return
+(!term||hay.includes(term))
+&&
+(!st||o.status===st)
+
+});
+
+$('orderList').innerHTML=
+rows.length
+?
+`
+<div class="tablewrap">
+
+<table class="table">
+
+<thead>
+<tr>
+<th>Order</th>
+<th>Pembeli</th>
+<th>Produk</th>
+<th>Qty</th>
+<th>Total</th>
+<th>Status</th>
+<th>Aksi</th>
+</tr>
+</thead>
+
+<tbody>
+
+${rows.map(x=>{
+
+const o=x.orders||{};
+
+return `
+
+<tr>
+
+<td>
+<strong>${esc(o.order_number||x.order_id)}</strong>
+<br>
+<small>
+${new Date(
+o.created_at||x.created_at
+).toLocaleString('id-ID')}
+</small>
+</td>
+
+<td>
+${esc(o.customer_name||'—')}
+<br>
+<small>
+${esc(
+o.customer_phone||
+o.customer_email||
+''
+)}
+</small>
+</td>
+
+<td>
+${esc(x.product_name)}
+<br>
+<small>Size ${esc(x.size)}</small>
+</td>
+
+<td>${x.quantity}</td>
+
+<td>${money(x.line_total)}</td>
+
+<td>
+${pill(o.status)}
+<br>
+${pill(o.payment_status)}
+</td>
+
+<td>
+
+<button
+class="btn light"
+onclick="openOrderModal('${x.order_id}')"
+>
+Detail
+</button>
+
+${sellerStatusActions(
+o.status,
+x.order_id
+)}
+
+</td>
+
+</tr>
+
+`
+
+}).join('')}
+
+</tbody>
+
+</table>
+
+</div>
+`
+:
+'Tidak ada pesanan yang cocok.';
+
+}
+
+async function refreshSellerOrders(){
+
+try{
+
+await loadOrders();
+
+toast('Pesanan diperbarui.');
+
+}catch(e){
+
+toast(
+e.message||
+'Gagal memuat pesanan.'
+);
+
+}
+
+}
+
+function exportSellerOrders(){
+
+const rows=window.sellerOrderRows||[];
+
+if(!rows.length){
+
+toast('Belum ada data pesanan.');
+
+return
+
+}
+
+const head=[
+'order_number',
+'created_at',
+'customer_name',
+'customer_email',
+'product_name',
+'size',
+'quantity',
+'line_total',
+'status',
+'payment_status'
+];
+
+const csv=[
+head.join(','),
+...rows.map(x=>{
+
+const o=x.orders||{};
+
+return [
+o.order_number,
+o.created_at,
+o.customer_name,
+o.customer_email,
+x.product_name,
+x.size,
+x.quantity,
+x.line_total,
+o.status,
+o.payment_status
+]
+.map(v=>
+`"${String(v??'').replace(/"/g,'""')}"`
+)
+.join(',')
+
+})
+].join('\n');
+
+const a=document.createElement('a');
+
+a.href=
+URL.createObjectURL(
+new Blob(
+[csv],
+{type:'text/csv;charset=utf-8'}
+)
+);
+
+a.download=
+'kitawear-seller-orders.csv';
+
+a.click();
+
+URL.revokeObjectURL(a.href);
+
+}
+
+function sellerStatusActions(
+status,
+orderId
+){
+
+if(status==='paid')
+
+return `
+<div class="order-actions">
+
+<button
+class="btn green"
+onclick="updateSellerOrder(
+'${orderId}',
+'processing'
+)"
+>
+Proses
+</button>
+
+</div>
+`;
+
+if(status==='processing')
+
+return `
+<div class="order-actions">
+
+<button
+class="btn green"
+onclick="updateSellerOrder(
+'${orderId}',
+'shipped'
+)"
+>
+Kirim
+</button>
+
+</div>
+`;
+
+if(status==='shipped')
+
+return `
+<div class="order-actions">
+
+<button
+class="btn green"
+onclick="updateSellerOrder(
+'${orderId}',
+'delivered'
+)"
+>
+Tandai diterima
+</button>
+
+</div>
+`;
+
+return '';
+
+}
+
+async function updateSellerOrder(
+orderId,
+status
+){
+
+try{
+
+const q=await sb.rpc(
+'seller_update_order_status',
+{
+p_order_id:orderId,
+p_status:status
+}
+);
+
+if(q.error)throw q.error;
+
+toast(
+`Pesanan diperbarui: ${status}`
+);
+
+await loadOrders();
+
+}catch(e){
+
+toast(
+e.message||
+'Gagal memperbarui pesanan.'
+);
+
+}
+
+}
+
+function openOrderModal(orderId){
+
+const rows=
+(window.sellerOrderRows||[])
+.filter(x=>x.order_id===orderId);
+
+if(!rows.length)return;
+
+const o=rows[0].orders||{};
+
+$('orderTitle').textContent=
+`Pesanan ${o.order_number||orderId}`;
+
+$('orderSubtitle').innerHTML=
+`${esc(o.customer_name||'')} · ${pill(o.status)} · ${pill(o.payment_status)}`;
+
+$('orderDetail').innerHTML=`
+
+<div class="detailgrid">
+
+<div class="detailitem">
+
+<small>Pembeli</small>
+
+<strong>
+${esc(o.customer_name||'—')}
+</strong>
+
+<br>
+${esc(o.customer_email||'—')}
+<br>
+${esc(o.customer_phone||'—')}
+
+</div>
+
+<div class="detailitem">
+
+<small>Alamat pengiriman</small>
+
+<strong>
+${esc(o.shipping_address||'—')}
+</strong>
+
+</div>
+
+</div>
+
+<div class="detailrows">
+
+${rows.map(x=>`
+
+<div class="detailrow">
+
+<span>
+
+<strong>
+${esc(x.product_name)}
+</strong>
+
+<br>
+
+<small>
+Size ${esc(x.size)} · Qty ${x.quantity}
+</small>
+
+</span>
+
+<strong>
+${money(x.line_total)}
+</strong>
+
+</div>
+
+`).join('')}
+
+<div class="detailrow">
+<span>Subtotal</span>
+<strong>${money(o.subtotal)}</strong>
+</div>
+
+<div class="detailrow">
+<span>Ongkir</span>
+<strong>${money(o.shipping_fee)}</strong>
+</div>
+
+<div class="detailrow">
+<span>Total</span>
+<strong>${money(o.total)}</strong>
+</div>
+
+</div>
+`;
+
+$('orderModal').classList.add('show');
+
+}
+
+function closeOrderModal(){
+
+$('orderModal').classList.remove('show');
+
+}
+
+async function loadPayouts(){
+
+const q=await sb
+.from('seller_payouts')
+.select('*')
+.eq('seller_id',user.id)
+.order('created_at',{ascending:false});
+
+if(q.error)throw q.error;
+
+const rows=q.data||[];
+
+$('sPayout').textContent=
+money(
+rows
+.filter(x=>['eligible','paid'].includes(x.status))
+.reduce(
+(a,x)=>a+(x.net_amount||0),
+0
+)
+);
+
+$('payoutList').innerHTML=
+rows.length
+?
+`
+<div class="tablewrap">
+
+<table class="table">
+
+<thead>
+
+<tr>
+<th>Order</th>
+<th>Gross</th>
+<th>Fee</th>
+<th>Net</th>
+<th>Status</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+${rows.map(x=>`
+
+<tr>
+
+<td>${esc(x.order_id)}</td>
+
+<td>${money(x.gross_amount)}</td>
+
+<td>${money(x.platform_fee)}</td>
+
+<td>
+<strong>${money(x.net_amount)}</strong>
+</td>
+
+<td>${pill(x.status)}</td>
+
+</tr>
+
+`).join('')}
+
+</tbody>
+
+</table>
+
+</div>
+`
+:
+'Belum ada payout.'
+
+}
+
+$('sellerOrderSearch')
+.addEventListener(
+'input',
+renderSellerOrders
+);
+
+$('sellerOrderStatus')
+.addEventListener(
+'change',
+renderSellerOrders
+);
+
+$('storeForm')
+.addEventListener(
+'submit',
+saveStore
+);
+
+$('productForm')
+.addEventListener(
+'submit',
+saveProduct
+);
+
+$('applicationForm')
+.addEventListener(
+'submit',
+async e=>{
+
+e.preventDefault();
+
+$('appMsg').textContent=
+'Mengirim...';
+
+try{
+
+const q=await sb
+.from('seller_applications')
+.insert({
+user_id:user.id,
+requested_store_name:
+$('appName').value.trim(),
+requested_slug:
+$('appSlug').value.trim().toLowerCase(),
+description:
+$('appDesc').value.trim()
+});
+
+if(q.error)throw q.error;
+
+$('appMsg').textContent=
+'Pengajuan terkirim. Tunggu persetujuan admin.';
+
+e.target.reset();
+
+}catch(err){
+
+$('appMsg').textContent=
+err.message||
+'Gagal mengirim pengajuan.'
+
+}
+
+}
+);
+
+$('logout').onclick=
+async()=>{
+await sb?.auth.signOut();
+location.href='/'
+};
+
+document.addEventListener(
+'keydown',
+e=>{
+if(e.key==='Escape')
+closeOrderModal()
+}
+);
+
 init();
 </script>
-</body></html>
+
+</body>
+</html>
