@@ -32,55 +32,48 @@ button,input,select{font:inherit}button{cursor:pointer}img{max-width:100%;displa
 @media(max-width:950px){.products{grid-template-columns:repeat(3,1fr)}.nav-links{display:none}.hero-grid{grid-template-columns:1fr}.hero-copy{padding:65px 42px}.hero-photo{min-height:500px}.about-block{grid-template-columns:1fr}}
 @media(max-width:680px){.nav-inner{min-height:64px;gap:8px}.logo{font-size:21px}.actions{margin-left:auto}.lang{max-width:75px}.hero{padding-top:8px}.hero-grid{border-radius:20px}.hero-copy{padding:52px 26px}.hero h1{font-size:48px}.hero-photo{min-height:390px}.section{padding:60px 0}.section-head{align-items:start;flex-direction:column}.section h2{font-size:32px}.products{grid-template-columns:repeat(2,1fr);gap:12px}.body{padding:13px}.body h3{font-size:15px}.benefits{grid-template-columns:1fr}.about-copy{padding:38px 26px}.about-copy h2{font-size:36px}.about-photo{min-height:280px}.footer-grid{grid-template-columns:1fr}.footer-links{justify-content:flex-start;flex-wrap:wrap}}
 @media(max-width:430px){.products{grid-template-columns:1fr}.hero-photo{min-height:340px}.actions .icon-btn{display:none}}
+
+/* ================= PREMIUM KITAWear DESIGN ================= */
+:root{--ink:#171817;--muted:#77736c;--bg:#f7f5f0;--paper:#fffdf9;--line:#ded9cf;--dark:#111311;--radius:18px}
+body{background:var(--bg);color:var(--ink)}
+.container{width:min(1280px,92%);margin:auto}
+.announcement{height:34px;background:#171817;color:#f8f6f1;font-size:10px;letter-spacing:.01em}.announcement .container{height:100%;display:flex;align-items:center;justify-content:space-between;gap:18px}.announcement span{opacity:.92}
+.nav{background:rgba(255,253,249,.95);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}.nav-inner{min-height:76px;gap:28px}.logo{display:flex;align-items:center;gap:9px;font-size:22px;font-weight:900;letter-spacing:-.035em}.logo-mark{width:31px;height:31px;flex:none}.nav-links{margin-left:35px;gap:30px}.nav-links a{font-size:12px;color:#555}.nav-links a:hover{color:#111}.actions{margin-left:auto}.icon-btn,.cart,.lang{height:40px;border:1px solid var(--line);background:#fffdf9;border-radius:12px}.icon-btn{min-width:40px}.cart{padding:0 11px}
+.hero{padding:0;background:var(--bg)}.hero-grid{position:relative;display:block;min-height:640px;border-radius:0;overflow:hidden;background:#d9d1c4}.hero-photo{position:absolute;inset:0;min-height:640px}.hero-photo img{width:100%;height:100%;object-fit:cover}.hero-photo:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(247,245,240,.98) 0%,rgba(247,245,240,.91) 25%,rgba(247,245,240,.35) 52%,rgba(247,245,240,0) 75%)}.hero-copy{position:relative;z-index:2;width:min(600px,52%);min-height:640px;padding:80px 0;display:flex;justify-content:center}.hero .eyebrow{color:#66625b}.hero h1{font-size:clamp(54px,6vw,88px);line-height:.91;letter-spacing:-.075em;margin:0 0 20px}.hero p{font-size:16px;line-height:1.7;max-width:480px;color:#5e5b55}.hero-btn{border-radius:999px;padding:15px 25px;background:#171817;box-shadow:0 12px 25px rgba(0,0,0,.15)}
+.premium-benefits{background:#fffdf9;border-bottom:1px solid var(--line);border-top:1px solid var(--line)}.premium-benefits .container{display:grid;grid-template-columns:repeat(5,1fr)}.premium-benefit{min-height:82px;padding:18px 15px;display:flex;align-items:center;gap:10px;border-right:1px solid var(--line)}.premium-benefit:last-child{border-right:0}.premium-icon{font-size:20px;width:29px;text-align:center}.premium-benefit strong{font-size:11px;display:block}.premium-benefit small{font-size:9px;color:#85817a;display:block;margin-top:3px}
+.section{padding:76px 0}.section-head{margin-bottom:26px}.section h2{font-size:36px;letter-spacing:-.06em}.category-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}.category-card{position:relative;height:205px;border-radius:16px;overflow:hidden;color:#fff;background:#aaa}.category-card img{width:100%;height:100%;object-fit:cover;transition:.45s}.category-card:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,.72))}.category-card:hover img{transform:scale(1.06)}.category-content{position:absolute;z-index:2;left:15px;right:15px;bottom:14px}.category-content strong{font-size:14px}.category-content span{font-size:9px;display:block;margin-top:4px;opacity:.9}
+.products{grid-template-columns:repeat(4,1fr);gap:18px}.card{border:1px solid var(--line);border-radius:17px;background:var(--paper);overflow:hidden}.card:hover{box-shadow:0 20px 45px rgba(23,24,23,.1);transform:translateY(-3px)}.photo{aspect-ratio:4/5;background:#ebe7df}.photo img{width:100%;height:100%;object-fit:cover}.body{padding:16px}.body h3{font-size:15px}.price{font-weight:900}.smallbtn{border-radius:10px;background:#171817}
+.premium-story{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;min-height:420px;border-radius:25px;overflow:hidden;background:#171817;color:#fff}.premium-story-copy{padding:65px}.premium-story-copy h2{font-size:52px;line-height:.95;letter-spacing:-.065em;margin:10px 0 20px}.premium-story-copy p{color:#c6c3bb;line-height:1.75}.premium-story-photo img{width:100%;height:100%;object-fit:cover}
+.footer{background:#111311;margin-top:0}.footer .logo{color:#fff}
+.drawer-panel{background:#fffdf9}.item{grid-template-columns:76px minmax(0,1fr)}.item-thumb{width:76px;height:94px;border-radius:12px;overflow:hidden}.item-thumb img{width:100%;height:100%;object-fit:cover}.checkout-btn{background:#171817;border-radius:12px}
+@media(max-width:1100px){.category-grid{grid-template-columns:repeat(3,1fr)}.products{grid-template-columns:repeat(3,1fr)}.premium-benefits .container{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.announcement{display:none}.nav-links{display:none}.hero-grid,.hero-photo{min-height:650px}.hero-copy{width:100%;min-height:650px;padding:35px 25px 55px;justify-content:flex-end}.hero-photo:after{background:linear-gradient(180deg,rgba(247,245,240,0) 12%,rgba(247,245,240,.18) 42%,rgba(247,245,240,.98) 74%)}.premium-benefits .container{grid-template-columns:1fr 1fr}.premium-benefit{border-right:0;border-bottom:1px solid var(--line)}.category-grid{grid-template-columns:repeat(2,1fr)}.products{grid-template-columns:repeat(2,1fr)}.premium-story{grid-template-columns:1fr}.premium-story-copy{padding:45px 28px}.premium-story-copy h2{font-size:40px}.premium-story-photo{min-height:300px}}
+@media(max-width:430px){.products{grid-template-columns:1fr}.premium-benefits .container{grid-template-columns:1fr}.category-grid{grid-template-columns:1fr 1fr}}
+
 </style>
 </head>
 
 <body>
 
-<header class="nav">
-  <div class="container nav-inner">
-    <a href="#" class="logo">Kita<span>Wear</span></a>
-
-    <nav class="nav-links">
-      <a href="#produk" data-i18n="nav_products">Produk</a>
-      <a href="#tentang" data-i18n="nav_about">Tentang</a>
-      <a href="#kontak" data-i18n="nav_contact">Kontak</a>
-    </nav>
-
-    <div class="actions">
-      <button class="icon-btn" type="button" onclick="openSearch()" aria-label="Cari produk" title="Cari produk">⌕</button>
-
-      <select id="LanguageSelect" class="lang" aria-label="Bahasa">
-        <option value="id">ID</option>
-        <option value="en">EN</option>
-        <option value="vi">VI</option>
-        <option value="th">TH</option>
-        <option value="ch">CH</option>
-      </select>
-
-      <button class="cart" type="button" onclick="toggleCart()" aria-label="Keranjang">
-        🛒 <span id="count">0</span>
-      </button>
-    </div>
-  </div>
-</header>
+<div class="announcement"><div class="container"><span>🚚 Gratis ongkir minimal pembelian Rp 200.000</span><span>Diskon 10% untuk pembelian pertama</span><span>Tersedia dalam 5 bahasa · ID · EN · VI · TH · CH</span></div></div>
+<header class="nav"><div class="container nav-inner">
+<a href="#" class="logo" aria-label="KitaWear"><svg class="logo-mark" viewBox="0 0 48 48" fill="none"><path d="M24 7c-5 0-8 3-8 7 0 3 2 5 5 6" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M21 20 7 31c-3 2-2 7 2 8h30c4-1 5-6 2-8L27 20" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><path d="m18 39 6-7 6 7" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>KitaWear</a>
+<nav class="nav-links"><a href="#" data-i18n="nav_home">Beranda</a><a href="#produk" data-i18n="nav_products">Produk</a><a href="#tentang" data-i18n="nav_about">Tentang Kami</a><a href="#kontak" data-i18n="nav_contact">Kontak</a></nav>
+<div class="actions"><button class="icon-btn" type="button" onclick="openSearch()" aria-label="Cari produk">⌕</button><select id="LanguageSelect" class="lang" aria-label="Bahasa"><option value="id">🇮🇩 ID</option><option value="en">EN</option><option value="vi">VI</option><option value="th">TH</option><option value="ch">CH</option></select><button class="cart" type="button" onclick="toggleCart()">🛒 <span id="count">0</span></button></div>
+</div></header>
 
 <main>
-  <section class="hero">
-    <div class="container hero-grid">
-      <div class="hero-copy">
-        <div class="eyebrow" data-i18n="hero_eyebrow">Koleksi terbaru KitaWear</div>
-        <h1 data-i18n="hero_title">Simple Style.<br>Everyday Confidence.</h1>
-        <p data-i18n="hero_text">Pakaian simpel, nyaman, dan mudah dipadukan untuk menemani aktivitas sehari-hari.</p>
-        <a class="hero-btn" href="#produk" data-i18n="hero_button">Belanja Sekarang</a>
-      </div>
-      <div class="hero-photo">
-        <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=88" alt="KitaWear collection">
-      </div>
-    </div>
-  </section>
+  <section class="hero"><div class="container hero-grid"><div class="hero-photo"><img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1600&q=90" alt="KitaWear collection"></div><div class="hero-copy"><div><div class="eyebrow" data-i18n="hero_eyebrow">Koleksi terbaru KitaWear</div><h1 data-i18n="hero_title">Simple Style.<br>Everyday Confidence.</h1><p data-i18n="hero_text">Pakaian simpel, nyaman, dan mudah dipadukan untuk menemani aktivitas sehari-hari.</p><a class="hero-btn" href="#produk" data-i18n="hero_button">Belanja Sekarang →</a></div></div></div></section>
 
-  <section id="produk" class="section">
+  <section class="section" style="padding-bottom:24px"><div class="container"><div class="section-head"><div class="eyebrow">KitaWear</div><h2>Cari Berdasarkan Kategori</h2></div><div class="category-grid">
+<a class="category-card" href="#produk"><img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=700&q=85" alt="Kaos"><div class="category-content"><strong>Kaos</strong><span>Lihat Semua →</span></div></a>
+<a class="category-card" href="#produk"><img src="https://images.unsplash.com/photo-1603252110481-7ba873bf42ab?auto=format&fit=crop&w=700&q=85" alt="Kemeja"><div class="category-content"><strong>Kemeja</strong><span>Lihat Semua →</span></div></a>
+<a class="category-card" href="#produk"><img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=700&q=85" alt="Hoodie"><div class="category-content"><strong>Hoodie</strong><span>Lihat Semua →</span></div></a>
+<a class="category-card" href="#produk"><img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=700&q=85" alt="Celana"><div class="category-content"><strong>Celana</strong><span>Lihat Semua →</span></div></a>
+<a class="category-card" href="#produk"><img src="https://images.unsplash.com/photo-1543076447-215ad9ba6923?auto=format&fit=crop&w=700&q=85" alt="Jaket"><div class="category-content"><strong>Jaket</strong><span>Lihat Semua →</span></div></a>
+<a class="category-card" href="#produk"><img src="https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=700&q=85" alt="Atasan"><div class="category-content"><strong>Atasan</strong><span>Lihat Semua →</span></div></a>
+</div></div></section>
+<section id="produk" class="section">
     <div class="container">
       <div class="section-head">
         <div>
@@ -124,6 +117,7 @@ button,input,select{font:inherit}button{cursor:pointer}img{max-width:100%;displa
   </section>
 </main>
 
+<section class="section" id="cerita"><div class="container"><div class="premium-story"><div class="premium-story-copy"><div class="eyebrow" style="color:#bdb8af">KITАWEAR</div><h2>More Than<br>Just Clothes.</h2><p>Kualitas, kenyamanan, dan gaya dalam satu pilihan. KitaWear, lebih dari sekadar pakaian.</p><a class="hero-btn" href="#produk" style="background:#fff;color:#171817">Jelajahi Koleksi →</a></div><div class="premium-story-photo"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=85" alt="KitaWear premium packaging"></div></div></div></section>
 <footer id="kontak" class="footer">
   <div class="container footer-grid">
     <div>
@@ -320,7 +314,7 @@ const rupiah=n=>new Intl.NumberFormat("id-ID",{
 ========================= */
 const translations={
   id:{
-    nav_products:"Produk",nav_about:"Tentang",nav_contact:"Kontak",
+    nav_home:"Beranda",nav_products:"Produk",nav_about:"Tentang Kami",nav_contact:"Kontak",
     hero_eyebrow:"Koleksi terbaru KitaWear",
     hero_title:"Pakaian Nyaman untuk Setiap Aktivitas",
     hero_text:"Koleksi fashion minimalis yang nyaman dipakai, mudah dipadukan, dan cocok untuk gaya sehari-hari.",
