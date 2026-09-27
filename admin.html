@@ -1,3 +1,4 @@
+```
 <!doctype html>
 <html lang="id">
 <head>
@@ -532,6 +533,98 @@ tr:last-child td{
   flex-wrap:wrap;
 }
 
+
+.status-option{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:14px 15px;
+  margin-top:9px;
+  border:1px solid var(--line);
+  border-radius:13px;
+  background:#fff;
+  text-align:left;
+  transition:.15s ease;
+}
+
+.status-option:hover{
+  border-color:#aaa;
+  background:#faf8f3;
+}
+
+.status-option.active{
+  border-color:var(--dark);
+  box-shadow:0 0 0 2px rgba(17,19,17,.08);
+}
+
+.status-option-left{
+  display:flex;
+  align-items:center;
+  gap:11px;
+}
+
+.status-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#aaa;
+}
+
+.status-option.active .status-dot{
+  background:var(--green);
+}
+
+.status-option-title{
+  font-weight:850;
+  font-size:13px;
+}
+
+.status-option-desc{
+  color:var(--muted);
+  font-size:11px;
+  margin-top:2px;
+}
+
+.status-check{
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  border:1px solid var(--line);
+  display:grid;
+  place-items:center;
+  color:#fff;
+  font-size:12px;
+  font-weight:900;
+}
+
+.status-option.active .status-check{
+  background:var(--dark);
+  border-color:var(--dark);
+}
+
+.status-modal-card{
+  width:min(520px,100%);
+}
+
+.status-current{
+  padding:12px 14px;
+  background:#faf8f3;
+  border:1px solid var(--line);
+  border-radius:13px;
+  margin-bottom:14px;
+}
+
+.status-current-label{
+  color:var(--muted);
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  font-weight:800;
+  margin-bottom:6px;
+}
+
 .login-screen{
   min-height:100vh;
   display:flex;
@@ -1024,6 +1117,64 @@ tr:last-child td{
 
 </div>
 
+
+
+<!-- ================= STATUS MODAL ================= -->
+
+<div
+  id="statusModal"
+  class="modal">
+
+  <div class="modal-card status-modal-card">
+
+    <div class="modal-head">
+
+      <div>
+        <h2>Ubah Status Pesanan</h2>
+        <div id="statusOrderLabel" class="muted"></div>
+      </div>
+
+      <button
+        id="closeStatusModalBtn"
+        class="close"
+        type="button">
+        ×
+      </button>
+
+    </div>
+
+    <div class="modal-body">
+
+      <div class="status-current">
+        <div class="status-current-label">Status saat ini</div>
+        <div id="statusCurrent"></div>
+      </div>
+
+      <div id="statusOptions"></div>
+
+      <div class="modal-actions">
+
+        <button
+          id="cancelStatusBtn"
+          class="btn"
+          type="button">
+          Batal
+        </button>
+
+        <button
+          id="saveStatusBtn"
+          class="btn btn-dark"
+          type="button">
+          Simpan Status
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
 
 <!-- ================= NOTICE ================= -->
 
@@ -2077,105 +2228,133 @@ function closeOrderDetail(){
 
 /* ================= CHANGE STATUS ================= */
 
-async function changeStatus(id){
+const ADMIN_STATUS_OPTIONS = [
+  {value:"pending",title:"Pending",desc:"Pesanan baru menunggu pembayaran atau tindakan."},
+  {value:"paid",title:"Paid",desc:"Pembayaran sudah diterima."},
+  {value:"processing",title:"Diproses",desc:"Seller sedang menyiapkan pesanan."},
+  {value:"shipped",title:"Dikirim",desc:"Pesanan sudah diserahkan untuk pengiriman."},
+  {value:"completed",title:"Selesai",desc:"Pesanan sudah selesai diterima."},
+  {value:"cancelled",title:"Dibatalkan",desc:"Pesanan dibatalkan."},
+  {value:"failed",title:"Gagal",desc:"Pembayaran atau transaksi gagal."},
+  {value:"refunded",title:"Dikembalikan",desc:"Dana sudah dikembalikan kepada pembeli."}
+];
 
-  const order =
-    findOrder(id);
+let selectedStatus = "";
+let selectedStatusOrderId = "";
+
+function changeStatus(id){
+
+  const order = findOrder(id);
 
   if(!order){
+    showNotice("Pesanan tidak ditemukan.","error");
     return;
   }
 
-  const current =
-    order.status || "pending";
+  selectedOrder = order;
+  selectedStatusOrderId = String(order.id);
+  selectedStatus = order.status || "pending";
 
-  const status =
-    prompt(
-      "Masukkan status baru:\n\n" +
-      "pending\n" +
-      "paid\n" +
-      "processing\n" +
-      "shipped\n" +
-      "completed\n" +
-      "cancelled\n" +
-      "failed\n" +
-      "refunded",
-      current
-    );
+  document.getElementById("statusOrderLabel").textContent =
+    order.order_id || order.id || "Pesanan";
 
-  if(status === null){
+  document.getElementById("statusCurrent").innerHTML =
+    `<span class="status ${statusClass(selectedStatus)}">${escapeHtml(statusLabel(selectedStatus))}</span>`;
+
+  renderStatusOptions();
+
+  document.getElementById("statusModal").classList.add("show");
+}
+
+function renderStatusOptions(){
+
+  const container = document.getElementById("statusOptions");
+
+  container.innerHTML = ADMIN_STATUS_OPTIONS.map(option => `
+    <button
+      class="status-option ${selectedStatus === option.value ? "active" : ""}"
+      type="button"
+      data-status="${escapeHtml(option.value)}">
+
+      <span class="status-option-left">
+        <span class="status-dot"></span>
+        <span>
+          <span class="status-option-title">${escapeHtml(option.title)}</span>
+          <span class="status-option-desc">${escapeHtml(option.desc)}</span>
+        </span>
+      </span>
+
+      <span class="status-check">${selectedStatus === option.value ? "✓" : ""}</span>
+    </button>
+  `).join("");
+
+  container.querySelectorAll("[data-status]").forEach(button => {
+    button.addEventListener("click",()=>{
+      selectedStatus = button.dataset.status;
+      renderStatusOptions();
+    });
+  });
+}
+
+function closeStatusModal(){
+  document.getElementById("statusModal").classList.remove("show");
+  selectedStatus = "";
+  selectedStatusOrderId = "";
+}
+
+async function saveOrderStatus(){
+
+  if(!selectedStatusOrderId || !selectedStatus){
     return;
   }
 
-  const newStatus =
-    status.trim().toLowerCase();
+  const button = document.getElementById("saveStatusBtn");
+  const originalText = button.textContent;
 
-  const allowed = [
-    "pending",
-    "paid",
-    "processing",
-    "shipped",
-    "completed",
-    "cancelled",
-    "failed",
-    "refunded"
-  ];
-
-  if(!allowed.includes(newStatus)){
-
-    showNotice(
-      "Status tidak valid.",
-      "error"
-    );
-
-    return;
-
-  }
-
+  button.disabled = true;
+  button.textContent = "Menyimpan...";
 
   try{
 
-    const {error} =
-      await supabaseClient
-        .from("orders")
-        .update({
-          status:newStatus,
-          updated_at:new Date().toISOString()
-        })
-        .eq("id",order.id);
+    const {data,error} = await supabaseClient.rpc(
+      "admin_update_order_status",
+      {
+        p_order_id:selectedStatusOrderId,
+        p_status:selectedStatus
+      }
+    );
 
     if(error){
       throw error;
     }
 
-    showNotice(
-      "Status pesanan berhasil diperbarui."
-    );
+    if(!data?.ok){
+      throw new Error("Status pesanan gagal diperbarui.");
+    }
+
+    closeStatusModal();
+
+    showNotice("Status pesanan berhasil diperbarui.");
 
     await loadOrders();
 
-    if(
-      document
-        .getElementById("detailModal")
-        .classList.contains("show")
-    ){
-
-      closeOrderDetail();
-
+    if(document.getElementById("detailModal").classList.contains("show")){
+      await openOrderDetail(selectedOrder?.id || selectedStatusOrderId);
     }
 
   }catch(error){
 
-    console.error(error);
+    console.error("Admin update order status:",error);
 
     showNotice(
-      error.message ||
-      "Gagal mengubah status pesanan.",
+      error.message || "Gagal mengubah status pesanan.",
       "error"
     );
 
+  }finally{
+    button.disabled = false;
+    button.textContent = originalText;
   }
-
 }
 
 
@@ -2261,6 +2440,50 @@ document
   );
 
 
+document
+  .getElementById("closeStatusModalBtn")
+  .addEventListener(
+    "click",
+    closeStatusModal
+  );
+
+
+document
+  .getElementById("cancelStatusBtn")
+  .addEventListener(
+    "click",
+    closeStatusModal
+  );
+
+
+document
+  .getElementById("saveStatusBtn")
+  .addEventListener(
+    "click",
+    saveOrderStatus
+  );
+
+
+document
+  .getElementById("statusModal")
+  .addEventListener(
+    "click",
+    event => {
+      if(event.target.id === "statusModal"){
+        closeStatusModal();
+      }
+    }
+  );
+
+
+document.addEventListener("keydown",event=>{
+  if(event.key === "Escape"){
+    closeStatusModal();
+    closeOrderDetail();
+  }
+});
+
+
 /* ================= START ================= */
 
 if(initSupabase()){
@@ -2302,3 +2525,4 @@ if(
 
 </body>
 </html>
+```
