@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="id">
 <head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#111111">
@@ -66,7 +67,7 @@ body{background:var(--bg);color:var(--ink)}
 .lightbox-thumbs{max-width:min(620px,92vw)!important;margin-top:10px!important}
 .lightbox-thumb{width:54px!important;height:66px!important;object-fit:cover!important}
 @media(max-width:680px){.lightbox{padding:7px!important}.lightbox-inner{width:100%!important;max-height:94vh!important}.lightbox-main{width:82vw!important;height:48vh!important}.lightbox-caption{left:7px!important;right:7px!important;bottom:7px!important;padding:8px 11px!important}.lightbox-thumbs{max-width:96vw!important;margin-top:7px!important}.lightbox-thumb{width:48px!important;height:60px!important}}
-</style>
+.kw-account-btn{font-size:16px}.kw-auth-box{width:min(460px,100%)}.kw-auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}.kw-auth-tab{height:42px;border:1px solid var(--line);background:#fff;border-radius:10px;font-weight:800}.kw-auth-tab.active{background:#171817;color:#fff}.kw-auth-message{min-height:20px;margin:12px 0 0;color:#777;font-size:13px;line-height:1.5}.kw-account-card{display:flex;gap:14px;align-items:center;padding:18px;border:1px solid var(--line);border-radius:16px;background:#f7f5f0}.kw-account-avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#171817;color:#fff}.kw-account-email{font-size:12px;color:#777;margin-top:3px;word-break:break-all}.kw-role{display:inline-block;margin-top:8px;padding:4px 8px;border-radius:999px;background:#e7efe9;color:#2f6b4f;font-size:10px;font-weight:900}.kw-account-actions{display:grid;gap:10px;margin-top:15px}.kw-account-link{display:flex;align-items:center;justify-content:center;min-height:44px;border:1px solid var(--line);border-radius:11px;background:#fff;text-decoration:none;font-weight:800}.kw-logout{cursor:pointer;color:#a33} .market-store{font-size:10px;color:#888;margin:-3px 0 9px}</style>
 </head>
 
 <body>
@@ -75,7 +76,7 @@ body{background:var(--bg);color:var(--ink)}
 <header class="nav"><div class="container nav-inner">
 <a href="#" class="logo" aria-label="KitaWear"><svg class="logo-mark" viewBox="0 0 48 48" fill="none"><path d="M24 7c-5 0-8 3-8 7 0 3 2 5 5 6" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M21 20 7 31c-3 2-2 7 2 8h30c4-1 5-6 2-8L27 20" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><path d="m18 39 6-7 6 7" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>KitaWear</a>
 <nav class="nav-links"><a href="#" data-i18n="nav_home">Beranda</a><a href="#produk" data-i18n="nav_products">Produk</a><a href="#tentang" data-i18n="nav_about">Tentang Kami</a><a href="#kontak" data-i18n="nav_contact">Kontak</a></nav>
-<div class="actions"><button class="icon-btn" type="button" onclick="openSearch()" aria-label="Cari produk">⌕</button><select id="LanguageSelect" class="lang" aria-label="Bahasa"><option value="id">ID</option><option value="en">EN</option><option value="vi">VI</option><option value="th">TH</option><option value="ch">CH</option></select><button class="cart" type="button" onclick="toggleCart()">🛒 <span id="count">0</span></button></div>
+<div class="actions"><button class="icon-btn" type="button" onclick="openSearch()" aria-label="Cari produk">⌕</button><button id="accountButton" class="icon-btn kw-account-btn" type="button" onclick="openAccount()" aria-label="Akun">👤</button><select id="LanguageSelect" class="lang" aria-label="Bahasa"><option value="id">ID</option><option value="en">EN</option><option value="vi">VI</option><option value="th">TH</option><option value="ch">CH</option></select><button class="cart" type="button" onclick="toggleCart()">🛒 <span id="count">0</span></button></div>
 </div></header>
 
 <main>
@@ -215,6 +216,25 @@ body{background:var(--bg);color:var(--ink)}
   </div>
 </div>
 
+<!-- ACCOUNT / AUTH -->
+<div id="accountModal" class="modal" aria-hidden="true" onclick="closeAccount(event)">
+  <div class="modal-box kw-auth-box" onclick="event.stopPropagation()">
+    <div class="modal-head"><h3 id="authTitle">Akun KitaWear</h3><button class="close-btn" type="button" onclick="closeAccount()">×</button></div>
+    <div id="authLoggedOut">
+      <div class="kw-auth-tabs"><button id="loginTab" class="kw-auth-tab active" type="button" onclick="showAuthTab('login')">Masuk</button><button id="signupTab" class="kw-auth-tab" type="button" onclick="showAuthTab('signup')">Daftar</button></div>
+      <div class="field"><label for="authEmail">Email</label><input id="authEmail" type="email" autocomplete="email"></div>
+      <div class="field"><label for="authPassword">Password</label><input id="authPassword" type="password" autocomplete="current-password"></div>
+      <div id="signupFields" style="display:none"><div class="field"><label for="authName">Nama</label><input id="authName" autocomplete="name"></div><div class="field"><label for="authPhone">No. WhatsApp</label><input id="authPhone" autocomplete="tel"></div></div>
+      <button id="authSubmit" class="pay-btn" type="button" onclick="submitAuth()">Masuk</button>
+      <p id="authMessage" class="kw-auth-message"></p>
+    </div>
+    <div id="authLoggedIn" style="display:none">
+      <div class="kw-account-card"><div class="kw-account-avatar">👤</div><div><strong id="accountName">KitaWear User</strong><div id="accountEmail" class="kw-account-email"></div><span id="accountRole" class="kw-role">buyer</span></div></div>
+      <div class="kw-account-actions"><a id="sellerDashboardLink" href="/seller.html" class="kw-account-link" style="display:none">Dashboard Penjual →</a><button class="kw-account-link kw-logout" type="button" onclick="logoutKitaWear()">Keluar</button></div>
+    </div>
+  </div>
+</div>
+
 <!-- LIGHTBOX -->
 <div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
   <div class="lightbox-inner">
@@ -243,7 +263,7 @@ body{background:var(--bg);color:var(--ink)}
 <script>
 const WA_NUMBER="6287797878149";
 
-const products=[
+let products=[
   {
     name:"Kita Oversize Tee",
     price:89000,
@@ -621,6 +641,7 @@ function render(){
 
       <div class="body">
         <h3>${p.name}</h3>
+        ${p.storeName?`<div class="market-store">${p.storeName}</div>`:""}
         <div class="price">${rupiah(p.price)}</div>
 
         <div class="swatches">
@@ -661,6 +682,8 @@ function add(i){
   }else{
     cart.push({
       productIndex:i,
+      productId:products[i].id || null,
+      storeId:products[i].storeId || null,
       name:products[i].name,
       price:products[i].price,
       size:size,
@@ -833,6 +856,13 @@ async function startPayment(e){
   btn.textContent=t("payment_loading");
 
   try{
+    const session=await getKitaSession();
+    if(!session){
+      showKwNotice("Silakan masuk atau daftar akun sebelum melakukan pembayaran.","Akun diperlukan");
+      openAccount();
+      return;
+    }
+
     const configRes=await fetch("/.netlify/functions/config",{
       method:"GET",
       headers:{"Accept":"application/json"},
@@ -846,7 +876,7 @@ async function startPayment(e){
       config=JSON.parse(configText);
     }catch(parseErr){
       if(configText.trim().startsWith("<")){
-        throw new Error("Endpoint pembayaran KitaWear belum aktif di Netlify. Jangan uji pembayaran dari preview Library; buka website KitaWear yang sudah ter-deploy di Netlify.");
+        throw new Error("Endpoint pembayaran KitaWear belum aktif di Netlify.");
       }
       throw new Error("Respons konfigurasi pembayaran tidak valid.");
     }
@@ -878,6 +908,8 @@ async function startPayment(e){
         address:document.getElementById("buyerAddress").value.trim()
       },
       items:cart.map(x=>({
+        productId:x.productId||null,
+        storeId:x.storeId||null,
         name:x.name,
         size:x.size,
         quantity:x.quantity
@@ -886,7 +918,7 @@ async function startPayment(e){
 
     const res=await fetch("/.netlify/functions/create-transaction",{
       method:"POST",
-      headers:{"Content-Type":"application/json"},
+      headers:{"Content-Type":"application/json","Authorization":`Bearer ${session.access_token}`},
       body:JSON.stringify(payload)
     });
 
@@ -1040,11 +1072,120 @@ document.addEventListener("keydown",e=>{
   }
 });
 
-document.addEventListener("DOMContentLoaded",()=>{
+let kitaSupabase=null;
+let kitaSession=null;
+let authMode="login";
+
+async function loadKitaConfig(){
+  const res=await fetch("/.netlify/functions/config",{headers:{"Accept":"application/json"},cache:"no-store"});
+  const text=await res.text();
+  let cfg={};
+  try{cfg=JSON.parse(text)}catch{throw new Error("KitaWear belum terhubung ke backend Netlify.")}
+  if(!cfg.supabaseUrl || !cfg.supabaseAnonKey) throw new Error("Konfigurasi Supabase belum tersedia di Netlify.");
+  kitaSupabase=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
+  return cfg;
+}
+
+async function getKitaSession(){
+  if(!kitaSupabase) await loadKitaConfig();
+  const {data}=await kitaSupabase.auth.getSession();
+  kitaSession=data?.session||null;
+  return kitaSession;
+}
+
+async function loadKitaProfile(){
+  const session=await getKitaSession();
+  const btn=document.getElementById("accountButton");
+  if(!session){
+    if(btn) btn.title="Masuk / Daftar";
+    document.getElementById("authLoggedOut").style.display="block";
+    document.getElementById("authLoggedIn").style.display="none";
+    return null;
+  }
+  const {data,error}=await kitaSupabase.from("profiles").select("id,full_name,phone,role").eq("id",session.user.id).maybeSingle();
+  const profile=data||{full_name:session.user.user_metadata?.full_name||"KitaWear User",role:"buyer"};
+  document.getElementById("authLoggedOut").style.display="none";
+  document.getElementById("authLoggedIn").style.display="block";
+  document.getElementById("accountName").textContent=profile.full_name||"KitaWear User";
+  document.getElementById("accountEmail").textContent=session.user.email||"";
+  document.getElementById("accountRole").textContent=profile.role||"buyer";
+  document.getElementById("sellerDashboardLink").style.display=(profile.role==="seller"||profile.role==="admin")?"flex":"none";
+  if(btn) btn.title=profile.full_name||"Akun";
+  if(document.getElementById("buyerName") && !document.getElementById("buyerName").value) document.getElementById("buyerName").value=profile.full_name||"";
+  if(document.getElementById("buyerEmail") && !document.getElementById("buyerEmail").value) document.getElementById("buyerEmail").value=session.user.email||"";
+  if(document.getElementById("buyerPhone") && !document.getElementById("buyerPhone").value) document.getElementById("buyerPhone").value=profile.phone||"";
+  return {...profile,user:session.user};
+}
+
+function openAccount(){
+  document.getElementById("accountModal").classList.add("show");
+  document.getElementById("accountModal").setAttribute("aria-hidden","false");
+  loadKitaProfile().catch(err=>{document.getElementById("authMessage").textContent=err.message||"Gagal memuat akun."});
+}
+function closeAccount(e){
+  const m=document.getElementById("accountModal");
+  if(e && e.target!==m) return;
+  m.classList.remove("show");m.setAttribute("aria-hidden","true");
+}
+function showAuthTab(mode){
+  authMode=mode;
+  document.getElementById("loginTab").classList.toggle("active",mode==="login");
+  document.getElementById("signupTab").classList.toggle("active",mode==="signup");
+  document.getElementById("signupFields").style.display=mode==="signup"?"block":"none";
+  document.getElementById("authSubmit").textContent=mode==="signup"?"Daftar":"Masuk";
+  document.getElementById("authMessage").textContent="";
+}
+async function submitAuth(){
+  try{
+    if(!kitaSupabase) await loadKitaConfig();
+    const email=document.getElementById("authEmail").value.trim();
+    const password=document.getElementById("authPassword").value;
+    if(!email||!password){document.getElementById("authMessage").textContent="Email dan password wajib diisi.";return;}
+    const btn=document.getElementById("authSubmit");btn.disabled=true;btn.textContent="Memproses...";
+    if(authMode==="signup"){
+      const name=document.getElementById("authName").value.trim();
+      const phone=document.getElementById("authPhone").value.trim();
+      if(!name){document.getElementById("authMessage").textContent="Nama wajib diisi.";return;}
+      const {data,error}=await kitaSupabase.auth.signUp({email,password,options:{data:{full_name:name,phone}}});
+      if(error) throw error;
+      if(data.session){document.getElementById("authMessage").textContent="Akun berhasil dibuat.";}
+      else document.getElementById("authMessage").textContent="Akun dibuat. Periksa email jika verifikasi email diaktifkan.";
+    }else{
+      const {error}=await kitaSupabase.auth.signInWithPassword({email,password});
+      if(error) throw error;
+      await loadKitaProfile();
+    }
+  }catch(err){document.getElementById("authMessage").textContent=err.message||"Gagal memproses akun."}
+  finally{const btn=document.getElementById("authSubmit");btn.disabled=false;btn.textContent=authMode==="signup"?"Daftar":"Masuk";}
+}
+async function logoutKitaWear(){
+  if(kitaSupabase) await kitaSupabase.auth.signOut();
+  kitaSession=null;await loadKitaProfile();
+}
+
+async function loadMarketplaceProducts(){
+  try{
+    await loadKitaConfig();
+    const {data,error}=await kitaSupabase.from("products").select("id,name,description,price,image_url,gallery,colors,status,store_id,stores(name,status),product_sizes(size,stock)").eq("status","active");
+    if(error) throw error;
+    const rows=(data||[]).filter(p=>p.stores?.status==="active");
+    if(!rows.length) return;
+    products=rows.map(p=>({
+      id:p.id,name:p.name,price:Number(p.price),desc:p.description||"",badge:"",img:p.image_url||p.gallery?.[0]||"",gallery:Array.isArray(p.gallery)&&p.gallery.length?p.gallery:[p.image_url].filter(Boolean),colors:Array.isArray(p.colors)?p.colors:[],sizes:(p.product_sizes||[]).filter(s=>s.stock>0).map(s=>s.size),storeId:p.store_id,storeName:p.stores?.name||""
+    })).filter(p=>p.sizes.length && p.img);
+    if(products.length){render();updateCart();}
+  }catch(err){console.warn("Marketplace products fallback:",err.message)}
+}
+
+document.addEventListener("DOMContentLoaded",async()=>{
   const langSelect=document.getElementById("LanguageSelect");
   if(langSelect) langSelect.value=currentLang;
   applyLanguage(currentLang);
   updateCart();
+  try{await loadKitaConfig();await loadKitaProfile();}catch(err){console.warn(err.message)}
+  await loadMarketplaceProducts();
+  if(kitaSupabase){kitaSupabase.auth.onAuthStateChange(()=>loadKitaProfile().catch(()=>{}));}
+  if(new URLSearchParams(location.search).get("account")==="login") openAccount();
 });
 </script>
 </body>

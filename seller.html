@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KitaWear — Dashboard Penjual</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#f7f5f0;--paper:#fffdf9;--ink:#171817;--muted:#77736c;--line:#ded9cf;--green:#2f6b4f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}.wrap{width:min(1120px,92%);margin:auto}.top{background:#171817;color:#fff;padding:18px 0}.top .wrap{display:flex;justify-content:space-between;align-items:center;gap:20px}.brand{font-weight:950;font-size:22px}.back{color:#ddd;text-decoration:none;font-size:13px}.main{padding:35px 0 70px}.hero{margin-bottom:22px}.hero h1{margin:0 0 8px;font-size:42px;letter-spacing:-.06em}.hero p{color:var(--muted)}.grid{display:grid;grid-template-columns:1fr 1.4fr;gap:18px}.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:22px}.card h2{font-size:20px;margin:0 0 16px}.field{margin-bottom:12px}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;font:inherit}.field textarea{min-height:85px;resize:vertical}.btn{border:0;background:var(--ink);color:#fff;border-radius:10px;padding:12px 16px;font-weight:850;cursor:pointer}.btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}.msg{min-height:20px;color:var(--muted);font-size:13px;line-height:1.5;margin-top:10px}.role{display:inline-block;padding:5px 9px;background:#e6efe9;color:var(--green);border-radius:999px;font-size:11px;font-weight:900}.product{display:grid;grid-template-columns:80px 1fr auto;gap:13px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}.product:last-child{border-bottom:0}.thumb{width:80px;height:95px;border-radius:10px;overflow:hidden;background:#eee}.thumb img{width:100%;height:100%;object-fit:cover}.product strong{display:block}.product small{color:var(--muted);line-height:1.6}.notice{padding:15px;border-radius:12px;background:#f0eee8;color:#5e5b55;font-size:13px;line-height:1.6}.storebox{padding:13px;background:#f5f2eb;border-radius:12px;margin-bottom:16px}.storebox strong{display:block}.empty{color:var(--muted);padding:20px 0}.wide{grid-column:1/-1}.logout{float:right}@media(max-width:800px){.grid{grid-template-columns:1fr}.hero h1{font-size:35px}.product{grid-template-columns:65px 1fr}.product .btn{grid-column:2;justify-self:start}.thumb{width:65px;height:78px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><div class="brand">KitaWear · Seller</div><div><a class="back" href="/">← Kembali ke toko</a></div></div></header>
+<main class="main"><div class="wrap">
+<section class="hero"><h1>Dashboard Penjual</h1><p id="welcome">Memuat akun...</p></section>
+<div id="loading" class="notice">Menghubungkan ke KitaWear...</div>
+<div id="buyerPanel" style="display:none"><div class="card"><h2>Ajukan menjadi penjual</h2><p class="notice">Akun kamu belum memiliki role seller. Isi pengajuan toko. Admin KitaWear dapat meninjau dan mengubah role menjadi seller setelah disetujui.</p><form id="applicationForm"><div class="field"><label>Nama toko</label><input id="appStoreName" required></div><div class="field"><label>Slug toko</label><input id="appSlug" required placeholder="contoh: toko-ahmad"></div><div class="field"><label>Deskripsi</label><textarea id="appDescription"></textarea></div><button class="btn">Kirim Pengajuan</button></form><div id="appMsg" class="msg"></div></div></div>
+<div id="sellerPanel" class="grid" style="display:none">
+  <div class="card"><h2>Toko saya</h2><div id="storeInfo" class="storebox">Memuat toko...</div><form id="storeForm"><div class="field"><label>Nama toko</label><input id="storeName" required></div><div class="field"><label>Slug toko</label><input id="storeSlug" required></div><div class="field"><label>Deskripsi</label><textarea id="storeDescription"></textarea></div><button class="btn">Buat / Simpan Toko</button></form><div id="storeMsg" class="msg"></div></div>
+  <div class="card"><h2>Tambah produk</h2><form id="productForm"><div class="field"><label>Nama produk</label><input id="productName" required></div><div class="field"><label>Harga (Rupiah)</label><input id="productPrice" type="number" min="0" required></div><div class="field"><label>Kategori</label><input id="productCategory" placeholder="T-Shirt, Pants, Jacket..."></div><div class="field"><label>URL foto utama</label><input id="productImage" type="url" placeholder="https://..."></div><div class="field"><label>Deskripsi</label><textarea id="productDescription"></textarea></div><div class="field"><label>Ukuran & stok</label><input id="productSizes" placeholder="M:10,L:8,XL:5,XXL:2" required></div><button class="btn">Simpan Produk</button></form><div id="productMsg" class="msg"></div></div>
+  <div class="card wide"><h2>Produk saya</h2><div id="productList" class="empty">Memuat produk...</div></div>
+</div>
+</div></main>
+<script>
+let sb=null,user=null,profile=null,store=null;
+const $=id=>document.getElementById(id);
+async function init(){
+  try{
+    const cfgRes=await fetch('/.netlify/functions/config',{cache:'no-store'}); const cfg=await cfgRes.json();
+    if(!cfg.supabaseUrl||!cfg.supabaseAnonKey) throw new Error('Konfigurasi Supabase belum tersedia di Netlify.');
+    sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
+    const {data}=await sb.auth.getSession();
+    if(!data.session){location.href='/?account=login';return;}
+    user=data.session.user;
+    const p=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+    if(p.error) throw p.error; profile=p.data;
+    $('welcome').innerHTML=`${profile?.full_name||user.email} · <span class="role">${profile?.role||'buyer'}</span>`;
+    $('loading').style.display='none';
+    if(!['seller','admin'].includes(profile?.role)){
+      $('buyerPanel').style.display='block';
+      return;
+    }
+    $('sellerPanel').style.display='grid';
+    await loadStore();
+    await loadProducts();
+  }catch(e){$('loading').textContent=e.message||'Gagal memuat dashboard.';}
+}
+async function loadStore(){
+  const q=await sb.from('stores').select('*').eq('owner_id',user.id).maybeSingle();
+  if(q.error) throw q.error; store=q.data;
+  $('storeInfo').innerHTML=store?`<strong>${escapeHtml(store.name)}</strong><small>${escapeHtml(store.slug)} · ${escapeHtml(store.status)}</small>`:'Belum ada toko.';
+  if(store){$('storeName').value=store.name||'';$('storeSlug').value=store.slug||'';$('storeDescription').value=store.description||'';}
+}
+async function saveStore(e){e.preventDefault();$('storeMsg').textContent='Menyimpan...';try{
+  const payload={owner_id:user.id,name:$('storeName').value.trim(),slug:$('storeSlug').value.trim().toLowerCase(),description:$('storeDescription').value.trim(),status:'active'};
+  let q=store?await sb.from('stores').update(payload).eq('id',store.id).select().single():await sb.from('stores').insert(payload).select().single();
+  if(q.error) throw q.error; store=q.data; $('storeMsg').textContent='Toko tersimpan.'; await loadStore();
+}catch(e){$('storeMsg').textContent=e.message||'Gagal menyimpan toko.';}}
+async function saveProduct(e){e.preventDefault();$('productMsg').textContent='Menyimpan...';try{
+  if(!store) throw new Error('Buat toko terlebih dahulu.');
+  const slug=$('productName').value.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+Date.now();
+  const p=await sb.from('products').insert({store_id:store.id,name:$('productName').value.trim(),slug,description:$('productDescription').value.trim(),category:$('productCategory').value.trim(),price:Number($('productPrice').value),image_url:$('productImage').value.trim(),gallery:$('productImage').value.trim()?[ $('productImage').value.trim() ]:[],colors:[],status:'active'}).select().single();
+  if(p.error) throw p.error;
+  const sizes=$('productSizes').value.split(',').map(x=>x.trim()).filter(Boolean).map(x=>{const [size,stock]=x.split(':');return{product_id:p.data.id,size:size.trim().toUpperCase(),stock:Number(stock||0)}});
+  const s=await sb.from('product_sizes').insert(sizes); if(s.error) throw s.error;
+  $('productMsg').textContent='Produk berhasil ditambahkan.'; e.target.reset(); await loadProducts();
+}catch(e){$('productMsg').textContent=e.message||'Gagal menyimpan produk.';}}
+async function loadProducts(){
+  const q=await sb.from('products').select('id,name,price,image_url,status,product_sizes(size,stock)').eq('store_id',store?.id||'00000000-0000-0000-0000-000000000000').order('created_at',{ascending:false});
+  if(q.error) throw q.error;
+  const rows=q.data||[]; $('productList').innerHTML=rows.length?rows.map(p=>`<div class="product"><div class="thumb"><img src="${escapeAttr(p.image_url||'')}" alt=""></div><div><strong>${escapeHtml(p.name)}</strong><small>${money(p.price)} · ${escapeHtml(p.status)}<br>${(p.product_sizes||[]).map(s=>`${escapeHtml(s.size)}:${s.stock}`).join(' · ')}</small></div><span></span></div>`).join(''):'<div class="empty">Belum ada produk.</div>';
+}
+function money(n){return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n||0)}
+function escapeHtml(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function escapeAttr(v){return escapeHtml(v)}
+$('storeForm').addEventListener('submit',saveStore);$('productForm').addEventListener('submit',saveProduct);
+$('applicationForm').addEventListener('submit',async e=>{e.preventDefault();$('appMsg').textContent='Mengirim...';try{const q=await sb.from('seller_applications').insert({user_id:user.id,requested_store_name:$('appStoreName').value.trim(),requested_slug:$('appSlug').value.trim().toLowerCase(),description:$('appDescription').value.trim()});if(q.error)throw q.error;$('appMsg').textContent='Pengajuan berhasil dikirim. Tunggu persetujuan admin KitaWear.';e.target.reset()}catch(err){$('appMsg').textContent=err.message||'Gagal mengirim pengajuan.'}});
+init();
+</script>
+</body></html>
