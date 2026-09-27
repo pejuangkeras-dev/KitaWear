@@ -1,1165 +1,1204 @@
-<script>
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111111">
+<title>KitaWear — Simple Style. Everyday Confidence.</title>
+<style>
+:root{
+  --ink:#20252b;
+  --muted:#73777c;
+  --bg:#fff;
+  --soft:#f5f5f4;
+  --line:#e8e7e3;
+  --accent:#111;
+  --green:#198b58;
+  --shadow:0 18px 50px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--ink);
+  background:var(--bg);
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+.container{width:min(1180px,92%);margin:auto}
 
+/* NAV */
+.nav{
+  position:sticky;top:0;z-index:40;
+  background:rgba(255,255,255,.94);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.nav-inner{
+  min-height:72px;display:flex;align-items:center;gap:28px;
+}
+.logo{font-size:24px;font-weight:900;letter-spacing:-.04em}
+.logo span{font-weight:500}
+.nav-links{display:flex;gap:24px;margin-left:auto}
+.nav-links a{font-size:14px;color:#555}
+.nav-links a:hover{color:#000}
+.actions{display:flex;align-items:center;gap:8px}
+.icon-btn,.cart{
+  border:1px solid var(--line);background:#fff;
+  min-width:42px;height:42px;border-radius:12px;
+  display:grid;place-items:center;
+}
+.icon-btn{font-size:20px}
+.cart{padding:0 12px;display:flex;gap:7px}
+.lang{
+  height:42px;border:1px solid var(--line);border-radius:12px;
+  background:#fff;padding:0 10px;font-weight:700;
+}
+
+/* HERO */
+.hero{background:#f5f4f0}
+.hero-grid{
+  display:grid;grid-template-columns:1.02fr .98fr;min-height:560px;
+}
+.hero-copy{padding:80px 40px 80px 0;display:flex;flex-direction:column;justify-content:center}
+.eyebrow{
+  font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+  color:#777;margin-bottom:16px;font-weight:800
+}
+.hero h1{
+  margin:0 0 18px;font-size:clamp(42px,6vw,76px);
+  line-height:.95;letter-spacing:-.055em;
+}
+.hero p{font-size:18px;line-height:1.7;color:#666;max-width:570px}
+.hero-btn{
+  margin-top:18px;width:max-content;border:0;background:#111;color:#fff;
+  border-radius:14px;padding:15px 22px;font-weight:800
+}
+.hero-photo{min-height:560px;background:#ddd}
+.hero-photo img{width:100%;height:100%;object-fit:cover}
+
+/* SECTION */
+.section{padding:76px 0}
+.section-head{
+  display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:28px
+}
+.section h2{margin:0;font-size:34px;letter-spacing:-.04em}
+.section-head p{margin:0;color:#777}
+
+/* PRODUCTS */
+.products{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:20px;
+}
+.card{
+  border:1px solid var(--line);border-radius:20px;overflow:hidden;background:#fff;
+  transition:transform .2s,box-shadow .2s;
+}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(0,0,0,.08)}
+.photo{position:relative;aspect-ratio:4/5;background:#f0f0ef;cursor:zoom-in;overflow:hidden}
+.photo img{width:100%;height:100%;object-fit:cover;transition:transform .35s}
+.card:hover .photo img{transform:scale(1.025)}
+.badge{
+  position:absolute;left:12px;top:12px;background:#111;color:#fff;
+  padding:7px 10px;border-radius:999px;font-size:11px;font-weight:800
+}
+.body{padding:17px}
+.body h3{margin:0 0 7px;font-size:17px}
+.price{font-weight:900;margin-bottom:12px}
+.swatches{display:flex;gap:7px;margin-bottom:13px}
+.sw{width:17px;height:17px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}
+.sizes-label{font-size:12px;color:#777;margin-bottom:7px}
+.size-select{
+  width:100%;height:42px;border:1px solid var(--line);border-radius:10px;
+  background:#fff;padding:0 11px;margin-bottom:10px;
+}
+.smallbtn{
+  width:100%;height:44px;border:0;border-radius:11px;
+  background:#111;color:#fff;font-weight:800;
+}
+.smallbtn:hover,.hero-btn:hover{opacity:.88}
+
+/* BENEFITS */
+.benefits{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.benefit{padding:25px;border:1px solid var(--line);border-radius:18px;background:#fafaf9}
+.benefit strong{display:block;margin-bottom:8px}
+.benefit p{margin:0;color:#777;line-height:1.6;font-size:14px}
+
+/* FOOTER */
+.footer{background:#111;color:#fff;padding:48px 0}
+.footer-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px}
+.footer p{color:#aaa;line-height:1.7}
+.footer-links{display:flex;gap:18px;justify-content:flex-end;align-items:center}
+
+/* CART DRAWER */
+.drawer{
+  position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.42);
+  opacity:0;pointer-events:none;transition:.2s;
+}
+.drawer.show{opacity:1;pointer-events:auto}
+.drawer-panel{
+  position:absolute;right:0;top:0;height:100%;width:min(440px,94vw);
+  background:#fff;padding:24px;display:flex;flex-direction:column;
+  transform:translateX(100%);transition:.25s;
+}
+.drawer.show .drawer-panel{transform:translateX(0)}
+.drawer-head{display:flex;justify-content:space-between;align-items:center}
+.drawer-head h3{margin:0;font-size:22px}
+.close-btn{border:0;background:#f1f1f1;width:38px;height:38px;border-radius:50%}
+.cart-items{flex:1;overflow:auto;padding:18px 0}
+.item{
+  padding:14px 0;border-bottom:1px solid var(--line);
+  display:flex;justify-content:space-between;gap:12px
+}
+.item-name{font-weight:800}
+.item-meta{font-size:12px;color:#777;margin-top:5px}
+.item-actions{display:flex;align-items:center;gap:7px}
+.qtybtn,.remove{
+  border:1px solid var(--line);background:#fff;border-radius:8px;
+  min-width:30px;height:30px
+}
+.remove{color:#b11}
+.total-row{display:flex;justify-content:space-between;padding:18px 0;font-size:18px}
+.checkout-btn{
+  width:100%;height:48px;border:0;border-radius:12px;background:#111;color:#fff;font-weight:800;
+}
+
+/* MODALS */
+.modal{
+  position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.48);
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal.show{display:flex}
+.modal-box{
+  width:min(560px,100%);max-height:90vh;overflow:auto;
+  background:#fff;border-radius:22px;padding:26px;box-shadow:var(--shadow)
+}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.modal-head h3{margin:0;font-size:23px}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}
+.field input{
+  width:100%;height:44px;border:1px solid var(--line);border-radius:10px;padding:0 12px;
+}
+.checkout-summary{
+  background:#f7f7f6;border-radius:14px;padding:14px;margin:15px 0
+}
+.checkout-summary-row{
+  display:flex;justify-content:space-between;gap:15px;padding:9px 0;
+  border-bottom:1px solid #e7e7e5;font-size:14px
+}
+.checkout-summary-row:last-child{border-bottom:0}
+.pay-btn{
+  width:100%;height:48px;border:0;border-radius:12px;background:#111;color:#fff;font-weight:800
+}
+.pay-btn:disabled{opacity:.55;cursor:not-allowed}
+
+/* SEARCH */
+.search-modal .modal-box{width:min(720px,100%)}
+.search-input{
+  width:100%;height:52px;border:1px solid var(--line);border-radius:13px;
+  padding:0 16px;font-size:17px;outline:none
+}
+.search-input:focus{border-color:#999}
+.search-info{margin:12px 0 0;color:#777;font-size:13px}
+.search-highlight{outline:2px solid #111;outline-offset:2px}
+
+/* LIGHTBOX */
+.lightbox{
+  position:fixed;inset:0;z-index:110;background:rgba(0,0,0,.88);
+  display:none;align-items:center;justify-content:center;padding:24px;
+}
+.lightbox.show{display:flex}
+.lightbox-inner{width:min(1100px,96vw);max-height:94vh;display:flex;flex-direction:column;align-items:center}
+.lightbox-main{
+  position:relative;width:min(820px,92vw);height:min(70vh,720px);
+  display:grid;place-items:center
+}
+.lightbox-main img{max-width:100%;max-height:100%;object-fit:contain;border-radius:12px}
+.lightbox-close,.lightbox-nav{
+  position:absolute;border:0;background:rgba(255,255,255,.92);color:#111;
+  border-radius:50%;width:44px;height:44px;z-index:2
+}
+.lightbox-close{right:0;top:0}
+.lightbox-prev{left:0;top:50%;transform:translateY(-50%)}
+.lightbox-next{right:0;top:50%;transform:translateY(-50%)}
+.lightbox-caption{color:#fff;margin:13px 0;text-align:center}
+.lightbox-thumbs{display:flex;gap:9px;overflow:auto;max-width:92vw}
+.lightbox-thumb{width:64px;height:78px;object-fit:cover;border-radius:8px;opacity:.55;cursor:pointer;border:2px solid transparent}
+.lightbox-thumb.active{opacity:1;border-color:#fff}
+
+/* CENTER NOTIFICATION */
+.kw-notice-overlay{
+  position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.48);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;visibility:hidden;pointer-events:none;transition:.2s;
+}
+.kw-notice-overlay.show{opacity:1;visibility:visible;pointer-events:auto}
+.kw-notice{
+  width:min(420px,100%);background:#fff;border-radius:22px;padding:28px;
+  text-align:center;box-shadow:var(--shadow);transform:translateY(12px) scale(.98);
+  transition:.22s;
+}
+.kw-notice-overlay.show .kw-notice{transform:translateY(0) scale(1)}
+.kw-notice-icon{
+  width:52px;height:52px;border-radius:50%;background:#f1f1f0;
+  display:grid;place-items:center;margin:0 auto 14px;font-weight:900;font-size:22px
+}
+.kw-notice h3{margin:0 0 8px;font-size:21px}
+.kw-notice p{margin:0 0 20px;color:#666;line-height:1.6}
+.kw-notice button{
+  border:0;background:#111;color:#fff;border-radius:11px;
+  padding:12px 22px;font-weight:800
+}
+
+/* RESPONSIVE */
+@media(max-width:950px){
+  .products{grid-template-columns:repeat(3,1fr)}
+  .nav-links{display:none}
+  .hero-grid{grid-template-columns:1fr}
+  .hero-copy{padding:65px 0}
+  .hero-photo{min-height:440px}
+}
+@media(max-width:680px){
+  .nav-inner{min-height:64px;gap:8px}
+  .logo{font-size:21px}
+  .actions{margin-left:auto}
+  .lang{max-width:75px}
+  .hero h1{font-size:48px}
+  .section{padding:55px 0}
+  .products{grid-template-columns:repeat(2,1fr);gap:12px}
+  .body{padding:13px}
+  .body h3{font-size:15px}
+  .benefits{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr}
+  .footer-links{justify-content:flex-start;flex-wrap:wrap}
+}
+@media(max-width:430px){
+  .products{grid-template-columns:1fr}
+  .hero-photo{min-height:360px}
+}
+</style>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="container nav-inner">
+    <a href="#" class="logo">Kita<span>Wear</span></a>
+
+    <nav class="nav-links">
+      <a href="#produk" data-i18n="nav_products">Produk</a>
+      <a href="#tentang" data-i18n="nav_about">Tentang</a>
+      <a href="#kontak" data-i18n="nav_contact">Kontak</a>
+    </nav>
+
+    <div class="actions">
+      <button class="icon-btn" type="button" onclick="openSearch()" aria-label="Cari produk" title="Cari produk">⌕</button>
+
+      <select id="LanguageSelect" class="lang" aria-label="Bahasa">
+        <option value="id">ID</option>
+        <option value="en">EN</option>
+        <option value="vi">VI</option>
+        <option value="th">TH</option>
+        <option value="ch">CH</option>
+      </select>
+
+      <button class="cart" type="button" onclick="toggleCart()" aria-label="Keranjang">
+        🛒 <span id="count">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <div class="eyebrow" data-i18n="hero_eyebrow">Koleksi terbaru KitaWear</div>
+        <h1 data-i18n="hero_title">Simple Style.<br>Everyday Confidence.</h1>
+        <p data-i18n="hero_text">Pakaian simpel, nyaman, dan mudah dipadukan untuk menemani aktivitas sehari-hari.</p>
+        <a class="hero-btn" href="#produk" data-i18n="hero_button">Belanja Sekarang</a>
+      </div>
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=88" alt="KitaWear collection">
+      </div>
+    </div>
+  </section>
+
+  <section id="produk" class="section">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow" data-i18n="products_eyebrow">KitaWear</div>
+          <h2 data-i18n="products_title">Pilihan Produk</h2>
+        </div>
+        <p data-i18n="products_hint">Klik foto untuk melihat detail.</p>
+      </div>
+      <div id="products" class="products"></div>
+    </div>
+  </section>
+
+  <section id="tentang" class="section" style="padding-top:10px">
+    <div class="container">
+      <div class="benefits">
+        <div class="benefit">
+          <strong data-i18n="benefit_1_title">Gaya simpel</strong>
+          <p data-i18n="benefit_1_text">Desain yang mudah dipadukan untuk berbagai aktivitas.</p>
+        </div>
+        <div class="benefit">
+          <strong data-i18n="benefit_2_title">Belanja praktis</strong>
+          <p data-i18n="benefit_2_text">Pilih produk, ukuran, masukkan ke keranjang, lalu lanjutkan pembayaran.</p>
+        </div>
+        <div class="benefit">
+          <strong data-i18n="benefit_3_title">Pembayaran aman</strong>
+          <p data-i18n="benefit_3_text">Pembayaran online diproses melalui Midtrans.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer id="kontak" class="footer">
+  <div class="container footer-grid">
+    <div>
+      <div class="logo">Kita<span>Wear</span></div>
+      <p data-i18n="footer_text">Simple Style. Everyday Confidence.</p>
+    </div>
+    <div class="footer-links">
+      <a href="https://wa.me/6287797878149" target="_blank" rel="noopener">WhatsApp</a>
+      <a href="#produk" data-i18n="nav_products">Produk</a>
+    </div>
+  </div>
+</footer>
+
+<!-- CART -->
+<div id="drawer" class="drawer" onclick="toggleCart()">
+  <aside class="drawer-panel" onclick="event.stopPropagation()">
+    <div class="drawer-head">
+      <h3 data-i18n="cart_title">Keranjang</h3>
+      <button class="close-btn" type="button" onclick="toggleCart()">×</button>
+    </div>
+    <div id="cartItems" class="cart-items"></div>
+    <div class="total-row">
+      <strong data-i18n="total">Total</strong>
+      <strong id="total">Rp0</strong>
+    </div>
+    <button class="checkout-btn" type="button" onclick="openCheckout()" data-i18n="checkout_button">Lanjut Checkout</button>
+  </aside>
+</div>
+
+<!-- SEARCH -->
+<div id="searchModal" class="modal search-modal" aria-hidden="true" onclick="closeSearch(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h3 data-i18n="search_title">Cari Produk</h3>
+      <button class="close-btn" type="button" onclick="closeSearch()">×</button>
+    </div>
+    <input id="siteSearch" class="search-input" type="search" autocomplete="off"
+           data-i18n-placeholder="search_placeholder"
+           placeholder="Ketik nama produk...">
+    <div id="searchResultInfo" class="search-info">Ketik untuk mencari produk.</div>
+  </div>
+</div>
+
+<!-- CHECKOUT -->
+<div id="checkoutModal" class="modal" aria-hidden="true" onclick="closeCheckout(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h3 data-i18n="checkout_title">Checkout KitaWear</h3>
+      <button class="close-btn" type="button" onclick="closeCheckout()">×</button>
+    </div>
+
+    <div id="checkoutItems" class="checkout-summary"></div>
+
+    <div class="field">
+      <label for="buyerName" data-i18n="field_name">Nama</label>
+      <input id="buyerName" required>
+    </div>
+    <div class="field">
+      <label for="buyerEmail" data-i18n="field_email">Email</label>
+      <input id="buyerEmail" type="email" required>
+    </div>
+    <div class="field">
+      <label for="buyerPhone" data-i18n="field_phone">No. WhatsApp</label>
+      <input id="buyerPhone" required>
+    </div>
+    <div class="field">
+      <label for="buyerAddress" data-i18n="field_address">Alamat</label>
+      <input id="buyerAddress" required>
+    </div>
+
+    <div class="total-row" style="padding:12px 0 16px">
+      <strong data-i18n="total">Total</strong>
+      <strong id="checkoutTotal">Rp0</strong>
+    </div>
+
+    <button id="payButton" class="pay-btn" type="button" onclick="startPayment(event)" data-i18n="pay_button">
+      Lanjut ke Pembayaran
+    </button>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
+  <div class="lightbox-inner">
+    <div class="lightbox-main">
+      <button class="lightbox-close" type="button" onclick="closeLightbox(event)">×</button>
+      <button class="lightbox-nav lightbox-prev" type="button" onclick="changeLightbox(-1);event.stopPropagation()">‹</button>
+      <img id="lightboxImg" src="" alt="">
+      <button class="lightbox-nav lightbox-next" type="button" onclick="changeLightbox(1);event.stopPropagation()">›</button>
+    </div>
+    <div id="lightboxCaption" class="lightbox-caption"></div>
+    <div id="lightboxThumbs" class="lightbox-thumbs" onclick="event.stopPropagation()"></div>
+  </div>
+</div>
+
+<!-- CENTER NOTICE -->
+<div id="kwNoticeOverlay" class="kw-notice-overlay" aria-hidden="true">
+  <div class="kw-notice" role="alertdialog" aria-modal="true"
+       aria-labelledby="kwNoticeTitle" aria-describedby="kwNoticeMessage">
+    <div class="kw-notice-icon" id="kwNoticeIcon">!</div>
+    <h3 id="kwNoticeTitle">Perlu dilengkapi</h3>
+    <p id="kwNoticeMessage"></p>
+    <button type="button" id="kwNoticeButton" onclick="closeKwNotice()">Mengerti</button>
+  </div>
+</div>
+
+<script>
 const WA_NUMBER="6287797878149";
 
 const products=[
-
-{
-  name:"Kita Oversize Tee",
-  price:89000,
-  desc:"Kaos oversize santai dengan gaya modern.",
-  badge:"Best Seller",
-  img:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=85",
-  gallery:[
-    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=85",
-    "https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=900&q=85"
-  ],
-  colors:["#171717","#f5f5f5","#8994a0"],
-  sizes:["M","L","XL","XXL"]
-},
-
-{
-  name:"Kita Basic Tee",
-  price:69000,
-  desc:"Kaos basic unisex untuk sehari-hari.",
-  img:"https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=900&q=85",
-  colors:["#182431","#e8dfd0","#f4f4f4"],
-  sizes:["M","L","XL","XXL"]
-},
-
-{
-  name:"Kita Casual Shirt",
-  price:119000,
-  desc:"Kemeja casual untuk kerja maupun jalan.",
-  img:"https://images.unsplash.com/photo-1603252110481-7ba873bf42ab?auto=format&fit=crop&w=900&q=85",
-  colors:["#c8b89e","#eee","#222"],
-  sizes:["M","L","XL","XXL"]
-},
-
-{
-  name:"Kita Cargo Pants",
-  price:129000,
-  desc:"Cargo pants nyaman untuk aktivitas harian.",
-  img:"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=85",
-  colors:["#68745d","#222","#d0c6b7"],
-  sizes:["M","L","XL","XXL"]
-},
-
-{
-  name:"Kita Hoodie",
-  price:149000,
-  desc:"Hoodie hangat dengan tampilan minimal.",
-  img:"https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=900&q=85",
-  colors:["#222","#8b8b8b","#eee"],
-  sizes:["M","L","XL","XXL"]
-},
-
-{
-  name:"Kita Women's Top",
-  price:79000,
-  desc:"Atasan wanita simpel dan nyaman.",
-  img:"https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=900&q=85",
-  colors:["#eee","#d8c6b5","#222"],
-  sizes:["S","M","L","XL"]
-},
-
-{
-  name:"Kita Wide Pants",
-  price:119000,
-  desc:"Wide pants dengan siluet modern.",
-  img:"https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=900&q=85",
-  colors:["#d8cbb8","#222","#777"],
-  sizes:["S","M","L","XL"]
-},
-
-{
-  name:"Kita Denim Jacket",
-  price:179000,
-  desc:"Jaket denim klasik untuk gaya sehari-hari.",
-  img:"https://images.unsplash.com/photo-1543076447-215ad9ba6923?auto=format&fit=crop&w=900&q=85",
-  colors:["#55708a","#222","#b9b9b9"],
-  sizes:["M","L","XL","XXL"]
-}
-
+  {
+    name:"Kita Oversize Tee",
+    price:89000,
+    desc:"Kaos oversize santai dengan gaya modern.",
+    badge:"Best Seller",
+    img:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=85",
+    gallery:[
+      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=85",
+      "https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=900&q=85"
+    ],
+    colors:["#171717","#f5f5f5","#8994a0"],
+    sizes:["M","L","XL","XXL"]
+  },
+  {
+    name:"Kita Basic Tee",
+    price:69000,
+    desc:"Kaos basic unisex untuk sehari-hari.",
+    img:"https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=900&q=85",
+    colors:["#182431","#e8dfd0","#f4f4f4"],
+    sizes:["M","L","XL","XXL"]
+  },
+  {
+    name:"Kita Casual Shirt",
+    price:119000,
+    desc:"Kemeja casual untuk kerja maupun jalan.",
+    img:"https://images.unsplash.com/photo-1603252110481-7ba873bf42ab?auto=format&fit=crop&w=900&q=85",
+    colors:["#c8b89e","#eee","#222"],
+    sizes:["M","L","XL","XXL"]
+  },
+  {
+    name:"Kita Cargo Pants",
+    price:129000,
+    desc:"Cargo pants nyaman untuk aktivitas harian.",
+    img:"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=85",
+    colors:["#68745d","#222","#d0c6b7"],
+    sizes:["M","L","XL","XXL"]
+  },
+  {
+    name:"Kita Hoodie",
+    price:149000,
+    desc:"Hoodie hangat dengan tampilan minimal.",
+    img:"https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=900&q=85",
+    colors:["#222","#8b8b8b","#eee"],
+    sizes:["M","L","XL","XXL"]
+  },
+  {
+    name:"Kita Women's Top",
+    price:79000,
+    desc:"Atasan wanita simpel dan nyaman.",
+    img:"https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=900&q=85",
+    colors:["#eee","#d8c6b5","#222"],
+    sizes:["S","M","L","XL"]
+  },
+  {
+    name:"Kita Wide Pants",
+    price:119000,
+    desc:"Wide pants dengan siluet modern.",
+    img:"https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=900&q=85",
+    colors:["#d8cbb8","#222","#777"],
+    sizes:["S","M","L","XL"]
+  },
+  {
+    name:"Kita Denim Jacket",
+    price:179000,
+    desc:"Jaket denim klasik untuk gaya sehari-hari.",
+    img:"https://images.unsplash.com/photo-1543076447-215ad9ba6923?auto=format&fit=crop&w=900&q=85",
+    colors:["#55708a","#222","#b9b9b9"],
+    sizes:["M","L","XL","XXL"]
+  }
 ];
 
 let cart=[];
+let lightboxIndex=0;
+let kwNoticeTimer=null;
 
-const rupiah=n=>
-  new Intl.NumberFormat(
-    "id-ID",
-    {
-      style:"currency",
-      currency:"IDR",
-      maximumFractionDigits:0
-    }
-  ).format(n);
+const rupiah=n=>new Intl.NumberFormat("id-ID",{
+  style:"currency",
+  currency:"IDR",
+  maximumFractionDigits:0
+}).format(n);
 
+/* =========================
+   TRANSLATIONS
+========================= */
+const translations={
+  id:{
+    nav_products:"Produk",nav_about:"Tentang",nav_contact:"Kontak",
+    hero_eyebrow:"Koleksi terbaru KitaWear",
+    hero_title:"Simple Style.<br>Everyday Confidence.",
+    hero_text:"Pakaian simpel, nyaman, dan mudah dipadukan untuk menemani aktivitas sehari-hari.",
+    hero_button:"Belanja Sekarang",
+    products_eyebrow:"KitaWear",products_title:"Pilihan Produk",
+    products_hint:"Klik foto untuk melihat detail.",
+    benefit_1_title:"Gaya simpel",
+    benefit_1_text:"Desain yang mudah dipadukan untuk berbagai aktivitas.",
+    benefit_2_title:"Belanja praktis",
+    benefit_2_text:"Pilih produk, ukuran, masukkan ke keranjang, lalu lanjutkan pembayaran.",
+    benefit_3_title:"Pembayaran aman",
+    benefit_3_text:"Pembayaran online diproses melalui Midtrans.",
+    footer_text:"Simple Style. Everyday Confidence.",
+    cart_title:"Keranjang",total:"Total",checkout_button:"Lanjut Checkout",
+    search_title:"Cari Produk",search_placeholder:"Ketik nama produk...",
+    search_type:"Ketik untuk mencari produk.",
+    search_found:"{n} produk ditemukan.",search_none:"Produk tidak ditemukan.",
+    choose_size:"Pilih ukuran:",choose_size_option:"Pilih ukuran",
+    add_cart:"🛒  Tambah ke Keranjang",best_seller:"Best Seller",
+    checkout_title:"Checkout KitaWear",field_name:"Nama",field_email:"Email",
+    field_phone:"No. WhatsApp",field_address:"Alamat",
+    pay_button:"Lanjut ke Pembayaran",size_label:"Ukuran",
+    cart_empty:"Keranjang masih kosong.",
+    notice_required:"Perlu dilengkapi",notice_understood:"Mengerti",
+    notice_size:"Silakan pilih ukuran untuk {name}.",
+    notice_empty:"Keranjang masih kosong.",notice_empty_title:"Keranjang kosong",
+    payment_loading:"Menyiapkan pembayaran...",
+    payment_config:"Konfigurasi pembayaran belum tersedia.",
+    payment_midtrans:"Gagal memuat Midtrans Snap.",
+    payment_transaction:"Gagal membuat transaksi.",
+    payment_success:"Pembayaran berhasil. Terima kasih sudah belanja di KitaWear!",
+    payment_success_title:"Pembayaran berhasil",
+    payment_pending:"Pembayaran belum selesai. Silakan lanjutkan pembayaran sesuai instruksi Midtrans.",
+    payment_pending_title:"Pembayaran tertunda",
+    payment_error:"Pembayaran gagal. Silakan coba lagi.",
+    payment_error_title:"Pembayaran gagal",
+    payment_general:"Terjadi kesalahan saat menyiapkan pembayaran.",
+    payment_general_title:"Terjadi kesalahan"
+  },
+  en:{
+    nav_products:"Products",nav_about:"About",nav_contact:"Contact",
+    hero_eyebrow:"Latest KitaWear collection",
+    hero_title:"Simple Style.<br>Everyday Confidence.",
+    hero_text:"Simple, comfortable pieces that are easy to style for everyday activities.",
+    hero_button:"Shop Now",
+    products_eyebrow:"KitaWear",products_title:"Our Products",
+    products_hint:"Click a photo to view details.",
+    benefit_1_title:"Simple style",
+    benefit_1_text:"Easy-to-style designs for everyday activities.",
+    benefit_2_title:"Easy shopping",
+    benefit_2_text:"Choose a product and size, add it to your cart, then continue to payment.",
+    benefit_3_title:"Secure payment",
+    benefit_3_text:"Online payments are processed through Midtrans.",
+    footer_text:"Simple Style. Everyday Confidence.",
+    cart_title:"Cart",total:"Total",checkout_button:"Continue to Checkout",
+    search_title:"Search Products",search_placeholder:"Type a product name...",
+    search_type:"Type to search for products.",
+    search_found:"{n} products found.",search_none:"No products found.",
+    choose_size:"Choose size:",choose_size_option:"Choose size",
+    add_cart:"🛒  Add to Cart",best_seller:"Best Seller",
+    checkout_title:"KitaWear Checkout",field_name:"Name",field_email:"Email",
+    field_phone:"WhatsApp Number",field_address:"Address",
+    pay_button:"Continue to Payment",size_label:"Size",
+    cart_empty:"Your cart is empty.",
+    notice_required:"Required",notice_understood:"Got it",
+    notice_size:"Please choose a size for {name}.",
+    notice_empty:"Your cart is empty.",notice_empty_title:"Empty Cart",
+    payment_loading:"Preparing payment...",
+    payment_config:"Payment configuration is not available.",
+    payment_midtrans:"Failed to load Midtrans Snap.",
+    payment_transaction:"Failed to create transaction.",
+    payment_success:"Payment successful. Thank you for shopping at KitaWear!",
+    payment_success_title:"Payment successful",
+    payment_pending:"Payment is not complete yet. Please continue according to the Midtrans instructions.",
+    payment_pending_title:"Payment pending",
+    payment_error:"Payment failed. Please try again.",
+    payment_error_title:"Payment failed",
+    payment_general:"An error occurred while preparing the payment.",
+    payment_general_title:"Something went wrong"
+  },
+  vi:{
+    nav_products:"Sản phẩm",nav_about:"Giới thiệu",nav_contact:"Liên hệ",
+    hero_eyebrow:"Bộ sưu tập mới nhất của KitaWear",
+    hero_title:"Simple Style.<br>Everyday Confidence.",
+    hero_text:"Trang phục đơn giản, thoải mái và dễ phối cho mọi hoạt động hằng ngày.",
+    hero_button:"Mua ngay",
+    products_eyebrow:"KitaWear",products_title:"Sản phẩm",
+    products_hint:"Nhấp vào ảnh để xem chi tiết.",
+    benefit_1_title:"Phong cách tối giản",
+    benefit_1_text:"Thiết kế dễ phối cho nhiều hoạt động hằng ngày.",
+    benefit_2_title:"Mua sắm tiện lợi",
+    benefit_2_text:"Chọn sản phẩm và kích cỡ, thêm vào giỏ rồi tiếp tục thanh toán.",
+    benefit_3_title:"Thanh toán an toàn",
+    benefit_3_text:"Thanh toán trực tuyến được xử lý qua Midtrans.",
+    footer_text:"Simple Style. Everyday Confidence.",
+    cart_title:"Giỏ hàng",total:"Tổng cộng",checkout_button:"Tiếp tục thanh toán",
+    search_title:"Tìm sản phẩm",search_placeholder:"Nhập tên sản phẩm...",
+    search_type:"Nhập để tìm sản phẩm.",search_found:"Tìm thấy {n} sản phẩm.",search_none:"Không tìm thấy sản phẩm.",
+    choose_size:"Chọn kích cỡ:",choose_size_option:"Chọn kích cỡ",
+    add_cart:"🛒  Thêm vào giỏ",best_seller:"Bán chạy",
+    checkout_title:"Thanh toán KitaWear",field_name:"Tên",field_email:"Email",
+    field_phone:"Số WhatsApp",field_address:"Địa chỉ",pay_button:"Tiếp tục thanh toán",
+    size_label:"Kích cỡ",cart_empty:"Giỏ hàng đang trống.",
+    notice_required:"Cần hoàn tất",notice_understood:"Đã hiểu",
+    notice_size:"Vui lòng chọn kích cỡ cho {name}.",
+    notice_empty:"Giỏ hàng đang trống.",notice_empty_title:"Giỏ hàng trống",
+    payment_loading:"Đang chuẩn bị thanh toán...",payment_config:"Chưa có cấu hình thanh toán.",
+    payment_midtrans:"Không thể tải Midtrans Snap.",payment_transaction:"Không thể tạo giao dịch.",
+    payment_success:"Thanh toán thành công. Cảm ơn bạn đã mua hàng tại KitaWear!",
+    payment_success_title:"Thanh toán thành công",
+    payment_pending:"Thanh toán chưa hoàn tất. Vui lòng tiếp tục theo hướng dẫn của Midtrans.",
+    payment_pending_title:"Thanh toán đang chờ",payment_error:"Thanh toán thất bại. Vui lòng thử lại.",
+    payment_error_title:"Thanh toán thất bại",payment_general:"Đã xảy ra lỗi khi chuẩn bị thanh toán.",
+    payment_general_title:"Đã xảy ra lỗi"
+  },
+  th:{
+    nav_products:"สินค้า",nav_about:"เกี่ยวกับ",nav_contact:"ติดต่อ",
+    hero_eyebrow:"คอลเลกชันล่าสุดจาก KitaWear",
+    hero_title:"Simple Style.<br>Everyday Confidence.",
+    hero_text:"เสื้อผ้าเรียบง่าย สวมใส่สบาย และแมตช์ง่ายสำหรับทุกกิจกรรมในชีวิตประจำวัน",
+    hero_button:"ช้อปเลย",
+    products_eyebrow:"KitaWear",products_title:"สินค้า",
+    products_hint:"คลิกที่รูปเพื่อดูรายละเอียด",
+    benefit_1_title:"สไตล์เรียบง่าย",
+    benefit_1_text:"ดีไซน์ที่แมตช์ง่ายสำหรับทุกกิจกรรม",
+    benefit_2_title:"ช้อปง่าย",
+    benefit_2_text:"เลือกสินค้าและไซซ์ เพิ่มลงตะกร้า แล้วดำเนินการชำระเงิน",
+    benefit_3_title:"ชำระเงินปลอดภัย",
+    benefit_3_text:"การชำระเงินออนไลน์ดำเนินการผ่าน Midtrans",
+    footer_text:"Simple Style. Everyday Confidence.",
+    cart_title:"ตะกร้า",total:"รวม",checkout_button:"ไปชำระเงิน",
+    search_title:"ค้นหาสินค้า",search_placeholder:"พิมพ์ชื่อสินค้า...",
+    search_type:"พิมพ์เพื่อค้นหาสินค้า",search_found:"พบสินค้า {n} รายการ",search_none:"ไม่พบสินค้า",
+    choose_size:"เลือกไซซ์:",choose_size_option:"เลือกไซซ์",
+    add_cart:"🛒  เพิ่มลงตะกร้า",best_seller:"ขายดี",
+    checkout_title:"ชำระเงิน KitaWear",field_name:"ชื่อ",field_email:"อีเมล",
+    field_phone:"หมายเลข WhatsApp",field_address:"ที่อยู่",pay_button:"ไปชำระเงิน",
+    size_label:"ไซซ์",cart_empty:"ตะกร้ายังว่าง",
+    notice_required:"กรุณากรอกข้อมูล",notice_understood:"เข้าใจแล้ว",
+    notice_size:"กรุณาเลือกไซซ์สำหรับ {name}",notice_empty:"ตะกร้ายังว่าง",
+    notice_empty_title:"ตะกร้าว่าง",payment_loading:"กำลังเตรียมการชำระเงิน...",
+    payment_config:"ยังไม่มีการตั้งค่าการชำระเงิน",payment_midtrans:"ไม่สามารถโหลด Midtrans Snap ได้",
+    payment_transaction:"ไม่สามารถสร้างรายการได้",payment_success:"ชำระเงินสำเร็จ ขอบคุณที่ช้อปกับ KitaWear!",
+    payment_success_title:"ชำระเงินสำเร็จ",payment_pending:"การชำระเงินยังไม่เสร็จ กรุณาดำเนินการตามคำแนะนำของ Midtrans",
+    payment_pending_title:"รอการชำระเงิน",payment_error:"การชำระเงินล้มเหลว กรุณาลองอีกครั้ง",
+    payment_error_title:"ชำระเงินล้มเหลว",payment_general:"เกิดข้อผิดพลาดขณะเตรียมการชำระเงิน",
+    payment_general_title:"เกิดข้อผิดพลาด"
+  },
+  ch:{
+    nav_products:"产品",nav_about:"关于我们",nav_contact:"联系我们",
+    hero_eyebrow:"KitaWear 最新系列",
+    hero_title:"Simple Style.<br>Everyday Confidence.",
+    hero_text:"简约、舒适、易搭配的服装，陪伴你的日常生活。",
+    hero_button:"立即购买",
+    products_eyebrow:"KitaWear",products_title:"产品系列",
+    products_hint:"点击图片查看详情。",
+    benefit_1_title:"简约风格",
+    benefit_1_text:"轻松搭配，适合日常各种场景。",
+    benefit_2_title:"轻松购物",
+    benefit_2_text:"选择商品和尺码，加入购物车后继续付款。",
+    benefit_3_title:"安全支付",
+    benefit_3_text:"在线支付通过 Midtrans 处理。",
+    footer_text:"Simple Style. Everyday Confidence.",
+    cart_title:"购物车",total:"总计",checkout_button:"继续结账",
+    search_title:"搜索商品",search_placeholder:"输入商品名称...",
+    search_type:"输入关键词搜索商品。",search_found:"找到 {n} 件商品。",
+    search_none:"没有找到商品。",
+    choose_size:"选择尺码：",choose_size_option:"选择尺码",
+    add_cart:"🛒  加入购物车",best_seller:"热卖",
+    checkout_title:"KitaWear 结账",field_name:"姓名",field_email:"邮箱",
+    field_phone:"WhatsApp 电话",field_address:"地址",pay_button:"继续付款",
+    size_label:"尺码",cart_empty:"购物车为空",
+    notice_required:"请完成信息",notice_understood:"知道了",
+    notice_size:"请选择 {name} 的尺码。",
+    notice_empty:"购物车为空。",notice_empty_title:"购物车为空",
+    payment_loading:"正在准备付款...",payment_config:"付款配置暂不可用。",
+    payment_midtrans:"无法加载 Midtrans Snap。",payment_transaction:"无法创建交易。",
+    payment_success:"付款成功。感谢您在 KitaWear 购物！",payment_success_title:"付款成功",
+    payment_pending:"付款尚未完成，请按照 Midtrans 的说明继续付款。",
+    payment_pending_title:"付款待处理",payment_error:"付款失败，请重试。",
+    payment_error_title:"付款失败",payment_general:"准备付款时发生错误。",
+    payment_general_title:"发生错误"
+  }
+};
+
+let currentLang=localStorage.getItem("kitawear_lang") || "id";
+if(!translations[currentLang]) currentLang="id";
+
+function t(key,vars={}){
+  let text=translations[currentLang]?.[key] ?? translations.id[key] ?? key;
+  Object.keys(vars).forEach(k=>{
+    text=text.replaceAll(`{${k}}`,String(vars[k]));
+  });
+  return text;
+}
+
+function applyLanguage(lang){
+  if(!translations[lang]) lang="id";
+  currentLang=lang;
+  localStorage.setItem("kitawear_lang",lang);
+  document.documentElement.lang=lang==="ch"?"zh":lang;
+
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const key=el.getAttribute("data-i18n");
+    if(translations[lang][key]!==undefined) el.innerHTML=translations[lang][key];
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{
+    const key=el.getAttribute("data-i18n-placeholder");
+    el.placeholder=t(key);
+  });
+
+  const select=document.getElementById("LanguageSelect");
+  if(select) select.value=lang;
+
+  render();
+  updateCart();
+  filterProducts(document.getElementById("siteSearch")?.value || "");
+}
 
 /* =========================
    SEARCH
 ========================= */
-
 function openSearch(){
-
   const modal=document.getElementById("searchModal");
   const input=document.getElementById("siteSearch");
-
   if(!modal || !input) return;
-
   modal.classList.add("show");
   modal.setAttribute("aria-hidden","false");
-
   input.value="";
-
   filterProducts("");
-
-  setTimeout(()=>{
-    input.focus();
-  },50);
-
+  setTimeout(()=>input.focus(),50);
 }
-
 
 function closeSearch(e){
-
   const modal=document.getElementById("searchModal");
-
   if(!modal) return;
-
   if(e && e.target!==modal) return;
-
   modal.classList.remove("show");
-
   modal.setAttribute("aria-hidden","true");
-
 }
 
-
 function filterProducts(query){
-
-  const q=(query||"")
-    .trim()
-    .toLowerCase();
-
-  const cards=
-    document.querySelectorAll("#products .card");
-
+  const q=(query||"").trim().toLowerCase();
+  const cards=document.querySelectorAll("#products .card");
   let shown=0;
 
   cards.forEach(card=>{
-
-    const text=
-      card.textContent.toLowerCase();
-
-    const match=
-      !q || text.includes(q);
-
-    card.style.display=
-      match ? "" : "none";
-
-    card.classList.remove(
-      "search-highlight"
-    );
-
+    const text=card.textContent.toLowerCase();
+    const match=!q || text.includes(q);
+    card.style.display=match?"":"none";
+    card.classList.remove("search-highlight");
     if(match) shown++;
-
   });
 
-
-  const info=
-    document.getElementById(
-      "searchResultInfo"
-    );
-
+  const info=document.getElementById("searchResultInfo");
   if(info){
-
-    info.textContent=
-      q
-        ? (
-            shown
-              ? `${shown} produk ditemukan.`
-              : "Produk tidak ditemukan."
-          )
-        : "Ketik untuk mencari produk.";
-
+    info.textContent=q
+      ? (shown?t("search_found",{n:shown}):t("search_none"))
+      : t("search_type");
   }
-
 }
 
-
 /* =========================
-   RENDER PRODUCTS
+   PRODUCTS
 ========================= */
-
 function render(){
+  const root=document.getElementById("products");
+  if(!root) return;
 
-  document.getElementById("products").innerHTML=
+  root.innerHTML=products.map((p,i)=>`
+    <article class="card">
+      <div class="photo" onclick="openLightbox(${i})">
+        <img src="${p.img}" alt="${p.name}" loading="lazy"
+             onerror="this.style.display='none'">
+        ${p.badge?`<span class="badge">${currentLang==="id"?p.badge:t("best_seller")}</span>`:""}
+      </div>
 
-    products.map((p,i)=>`
+      <div class="body">
+        <h3>${p.name}</h3>
+        <div class="price">${rupiah(p.price)}</div>
 
-      <article class="card">
-
-        <div
-          class="photo"
-          onclick="openLightbox(${i})">
-
-          <img
-            src="${p.img}"
-            alt="${p.name}"
-            loading="lazy"
-            onerror="this.style.display='none'">
-
-          ${
-            p.badge
-              ? `<span class="badge">${p.badge}</span>`
-              : ""
-          }
-
+        <div class="swatches">
+          ${p.colors.map(c=>`<span class="sw" style="background:${c}"></span>`).join("")}
         </div>
 
-        <div class="body">
+        <div class="sizes-label">${t("choose_size")}</div>
 
-          <h3>${p.name}</h3>
+        <select class="size-select" id="size-${i}" aria-label="${t("size_label")} ${p.name}">
+          <option value="">${t("choose_size_option")}</option>
+          ${p.sizes.map(s=>`<option value="${s}">${s}</option>`).join("")}
+        </select>
 
-          <div class="price">
-            ${rupiah(p.price)}
-          </div>
-
-          <div class="swatches">
-
-            ${
-              p.colors.map(c=>
-                `<span
-                  class="sw"
-                  style="background:${c}">
-                </span>`
-              ).join("")
-            }
-
-          </div>
-
-          <div class="sizes-label">
-            Pilih ukuran:
-          </div>
-
-          <select
-            class="size-select"
-            id="size-${i}"
-            aria-label="Ukuran ${p.name}">
-
-            <option value="">
-              Pilih ukuran
-            </option>
-
-            ${
-              p.sizes.map(s=>
-                `<option value="${s}">
-                  ${s}
-                </option>`
-              ).join("")
-            }
-
-          </select>
-
-          <button
-            class="smallbtn"
-            id="add-${i}"
-            onclick="add(${i})">
-            🛒 &nbsp;Tambah ke Keranjang
-          </button>
-
-        </div>
-
-      </article>
-
-    `).join("");
-
+        <button class="smallbtn" id="add-${i}" onclick="add(${i})">
+          ${t("add_cart")}
+        </button>
+      </div>
+    </article>
+  `).join("");
 }
-
-
-/* =========================
-   ADD TO CART
-========================= */
-
-function add(i){
-
-  const size=
-    document.getElementById(
-      `size-${i}`
-    ).value;
-
-  if(!size){
-
-    showKwNotice(
-      `Silakan pilih ukuran untuk ${products[i].name}.`
-    );
-
-    document.getElementById(
-      `size-${i}`
-    ).focus();
-
-    return;
-  }
-
-
-  cart.push({
-    productIndex:i,
-    name:products[i].name,
-    price:products[i].price,
-    size:size,
-    quantity:1
-  });
-
-
-  updateCart();
-
-  document
-    .getElementById("drawer")
-    .classList.add("show");
-
-}
-
-
-/* =========================
-   CENTER NOTIFICATION
-========================= */
-
-let kwNoticeTimer=null;
-
-
-function showKwNotice(
-  message,
-  title="Perlu dilengkapi"
-){
-
-  const overlay=
-    document.getElementById(
-      "kwNoticeOverlay"
-    );
-
-  const titleEl=
-    document.getElementById(
-      "kwNoticeTitle"
-    );
-
-  const messageEl=
-    document.getElementById(
-      "kwNoticeMessage"
-    );
-
-  const button=
-    document.getElementById(
-      "kwNoticeButton"
-    );
-
-
-  if(
-    !overlay ||
-    !titleEl ||
-    !messageEl ||
-    !button
-  ){
-    return;
-  }
-
-
-  titleEl.textContent=title;
-
-  messageEl.textContent=message;
-
-  button.focus();
-
-  overlay.classList.add("show");
-
-  overlay.setAttribute(
-    "aria-hidden",
-    "false"
-  );
-
-  clearTimeout(kwNoticeTimer);
-
-}
-
-
-function closeKwNotice(){
-
-  const overlay=
-    document.getElementById(
-      "kwNoticeOverlay"
-    );
-
-  if(!overlay) return;
-
-  overlay.classList.remove("show");
-
-  overlay.setAttribute(
-    "aria-hidden",
-    "true"
-  );
-
-}
-
-
-document.addEventListener(
-  "keydown",
-  e=>{
-
-    if(e.key==="Escape"){
-
-      const overlay=
-        document.getElementById(
-          "kwNoticeOverlay"
-        );
-
-      if(
-        overlay?.classList.contains("show")
-      ){
-        closeKwNotice();
-      }
-
-    }
-
-  }
-);
-
 
 /* =========================
    CART
 ========================= */
+function add(i){
+  const select=document.getElementById(`size-${i}`);
+  const size=select?.value;
+
+  if(!size){
+    showKwNotice(t("notice_size",{name:products[i].name}),t("notice_required"));
+    select?.focus();
+    return;
+  }
+
+  const existing=cart.find(x=>x.productIndex===i && x.size===size);
+  if(existing){
+    existing.quantity++;
+  }else{
+    cart.push({
+      productIndex:i,
+      name:products[i].name,
+      price:products[i].price,
+      size:size,
+      quantity:1
+    });
+  }
+
+  updateCart();
+  document.getElementById("drawer")?.classList.add("show");
+}
 
 function updateCart(){
+  const count=document.getElementById("count");
+  const cartItems=document.getElementById("cartItems");
+  const total=document.getElementById("total");
+  if(!count || !cartItems || !total) return;
 
-  document.getElementById("count")
-    .textContent=
-      cart.reduce(
-        (s,x)=>s+x.quantity,
-        0
-      );
+  count.textContent=cart.reduce((s,x)=>s+x.quantity,0);
 
-
-  document.getElementById(
-    "cartItems"
-  ).innerHTML=
-
-    cart.length
-
-      ? cart.map((x,i)=>`
-
-          <div class="item">
-
-            <div class="item-main">
-
-              <div class="item-name">
-                ${x.name}
-              </div>
-
-              <div class="item-meta">
-                Ukuran:
-                <strong>${x.size}</strong>
-                · ${rupiah(x.price)}
-              </div>
-
-            </div>
-
-            <div class="item-actions">
-
-              <button
-                class="qtybtn"
-                onclick="changeQty(${i},-1)">
-                −
-              </button>
-
-              <strong>
-                ${x.quantity}
-              </strong>
-
-              <button
-                class="qtybtn"
-                onclick="changeQty(${i},1)">
-                +
-              </button>
-
-              <button
-                class="remove"
-                onclick="removeItem(${i})">
-                ×
-              </button>
-
-            </div>
-
+  cartItems.innerHTML=cart.length
+    ? cart.map((x,i)=>`
+      <div class="item">
+        <div class="item-main">
+          <div class="item-name">${x.name}</div>
+          <div class="item-meta">
+            ${t("size_label")}: <strong>${x.size}</strong> · ${rupiah(x.price)}
           </div>
+        </div>
+        <div class="item-actions">
+          <button class="qtybtn" onclick="changeQty(${i},-1)">−</button>
+          <strong>${x.quantity}</strong>
+          <button class="qtybtn" onclick="changeQty(${i},1)">+</button>
+          <button class="remove" onclick="removeItem(${i})">×</button>
+        </div>
+      </div>
+    `).join("")
+    : `<p style="color:#666">${t("cart_empty")}</p>`;
 
-        `).join("")
-
-      : "<p style='color:#666'>Keranjang masih kosong.</p>";
-
-
-  document.getElementById("total")
-    .textContent=
-      rupiah(
-        cart.reduce(
-          (s,x)=>s+x.price*x.quantity,
-          0
-        )
-      );
-
+  total.textContent=rupiah(cart.reduce((s,x)=>s+x.price*x.quantity,0));
 }
-
 
 function changeQty(i,d){
-
-  cart[i].quantity=
-    Math.max(
-      1,
-      cart[i].quantity+d
-    );
-
+  if(!cart[i]) return;
+  cart[i].quantity=Math.max(1,cart[i].quantity+d);
   updateCart();
-
 }
-
 
 function removeItem(i){
-
   cart.splice(i,1);
-
   updateCart();
-
 }
-
 
 function toggleCart(){
-
-  document
-    .getElementById("drawer")
-    .classList.toggle("show");
-
+  document.getElementById("drawer")?.classList.toggle("show");
   updateCart();
-
 }
 
+/* =========================
+   NOTICE
+========================= */
+function showKwNotice(message,title=t("notice_required")){
+  const overlay=document.getElementById("kwNoticeOverlay");
+  const titleEl=document.getElementById("kwNoticeTitle");
+  const messageEl=document.getElementById("kwNoticeMessage");
+  const button=document.getElementById("kwNoticeButton");
+  if(!overlay || !titleEl || !messageEl || !button) return;
+
+  titleEl.textContent=title;
+  messageEl.textContent=message;
+  button.textContent=t("notice_understood");
+  overlay.classList.add("show");
+  overlay.setAttribute("aria-hidden","false");
+  clearTimeout(kwNoticeTimer);
+  setTimeout(()=>button.focus(),30);
+}
+
+function closeKwNotice(){
+  const overlay=document.getElementById("kwNoticeOverlay");
+  if(!overlay) return;
+  overlay.classList.remove("show");
+  overlay.setAttribute("aria-hidden","true");
+}
 
 /* =========================
    WHATSAPP
 ========================= */
-
 function openWA(msg){
-
   window.open(
     `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`,
     "_blank"
   );
-
 }
 
-
 function checkout(){
-
   if(!cart.length){
-
-    showKwNotice(
-      "Keranjang masih kosong.",
-      "Keranjang kosong"
-    );
-
+    showKwNotice(t("notice_empty"),t("notice_empty_title"));
     return;
   }
 
+  const lines=cart.map((x,i)=>
+    `${i+1}. ${x.name} — ${t("size_label")} ${x.size} — Qty ${x.quantity} — ${rupiah(x.price*x.quantity)}`
+  ).join("\n");
 
-  const lines=
-
-    cart.map(
-      (x,i)=>
-        `${i+1}. ${x.name} — Size ${x.size} — Qty ${x.quantity} — ${rupiah(x.price*x.quantity)}`
-    ).join("\n");
-
-
-  const total=
-    cart.reduce(
-      (s,x)=>s+x.price*x.quantity,
-      0
-    );
-
+  const total=cart.reduce((s,x)=>s+x.price*x.quantity,0);
 
   openWA(
     `Halo KitaWear, saya ingin memesan:\n\n${lines}\n\nTotal: ${rupiah(total)}\n\nMohon konfirmasi stok dan pengiriman.`
   );
-
 }
-
 
 /* =========================
    CHECKOUT
 ========================= */
-
 function openCheckout(){
-
   if(!cart.length){
-
-    showKwNotice(
-      "Keranjang masih kosong.",
-      "Keranjang kosong"
-    );
-
+    showKwNotice(t("notice_empty"),t("notice_empty_title"));
     return;
   }
 
+  document.getElementById("checkoutItems").innerHTML=cart.map(x=>`
+    <div class="checkout-summary-row">
+      <span>
+        ${x.name}<br>
+        <small>${t("size_label")} ${x.size} · Qty ${x.quantity}</small>
+      </span>
+      <span>${rupiah(x.price*x.quantity)}</span>
+    </div>
+  `).join("");
 
-  document.getElementById(
-    "checkoutItems"
-  ).innerHTML=
+  document.getElementById("checkoutTotal").textContent=
+    rupiah(cart.reduce((s,x)=>s+x.price*x.quantity,0));
 
-    cart.map(x=>`
-
-      <div class="checkout-summary-row">
-
-        <span>
-
-          ${x.name}
-
-          <br>
-
-          <small>
-            Size ${x.size}
-            · Qty ${x.quantity}
-          </small>
-
-        </span>
-
-        <span>
-          ${rupiah(
-            x.price*x.quantity
-          )}
-        </span>
-
-      </div>
-
-    `).join("");
-
-
-  document.getElementById(
-    "checkoutTotal"
-  ).textContent=
-
-    rupiah(
-      cart.reduce(
-        (s,x)=>s+x.price*x.quantity,
-        0
-      )
-    );
-
-
-  document
-    .getElementById("checkoutModal")
-    .classList.add("show");
-
-  document
-    .getElementById("checkoutModal")
-    .setAttribute(
-      "aria-hidden",
-      "false"
-    );
-
+  document.getElementById("checkoutModal").classList.add("show");
+  document.getElementById("checkoutModal").setAttribute("aria-hidden","false");
 }
-
 
 function closeCheckout(e){
-
-  if(
-    e &&
-    e.target !==
-      document.getElementById(
-        "checkoutModal"
-      )
-  ){
-    return;
-  }
-
-
-  document
-    .getElementById("checkoutModal")
-    .classList.remove("show");
-
-  document
-    .getElementById("checkoutModal")
-    .setAttribute(
-      "aria-hidden",
-      "true"
-    );
-
+  const modal=document.getElementById("checkoutModal");
+  if(e && e.target!==modal) return;
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden","true");
 }
-
 
 /* =========================
-   MIDTRANS PAYMENT
+   MIDTRANS
 ========================= */
-
 async function startPayment(e){
-
   e.preventDefault();
 
-
   if(!cart.length){
-
-    showKwNotice(
-      "Keranjang masih kosong.",
-      "Keranjang kosong"
-    );
-
+    showKwNotice(t("notice_empty"),t("notice_empty_title"));
     return;
   }
 
-
-  const btn=
-    document.getElementById(
-      "payButton"
-    );
-
-
-  btn.disabled=true;
-
-  btn.textContent=
-    "Menyiapkan pembayaran...";
-
-
-  try{
-
-    const configRes=
-      await fetch(
-        "/.netlify/functions/config"
-      );
-
-
-    const config=
-      await configRes.json();
-
-
-    if(
-      !configRes.ok ||
-      !config.clientKey
-    ){
-
-      throw new Error(
-        config.error ||
-        "Konfigurasi pembayaran belum tersedia."
-      );
-
+  const formIds=["buyerName","buyerEmail","buyerPhone","buyerAddress"];
+  for(const id of formIds){
+    const el=document.getElementById(id);
+    if(!el.value.trim()){
+      el.focus();
+      showKwNotice(t("notice_required"),t("notice_required"));
+      return;
     }
-
-
-    if(!window.snap){
-
-      await new Promise(
-        (resolve,reject)=>{
-
-          const s=
-            document.createElement(
-              "script"
-            );
-
-          s.src=config.snapUrl;
-
-          s.setAttribute(
-            "data-client-key",
-            config.clientKey
-          );
-
-          s.onload=resolve;
-
-          s.onerror=()=>{
-            reject(
-              new Error(
-                "Gagal memuat Midtrans Snap."
-              )
-            );
-          };
-
-          document.head.appendChild(s);
-
-        }
-      );
-
-    }
-
-
-    const payload={
-
-      customer:{
-
-        name:
-          document
-            .getElementById(
-              "buyerName"
-            )
-            .value
-            .trim(),
-
-        email:
-          document
-            .getElementById(
-              "buyerEmail"
-            )
-            .value
-            .trim(),
-
-        phone:
-          document
-            .getElementById(
-              "buyerPhone"
-            )
-            .value
-            .trim(),
-
-        address:
-          document
-            .getElementById(
-              "buyerAddress"
-            )
-            .value
-            .trim()
-
-      },
-
-      items:
-        cart.map(
-          x=>({
-            name:x.name,
-            size:x.size,
-            quantity:x.quantity
-          })
-        )
-
-    };
-
-
-    const res=
-      await fetch(
-        "/.netlify/functions/create-transaction",
-        {
-          method:"POST",
-          headers:{
-            "Content-Type":
-              "application/json"
-          },
-          body:
-            JSON.stringify(payload)
-        }
-      );
-
-
-    const data=
-      await res.json();
-
-
-    if(
-      !res.ok ||
-      !data.token
-    ){
-
-      throw new Error(
-        data.error ||
-        "Gagal membuat transaksi."
-      );
-
-    }
-
-
-    window.snap.pay(
-      data.token,
-      {
-
-        onSuccess:function(){
-
-          showKwNotice(
-            "Pembayaran berhasil. Terima kasih sudah belanja di KitaWear!",
-            "Pembayaran berhasil"
-          );
-
-        },
-
-        onPending:function(){
-
-          showKwNotice(
-            "Pembayaran belum selesai. Silakan lanjutkan pembayaran sesuai instruksi Midtrans.",
-            "Pembayaran tertunda"
-          );
-
-        },
-
-        onError:function(){
-
-          showKwNotice(
-            "Pembayaran gagal. Silakan coba lagi.",
-            "Pembayaran gagal"
-          );
-
-        },
-
-        onClose:function(){}
-
-      }
-    );
-
-
-  }catch(err){
-
-    showKwNotice(
-      err.message ||
-      "Terjadi kesalahan saat menyiapkan pembayaran.",
-      "Terjadi kesalahan"
-    );
-
-  }finally{
-
-    btn.disabled=false;
-
-    btn.textContent=
-      "Lanjut ke Pembayaran";
-
   }
 
-}
+  const btn=document.getElementById("payButton");
+  btn.disabled=true;
+  btn.textContent=t("payment_loading");
 
+  try{
+    const configRes=await fetch("/.netlify/functions/config");
+    const config=await configRes.json();
+
+    if(!configRes.ok || !config.clientKey){
+      throw new Error(config.error || t("payment_config"));
+    }
+
+    if(!window.snap){
+      await new Promise((resolve,reject)=>{
+        const s=document.createElement("script");
+        s.src=config.snapUrl;
+        s.setAttribute("data-client-key",config.clientKey);
+        s.onload=resolve;
+        s.onerror=()=>reject(new Error(t("payment_midtrans")));
+        document.head.appendChild(s);
+      });
+    }
+
+    const payload={
+      customer:{
+        name:document.getElementById("buyerName").value.trim(),
+        email:document.getElementById("buyerEmail").value.trim(),
+        phone:document.getElementById("buyerPhone").value.trim(),
+        address:document.getElementById("buyerAddress").value.trim()
+      },
+      items:cart.map(x=>({
+        name:x.name,
+        size:x.size,
+        quantity:x.quantity
+      }))
+    };
+
+    const res=await fetch("/.netlify/functions/create-transaction",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(payload)
+    });
+
+    const data=await res.json();
+
+    if(!res.ok || !data.token){
+      throw new Error(data.error || t("payment_transaction"));
+    }
+
+    window.snap.pay(data.token,{
+      onSuccess:function(){
+        showKwNotice(t("payment_success"),t("payment_success_title"));
+      },
+      onPending:function(){
+        showKwNotice(t("payment_pending"),t("payment_pending_title"));
+      },
+      onError:function(){
+        showKwNotice(t("payment_error"),t("payment_error_title"));
+      },
+      onClose:function(){}
+    });
+
+  }catch(err){
+    showKwNotice(err.message || t("payment_general"),t("payment_general_title"));
+  }finally{
+    btn.disabled=false;
+    btn.textContent=t("pay_button");
+  }
+}
 
 /* =========================
    LIGHTBOX
 ========================= */
-
-let lightboxIndex=0;
-
-
 function openLightbox(i){
-
   lightboxIndex=i;
-
   const p=products[i];
+  const imgs=p.gallery || [p.img];
 
-  const imgs=
-    p.gallery || [p.img];
+  document.getElementById("lightboxImg").src=imgs[0];
+  document.getElementById("lightboxImg").alt=p.name;
+  document.getElementById("lightboxCaption").textContent=`${p.name} — ${rupiah(p.price)}`;
 
+  document.getElementById("lightboxThumbs").innerHTML=imgs.map((src,j)=>`
+    <img class="lightbox-thumb ${j===0?"active":""}"
+         src="${src}" onclick="setLightboxImage(${i},${j},event)" alt="">
+  `).join("");
 
-  document.getElementById(
-    "lightboxImg"
-  ).src=imgs[0];
-
-
-  document.getElementById(
-    "lightboxImg"
-  ).alt=p.name;
-
-
-  document.getElementById(
-    "lightboxCaption"
-  ).textContent=
-    `${p.name} — ${rupiah(p.price)}`;
-
-
-  document.getElementById(
-    "lightboxThumbs"
-  ).innerHTML=
-
-    imgs.map(
-      (src,j)=>
-        `<img
-          class="lightbox-thumb ${j===0?"active":""}"
-          src="${src}"
-          onclick="setLightboxImage(${i},${j},event)"
-          alt="">`
-    ).join("");
-
-
-  document
-    .getElementById("lightbox")
-    .classList.add("show");
-
+  document.getElementById("lightbox").classList.add("show");
 }
-
 
 function setLightboxImage(i,j,e){
-
-  if(e)
-    e.stopPropagation();
-
-
+  if(e) e.stopPropagation();
   const p=products[i];
+  const imgs=p.gallery || [p.img];
 
-  const imgs=
-    p.gallery || [p.img];
+  document.getElementById("lightboxImg").src=imgs[j];
 
-
-  document.getElementById(
-    "lightboxImg"
-  ).src=imgs[j];
-
-
-  document
-    .querySelectorAll(
-      ".lightbox-thumb"
-    )
-    .forEach(
-      (el,k)=>
-        el.classList.toggle(
-          "active",
-          k===j
-        )
-    );
-
+  document.querySelectorAll(".lightbox-thumb").forEach((el,k)=>{
+    el.classList.toggle("active",k===j);
+  });
 }
-
 
 function changeLightbox(d){
+  const p=products[lightboxIndex];
+  const imgs=p.gallery || [p.img];
 
-  const p=
-    products[lightboxIndex];
+  let current=Array.from(document.querySelectorAll(".lightbox-thumb"))
+    .findIndex(x=>x.classList.contains("active"));
 
-  const imgs=
-    p.gallery || [p.img];
-
-
-  let current=
-    Array.from(
-      document.querySelectorAll(
-        ".lightbox-thumb"
-      )
-    ).findIndex(
-      x=>x.classList.contains(
-        "active"
-      )
-    );
-
-
-  current=
-    (current+d+imgs.length)
-    %imgs.length;
-
-
-  setLightboxImage(
-    lightboxIndex,
-    current
-  );
-
+  current=(current+d+imgs.length)%imgs.length;
+  setLightboxImage(lightboxIndex,current);
 }
-
 
 function closeLightbox(e){
-
-  if(
-    e &&
-    e.target !==
-      document.getElementById(
-        "lightbox"
-      ) &&
-    !e.currentTarget
-      ?.classList
-      .contains(
-        "lightbox-close"
-      )
-  ){
-    return;
-  }
-
-
-  document
-    .getElementById("lightbox")
-    .classList.remove("show");
-
+  const modal=document.getElementById("lightbox");
+  if(e && e.target!==modal && !e.currentTarget?.classList.contains("lightbox-close")) return;
+  modal.classList.remove("show");
 }
 
-
 /* =========================
-   KEYBOARD
+   KEYBOARD + EVENTS
 ========================= */
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){
+    closeSearch();
+    closeKwNotice();
 
-document.addEventListener(
-  "keydown",
-  e=>{
-
-    if(e.key==="Escape"){
-
-      document
-        .getElementById(
-          "lightbox"
-        )
-        .classList.remove(
-          "show"
-        );
-
-      document
-        .getElementById(
-          "checkoutModal"
-        )
-        .classList.remove(
-          "show"
-        );
-
-    }
-
-
-    if(
-      e.key==="ArrowLeft" &&
-      document
-        .getElementById(
-          "lightbox"
-        )
-        .classList
-        .contains("show")
-    ){
-
-      changeLightbox(-1);
-
-    }
-
-
-    if(
-      e.key==="ArrowRight" &&
-      document
-        .getElementById(
-          "lightbox"
-        )
-        .classList
-        .contains("show")
-    ){
-
-      changeLightbox(1);
-
-    }
-
+    document.getElementById("lightbox")?.classList.remove("show");
+    document.getElementById("checkoutModal")?.classList.remove("show");
   }
-);
 
+  if(e.key==="ArrowLeft" &&
+     document.getElementById("lightbox")?.classList.contains("show")){
+    changeLightbox(-1);
+  }
+
+  if(e.key==="ArrowRight" &&
+     document.getElementById("lightbox")?.classList.contains("show")){
+    changeLightbox(1);
+  }
+});
+
+document.getElementById("LanguageSelect")?.addEventListener("change",e=>{
+  applyLanguage(e.target.value);
+});
+
+document.getElementById("siteSearch")?.addEventListener("input",e=>{
+  filterProducts(e.target.value);
+});
 
 /* =========================
    INITIALIZE
 ========================= */
-
-render();
-
-updateCart();
-
-
-document
-  .getElementById("siteSearch")
-  ?.addEventListener(
-    "input",
-    e=>filterProducts(
-      e.target.value
-    )
-  );
-
-
-document.addEventListener(
-  "keydown",
-  e=>{
-
-    if(e.key==="Escape"){
-      closeSearch();
-    }
-
-  }
-);
-
+document.addEventListener("DOMContentLoaded",()=>{
+  document.getElementById("LanguageSelect").value=currentLang;
+  applyLanguage(currentLang);
+  updateCart();
+});
 </script>
-
 </body>
 </html>
