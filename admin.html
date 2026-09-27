@@ -1198,22 +1198,15 @@ tr:last-child td{
   SUPABASE_SERVICE_ROLE_KEY
 */
 
-const SUPABASE_URL =
-  "https://eczozutsjwkfgpyccou.supabase.co";
-
 /*
-  PASTE SUPABASE PUBLISHABLE / ANON KEY ANDA DI SINI.
-
-  Contoh format:
-  sb_publishable_....
-
-  atau project anon key lama:
-  eyJhbGciOi...
+  Konfigurasi Supabase TIDAK ditulis di HTML.
+  Admin mengambil URL + Publishable/Anon Key dari Netlify Function
+  /.netlify/functions/config agar secret scanning tidak menemukan
+  nilai environment variable di source code ini.
 */
 
-const SUPABASE_ANON_KEY =
-  "PASTE_SUPABASE_PUBLISHABLE_KEY_DI_SINI";
-
+let SUPABASE_URL = "";
+let SUPABASE_ANON_KEY = "";
 
 let supabaseClient = null;
 let currentUser = null;
@@ -1223,28 +1216,69 @@ let selectedOrder = null;
 
 /* ================= INIT ================= */
 
-function initSupabase(){
+async function initSupabase(){
 
-  if(
-    !SUPABASE_ANON_KEY ||
-    SUPABASE_ANON_KEY.includes("PASTE_")
-  ){
+  try{
+
+    const response = await fetch(
+      "/.netlify/functions/config",
+      {
+        method:"GET",
+        headers:{"Accept":"application/json"},
+        cache:"no-store"
+      }
+    );
+
+    const text = await response.text();
+    let config = {};
+
+    try{
+      config = JSON.parse(text);
+    }catch(parseError){
+      throw new Error(
+        "Konfigurasi KitaWear tidak mengembalikan JSON yang valid."
+      );
+    }
+
+    if(!response.ok){
+      throw new Error(
+        config.error ||
+        "Konfigurasi KitaWear gagal dimuat."
+      );
+    }
+
+    SUPABASE_URL =
+      String(config.supabaseUrl || "").trim();
+
+    SUPABASE_ANON_KEY =
+      String(config.supabaseAnonKey || "").trim();
+
+    if(!SUPABASE_URL || !SUPABASE_ANON_KEY){
+      throw new Error(
+        "Konfigurasi Supabase belum tersedia di Netlify."
+      );
+    }
+
+    supabaseClient =
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+      );
+
+    return true;
+
+  }catch(error){
+
+    console.error("KitaWear Supabase config:",error);
 
     showNotice(
-      "Masukkan Supabase Publishable/Anon Key ke admin.html terlebih dahulu.",
+      error.message ||
+      "Gagal memuat konfigurasi Supabase.",
       "error"
     );
 
     return false;
   }
-
-  supabaseClient =
-    window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY
-    );
-
-  return true;
 }
 
 
@@ -2486,25 +2520,20 @@ document.addEventListener("keydown",event=>{
 
 /* ================= START ================= */
 
-if(initSupabase()){
+(async function startAdmin(){
 
-  checkSession();
+  const ready = await initSupabase();
 
-}
+  if(!ready){
+    return;
+  }
 
-
-/* ================= AUTH STATE ================= */
-
-if(
-  supabaseClient
-){
+  /* ================= AUTH STATE ================= */
 
   supabaseClient.auth.onAuthStateChange(
     (event,session) => {
 
-      if(
-        event === "SIGNED_OUT"
-      ){
+      if(event === "SIGNED_OUT"){
 
         document
           .getElementById("adminApp")
@@ -2519,7 +2548,9 @@ if(
     }
   );
 
-}
+  await checkSession();
+
+})();
 
 </script>
 
