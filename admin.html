@@ -1,0 +1,2304 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KitaWear — Admin Center</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --ink:#171817;
+  --muted:#77736c;
+  --bg:#f5f3ee;
+  --paper:#fffdf9;
+  --line:#ded9cf;
+  --dark:#111311;
+  --green:#287b4f;
+  --green-soft:#e8f5ed;
+  --yellow:#a86b00;
+  --yellow-soft:#fff4d8;
+  --red:#b33a3a;
+  --red-soft:#fdeaea;
+  --blue:#315c9b;
+  --blue-soft:#eaf1ff;
+  --radius:18px;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+button,
+input,
+select{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+a{
+  color:inherit;
+  text-decoration:none;
+}
+
+.top{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:rgba(255,253,249,.96);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line);
+}
+
+.top-inner{
+  width:min(1400px,94%);
+  min-height:72px;
+  margin:auto;
+  display:flex;
+  align-items:center;
+  gap:22px;
+}
+
+.logo{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:21px;
+  font-weight:900;
+  letter-spacing:-.04em;
+}
+
+.logo-mark{
+  width:34px;
+  height:34px;
+  display:block;
+}
+
+.badge-admin{
+  padding:6px 10px;
+  border-radius:999px;
+  background:#171817;
+  color:#fff;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.08em;
+}
+
+.top-actions{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.btn{
+  border:1px solid var(--line);
+  background:var(--paper);
+  color:var(--ink);
+  min-height:40px;
+  padding:0 14px;
+  border-radius:11px;
+  font-weight:750;
+}
+
+.btn:hover{
+  background:#f0eee8;
+}
+
+.btn-dark{
+  background:var(--dark);
+  color:#fff;
+  border-color:var(--dark);
+}
+
+.btn-dark:hover{
+  background:#292b29;
+}
+
+.btn-danger{
+  color:#fff;
+  background:var(--red);
+  border-color:var(--red);
+}
+
+.wrap{
+  width:min(1400px,94%);
+  margin:0 auto;
+}
+
+main{
+  padding:34px 0 70px;
+}
+
+.hero{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:25px;
+  margin-bottom:28px;
+}
+
+.eyebrow{
+  text-transform:uppercase;
+  letter-spacing:.14em;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:850;
+}
+
+h1{
+  margin:8px 0 8px;
+  font-size:42px;
+  line-height:1;
+  letter-spacing:-.055em;
+}
+
+.subtitle{
+  margin:0;
+  color:var(--muted);
+  max-width:650px;
+  line-height:1.6;
+}
+
+.hero-buttons{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+  margin-bottom:26px;
+}
+
+.stat{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:20px;
+}
+
+.stat-label{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:750;
+}
+
+.stat-value{
+  margin-top:8px;
+  font-size:29px;
+  font-weight:900;
+  letter-spacing:-.04em;
+}
+
+.stat-note{
+  margin-top:6px;
+  color:var(--muted);
+  font-size:11px;
+}
+
+.panel{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  overflow:hidden;
+}
+
+.panel-head{
+  padding:20px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+}
+
+.panel-title{
+  margin:0;
+  font-size:19px;
+  letter-spacing:-.025em;
+}
+
+.panel-tools{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.search{
+  min-height:40px;
+  width:270px;
+  padding:0 13px;
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:#fff;
+  outline:none;
+}
+
+.search:focus,
+.select:focus{
+  border-color:#999;
+}
+
+.select{
+  min-height:40px;
+  padding:0 12px;
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:#fff;
+  outline:none;
+}
+
+.table-wrap{
+  overflow:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1050px;
+}
+
+th,
+td{
+  padding:15px 17px;
+  border-bottom:1px solid #ece8e0;
+  text-align:left;
+  vertical-align:middle;
+}
+
+th{
+  color:var(--muted);
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  background:#faf8f3;
+}
+
+td{
+  font-size:13px;
+}
+
+tr:last-child td{
+  border-bottom:0;
+}
+
+.order-id{
+  font-weight:900;
+  font-size:12px;
+}
+
+.customer{
+  font-weight:800;
+}
+
+.muted{
+  color:var(--muted);
+  font-size:11px;
+  margin-top:3px;
+}
+
+.amount{
+  font-weight:900;
+}
+
+.status{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 9px;
+  border-radius:999px;
+  font-size:10px;
+  font-weight:850;
+  white-space:nowrap;
+}
+
+.status.pending{
+  background:var(--yellow-soft);
+  color:var(--yellow);
+}
+
+.status.paid,
+.status.processing,
+.status.shipped,
+.status.completed{
+  background:var(--green-soft);
+  color:var(--green);
+}
+
+.status.cancelled,
+.status.failed{
+  background:var(--red-soft);
+  color:var(--red);
+}
+
+.status.refunded{
+  background:var(--blue-soft);
+  color:var(--blue);
+}
+
+.actions-cell{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+
+.small-btn{
+  min-height:34px;
+  padding:0 10px;
+  border-radius:9px;
+  border:1px solid var(--line);
+  background:#fff;
+  font-size:11px;
+  font-weight:800;
+}
+
+.small-btn:hover{
+  background:#f0eee8;
+}
+
+.loading,
+.empty,
+.error{
+  padding:45px 20px;
+  text-align:center;
+  color:var(--muted);
+}
+
+.error{
+  color:var(--red);
+}
+
+.notice{
+  position:fixed;
+  right:20px;
+  bottom:20px;
+  z-index:100;
+  min-width:280px;
+  max-width:420px;
+  padding:15px 17px;
+  border-radius:13px;
+  background:#171817;
+  color:#fff;
+  box-shadow:0 18px 45px rgba(0,0,0,.25);
+  display:none;
+}
+
+.notice.show{
+  display:block;
+}
+
+.notice.success{
+  border-left:4px solid #48b979;
+}
+
+.notice.error{
+  border-left:4px solid #ef6262;
+  text-align:left;
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:80;
+  background:rgba(0,0,0,.52);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.modal.show{
+  display:flex;
+}
+
+.modal-card{
+  width:min(720px,100%);
+  max-height:90vh;
+  overflow:auto;
+  background:var(--paper);
+  border-radius:22px;
+  border:1px solid var(--line);
+  box-shadow:0 30px 90px rgba(0,0,0,.28);
+}
+
+.modal-head{
+  padding:20px 22px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:15px;
+}
+
+.modal-head h2{
+  margin:0;
+  font-size:22px;
+}
+
+.close{
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:#fff;
+}
+
+.modal-body{
+  padding:22px;
+}
+
+.detail-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:18px;
+}
+
+.detail-box{
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:13px;
+  padding:13px;
+}
+
+.detail-label{
+  color:var(--muted);
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  font-weight:800;
+}
+
+.detail-value{
+  margin-top:5px;
+  font-weight:800;
+  font-size:13px;
+  line-height:1.5;
+}
+
+.items{
+  border:1px solid var(--line);
+  border-radius:13px;
+  overflow:hidden;
+}
+
+.item{
+  padding:13px 15px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  border-bottom:1px solid #ece8e0;
+}
+
+.item:last-child{
+  border-bottom:0;
+}
+
+.item-name{
+  font-weight:850;
+}
+
+.item-meta{
+  color:var(--muted);
+  font-size:11px;
+  margin-top:3px;
+}
+
+.modal-actions{
+  margin-top:18px;
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.login-screen{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:25px;
+  background:
+    radial-gradient(circle at top right,#e7e1d4,transparent 35%),
+    var(--bg);
+}
+
+.login-card{
+  width:min(440px,100%);
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:30px;
+  box-shadow:0 25px 70px rgba(0,0,0,.08);
+}
+
+.login-card h1{
+  font-size:32px;
+  margin-top:20px;
+}
+
+.field{
+  margin-top:15px;
+}
+
+.field label{
+  display:block;
+  font-size:11px;
+  font-weight:800;
+  color:var(--muted);
+  margin-bottom:7px;
+}
+
+.field input,
+.field select{
+  width:100%;
+  min-height:44px;
+  padding:0 12px;
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:#fff;
+  outline:none;
+}
+
+.login-btn{
+  width:100%;
+  margin-top:18px;
+  min-height:46px;
+}
+
+.hidden{
+  display:none!important;
+}
+
+.footer-note{
+  margin-top:20px;
+  color:var(--muted);
+  text-align:center;
+  font-size:11px;
+}
+
+@media(max-width:1000px){
+  .stats{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .hero{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+}
+
+@media(max-width:650px){
+  h1{
+    font-size:34px;
+  }
+
+  .top-inner{
+    width:92%;
+  }
+
+  .badge-admin{
+    display:none;
+  }
+
+  .top-actions .btn:first-child{
+    display:none;
+  }
+
+  .stats{
+    grid-template-columns:1fr 1fr;
+    gap:9px;
+  }
+
+  .stat{
+    padding:15px;
+  }
+
+  .stat-value{
+    font-size:23px;
+  }
+
+  .panel-head{
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .search{
+    width:100%;
+  }
+
+  .detail-grid{
+    grid-template-columns:1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= LOGIN ================= -->
+
+<section id="loginScreen" class="login-screen">
+
+  <div class="login-card">
+
+    <div class="logo">
+      <svg class="logo-mark" viewBox="0 0 48 48" fill="none">
+        <path d="M24 7c-5 0-8 3-8 7 0 3 2 5 5 6"
+              stroke="currentColor"
+              stroke-width="3.2"
+              stroke-linecap="round"/>
+        <path d="M21 20 7 31c-3 2-2 7 2 8h30c4-1 5-6 2-8L27 20"
+              stroke="currentColor"
+              stroke-width="3.2"
+              stroke-linejoin="round"/>
+        <path d="m18 39 6-7 6 7"
+              stroke="currentColor"
+              stroke-width="3.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+      </svg>
+
+      KitaWear
+    </div>
+
+    <span class="badge-admin">ADMIN CENTER</span>
+
+    <h1>Masuk sebagai Admin</h1>
+
+    <p class="subtitle">
+      Gunakan akun KitaWear yang memiliki role
+      <strong>admin</strong>.
+    </p>
+
+    <div class="field">
+      <label>Email</label>
+      <input
+        id="loginEmail"
+        type="email"
+        placeholder="admin@email.com"
+        autocomplete="email">
+    </div>
+
+    <div class="field">
+      <label>Password</label>
+      <input
+        id="loginPassword"
+        type="password"
+        placeholder="Password"
+        autocomplete="current-password">
+    </div>
+
+    <button
+      id="loginBtn"
+      class="btn btn-dark login-btn"
+      type="button">
+      Masuk ke Admin
+    </button>
+
+    <div class="footer-note">
+      Jika akun bukan admin, akses akan ditolak.
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ================= ADMIN APP ================= -->
+
+<div id="adminApp" class="hidden">
+
+<header class="top">
+
+  <div class="top-inner">
+
+    <a href="/" class="logo">
+
+      <svg class="logo-mark" viewBox="0 0 48 48" fill="none">
+        <path d="M24 7c-5 0-8 3-8 7 0 3 2 5 5 6"
+              stroke="currentColor"
+              stroke-width="3.2"
+              stroke-linecap="round"/>
+        <path d="M21 20 7 31c-3 2-2 7 2 8h30c4-1 5-6 2-8L27 20"
+              stroke="currentColor"
+              stroke-width="3.2"
+              stroke-linejoin="round"/>
+        <path d="m18 39 6-7 6 7"
+              stroke="currentColor"
+              stroke-width="3.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+      </svg>
+
+      KitaWear
+
+    </a>
+
+    <span class="badge-admin">ADMIN</span>
+
+    <div class="top-actions">
+
+      <a class="btn" href="/seller.html">
+        Seller Center
+      </a>
+
+      <a class="btn" href="/">
+        Toko
+      </a>
+
+      <button
+        id="logoutBtn"
+        class="btn"
+        type="button">
+        Keluar
+      </button>
+
+    </div>
+
+  </div>
+
+</header>
+
+
+<main>
+
+<div class="wrap">
+
+  <!-- HERO -->
+
+  <section class="hero">
+
+    <div>
+
+      <div class="eyebrow">
+        KitaWear Marketplace
+      </div>
+
+      <h1>Admin Center</h1>
+
+      <p class="subtitle">
+        Kelola dan pantau semua pesanan marketplace KitaWear
+        dari satu tempat.
+      </p>
+
+    </div>
+
+    <div class="hero-buttons">
+
+      <button
+        id="refreshTopBtn"
+        class="btn btn-dark"
+        type="button">
+        ↻ Refresh Pesanan
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- STATS -->
+
+  <section class="stats">
+
+    <div class="stat">
+
+      <div class="stat-label">
+        Total Pesanan
+      </div>
+
+      <div id="statTotal" class="stat-value">
+        0
+      </div>
+
+      <div class="stat-note">
+        Semua pesanan
+      </div>
+
+    </div>
+
+
+    <div class="stat">
+
+      <div class="stat-label">
+        Menunggu
+      </div>
+
+      <div id="statPending" class="stat-value">
+        0
+      </div>
+
+      <div class="stat-note">
+        Perlu diproses
+      </div>
+
+    </div>
+
+
+    <div class="stat">
+
+      <div class="stat-label">
+        Diproses
+      </div>
+
+      <div id="statProcessing" class="stat-value">
+        0
+      </div>
+
+      <div class="stat-note">
+        Pesanan berjalan
+      </div>
+
+    </div>
+
+
+    <div class="stat">
+
+      <div class="stat-label">
+        Selesai
+      </div>
+
+      <div id="statCompleted" class="stat-value">
+        0
+      </div>
+
+      <div class="stat-note">
+        Pesanan selesai
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ORDERS -->
+
+  <section class="panel">
+
+    <div class="panel-head">
+
+      <div>
+
+        <h2 class="panel-title">
+          Semua Pesanan
+        </h2>
+
+        <div class="muted">
+          Data dari tabel orders KitaWear.
+        </div>
+
+      </div>
+
+
+      <div class="panel-tools">
+
+        <input
+          id="searchInput"
+          class="search"
+          type="search"
+          placeholder="Cari order ID / customer...">
+
+        <select
+          id="statusFilter"
+          class="select">
+
+          <option value="all">
+            Semua status
+          </option>
+
+          <option value="pending">
+            Pending
+          </option>
+
+          <option value="paid">
+            Paid
+          </option>
+
+          <option value="processing">
+            Processing
+          </option>
+
+          <option value="shipped">
+            Shipped
+          </option>
+
+          <option value="completed">
+            Completed
+          </option>
+
+          <option value="cancelled">
+            Cancelled
+          </option>
+
+          <option value="failed">
+            Failed
+          </option>
+
+          <option value="refunded">
+            Refunded
+          </option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+
+    <div id="ordersContainer">
+
+      <div class="loading">
+        Memuat pesanan...
+      </div>
+
+    </div>
+
+  </section>
+
+</div>
+
+</main>
+
+</div>
+
+
+<!-- ================= DETAIL MODAL ================= -->
+
+<div
+  id="detailModal"
+  class="modal">
+
+  <div class="modal-card">
+
+    <div class="modal-head">
+
+      <div>
+
+        <h2 id="detailTitle">
+          Detail Pesanan
+        </h2>
+
+        <div id="detailStatus">
+        </div>
+
+      </div>
+
+      <button
+        id="closeModalBtn"
+        class="close"
+        type="button">
+        ×
+      </button>
+
+    </div>
+
+
+    <div
+      id="detailBody"
+      class="modal-body">
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ================= NOTICE ================= -->
+
+<div
+  id="notice"
+  class="notice">
+</div>
+
+
+<script>
+
+/* =========================================================
+   KITAWear ADMIN
+   ========================================================= */
+
+/*
+  IMPORTANT:
+  Gunakan Publishable/Anon Key saja di browser.
+
+  JANGAN masukkan:
+  SUPABASE_SERVICE_ROLE_KEY
+*/
+
+const SUPABASE_URL =
+  "https://eczozutsjwkfgpyccou.supabase.co";
+
+/*
+  PASTE SUPABASE PUBLISHABLE / ANON KEY ANDA DI SINI.
+
+  Contoh format:
+  sb_publishable_....
+
+  atau project anon key lama:
+  eyJhbGciOi...
+*/
+
+const SUPABASE_ANON_KEY =
+  "PASTE_SUPABASE_PUBLISHABLE_KEY_DI_SINI";
+
+
+let supabaseClient = null;
+let currentUser = null;
+let orders = [];
+let selectedOrder = null;
+
+
+/* ================= INIT ================= */
+
+function initSupabase(){
+
+  if(
+    !SUPABASE_ANON_KEY ||
+    SUPABASE_ANON_KEY.includes("PASTE_")
+  ){
+
+    showNotice(
+      "Masukkan Supabase Publishable/Anon Key ke admin.html terlebih dahulu.",
+      "error"
+    );
+
+    return false;
+  }
+
+  supabaseClient =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+
+  return true;
+}
+
+
+/* ================= NOTICE ================= */
+
+function showNotice(message,type="success"){
+
+  const el =
+    document.getElementById("notice");
+
+  el.textContent = message;
+
+  el.className =
+    "notice show " +
+    (type === "error" ? "error" : "success");
+
+  clearTimeout(window.noticeTimer);
+
+  window.noticeTimer =
+    setTimeout(()=>{
+      el.className = "notice";
+    },5000);
+}
+
+
+/* ================= HELPERS ================= */
+
+function formatRupiah(value){
+
+  const number =
+    Number(value || 0);
+
+  return new Intl.NumberFormat(
+    "id-ID",
+    {
+      style:"currency",
+      currency:"IDR",
+      maximumFractionDigits:0
+    }
+  ).format(number);
+}
+
+
+function formatDate(value){
+
+  if(!value){
+    return "-";
+  }
+
+  const d =
+    new Date(value);
+
+  if(Number.isNaN(d.getTime())){
+    return "-";
+  }
+
+  return d.toLocaleString(
+    "id-ID",
+    {
+      dateStyle:"medium",
+      timeStyle:"short"
+    }
+  );
+}
+
+
+function escapeHtml(value){
+
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+
+function statusLabel(status){
+
+  const map = {
+
+    pending:"Pending",
+
+    paid:"Paid",
+
+    processing:"Processing",
+
+    shipped:"Shipped",
+
+    completed:"Completed",
+
+    cancelled:"Cancelled",
+
+    failed:"Failed",
+
+    refunded:"Refunded"
+
+  };
+
+  return map[status] || status || "-";
+}
+
+
+function statusClass(status){
+
+  const allowed = [
+    "pending",
+    "paid",
+    "processing",
+    "shipped",
+    "completed",
+    "cancelled",
+    "failed",
+    "refunded"
+  ];
+
+  return allowed.includes(status)
+    ? status
+    : "pending";
+}
+
+
+/* ================= AUTH ================= */
+
+async function login(){
+
+  const email =
+    document.getElementById("loginEmail").value.trim();
+
+  const password =
+    document.getElementById("loginPassword").value;
+
+  if(!email || !password){
+
+    showNotice(
+      "Email dan password wajib diisi.",
+      "error"
+    );
+
+    return;
+  }
+
+  const button =
+    document.getElementById("loginBtn");
+
+  button.disabled = true;
+  button.textContent = "Memproses...";
+
+  try{
+
+    const {data,error} =
+      await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+
+    if(error){
+      throw error;
+    }
+
+    currentUser =
+      data.user;
+
+    await checkAdminAccess();
+
+  }catch(error){
+
+    console.error(error);
+
+    showNotice(
+      error.message ||
+      "Gagal masuk.",
+      "error"
+    );
+
+  }finally{
+
+    button.disabled = false;
+    button.textContent = "Masuk ke Admin";
+
+  }
+}
+
+
+/* ================= ROLE CHECK ================= */
+
+async function checkAdminAccess(){
+
+  if(!currentUser){
+
+    throw new Error(
+      "Session pengguna tidak ditemukan."
+    );
+
+  }
+
+  const {data,error} =
+    await supabaseClient
+      .from("profiles")
+      .select("id,full_name,role,phone")
+      .eq("id",currentUser.id)
+      .maybeSingle();
+
+  if(error){
+    throw error;
+  }
+
+  if(!data){
+
+    await supabaseClient.auth.signOut();
+
+    throw new Error(
+      "Profil akun tidak ditemukan."
+    );
+
+  }
+
+  if(data.role !== "admin"){
+
+    await supabaseClient.auth.signOut();
+
+    throw new Error(
+      "Akses ditolak. Akun ini bukan admin."
+    );
+
+  }
+
+  showAdminApp(data);
+
+  await loadOrders();
+
+}
+
+
+/* ================= SHOW ADMIN ================= */
+
+function showAdminApp(profile){
+
+  document
+    .getElementById("loginScreen")
+    .classList.add("hidden");
+
+  document
+    .getElementById("adminApp")
+    .classList.remove("hidden");
+
+}
+
+
+/* ================= SESSION ================= */
+
+async function checkSession(){
+
+  const {
+    data:{
+      session
+    }
+  } =
+    await supabaseClient.auth.getSession();
+
+  if(session){
+
+    currentUser =
+      session.user;
+
+    try{
+
+      await checkAdminAccess();
+
+    }catch(error){
+
+      console.error(error);
+
+      showNotice(
+        error.message,
+        "error"
+      );
+
+    }
+
+  }
+
+}
+
+
+/* ================= LOGOUT ================= */
+
+async function logout(){
+
+  await supabaseClient.auth.signOut();
+
+  currentUser = null;
+  orders = [];
+
+  document
+    .getElementById("adminApp")
+    .classList.add("hidden");
+
+  document
+    .getElementById("loginScreen")
+    .classList.remove("hidden");
+
+}
+
+
+/* ================= LOAD ORDERS ================= */
+
+async function loadOrders(){
+
+  const container =
+    document.getElementById("ordersContainer");
+
+  container.innerHTML =
+    '<div class="loading">Memuat pesanan...</div>';
+
+  try{
+
+    /*
+      Kita ambil order terbaru.
+
+      Tidak menggunakan service role.
+      RLS admin harus sudah mengizinkan
+      admin membaca orders.
+    */
+
+    const {data,error} =
+      await supabaseClient
+        .from("orders")
+        .select("*")
+        .order("created_at",{ascending:false});
+
+    if(error){
+      throw error;
+    }
+
+    orders =
+      data || [];
+
+    renderStats();
+    renderOrders();
+
+  }catch(error){
+
+    console.error(
+      "Admin load orders:",
+      error
+    );
+
+    container.innerHTML =
+      `<div class="error">
+        Gagal memuat pesanan.<br>
+        ${escapeHtml(error.message || "Unknown error")}
+      </div>`;
+
+    showNotice(
+      "Gagal mengambil data pesanan.",
+      "error"
+    );
+
+  }
+
+}
+
+
+/* ================= STATS ================= */
+
+function renderStats(){
+
+  const total =
+    orders.length;
+
+  const pending =
+    orders.filter(
+      o => o.status === "pending"
+    ).length;
+
+  const processing =
+    orders.filter(
+      o =>
+        o.status === "processing" ||
+        o.status === "paid" ||
+        o.status === "shipped"
+    ).length;
+
+  const completed =
+    orders.filter(
+      o => o.status === "completed"
+    ).length;
+
+  document.getElementById(
+    "statTotal"
+  ).textContent = total;
+
+  document.getElementById(
+    "statPending"
+  ).textContent = pending;
+
+  document.getElementById(
+    "statProcessing"
+  ).textContent = processing;
+
+  document.getElementById(
+    "statCompleted"
+  ).textContent = completed;
+
+}
+
+
+/* ================= FILTER ================= */
+
+function getFilteredOrders(){
+
+  const search =
+    document
+      .getElementById("searchInput")
+      .value
+      .trim()
+      .toLowerCase();
+
+  const status =
+    document
+      .getElementById("statusFilter")
+      .value;
+
+  return orders.filter(order => {
+
+    const matchesStatus =
+      status === "all" ||
+      order.status === status;
+
+    if(!matchesStatus){
+      return false;
+    }
+
+    if(!search){
+      return true;
+    }
+
+    const haystack =
+      [
+        order.id,
+        order.order_id,
+        order.customer_name,
+        order.email,
+        order.phone,
+        order.whatsapp,
+        order.payment_status
+      ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    return haystack.includes(search);
+
+  });
+
+}
+
+
+/* ================= RENDER ORDERS ================= */
+
+function renderOrders(){
+
+  const container =
+    document.getElementById("ordersContainer");
+
+  const filtered =
+    getFilteredOrders();
+
+  if(!filtered.length){
+
+    container.innerHTML =
+      `<div class="empty">
+        Tidak ada pesanan yang sesuai.
+      </div>`;
+
+    return;
+
+  }
+
+  let html = `
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Order</th>
+
+            <th>Pelanggan</th>
+
+            <th>Tanggal</th>
+
+            <th>Total</th>
+
+            <th>Status</th>
+
+            <th>Pembayaran</th>
+
+            <th>Aksi</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+  `;
+
+
+  filtered.forEach(order => {
+
+    const id =
+      order.order_id ||
+      order.id ||
+      "-";
+
+    const customer =
+      order.customer_name ||
+      order.name ||
+      "Pelanggan";
+
+    const phone =
+      order.phone ||
+      order.whatsapp ||
+      "";
+
+    const amount =
+      order.total_amount ??
+      order.gross_amount ??
+      order.total ??
+      0;
+
+    const status =
+      order.status ||
+      "pending";
+
+    const payment =
+      order.payment_status ||
+      order.transaction_status ||
+      "-";
+
+    html += `
+
+      <tr>
+
+        <td>
+
+          <div class="order-id">
+            ${escapeHtml(id)}
+          </div>
+
+          <div class="muted">
+            ID ${escapeHtml(
+              String(order.id || "").slice(0,8)
+            )}
+          </div>
+
+        </td>
+
+
+        <td>
+
+          <div class="customer">
+            ${escapeHtml(customer)}
+          </div>
+
+          ${
+            phone
+              ? `<div class="muted">
+                   ${escapeHtml(phone)}
+                 </div>`
+              : ""
+          }
+
+        </td>
+
+
+        <td>
+          ${escapeHtml(
+            formatDate(order.created_at)
+          )}
+        </td>
+
+
+        <td>
+
+          <div class="amount">
+            ${formatRupiah(amount)}
+          </div>
+
+        </td>
+
+
+        <td>
+
+          <span class="status ${statusClass(status)}">
+
+            ${escapeHtml(
+              statusLabel(status)
+            )}
+
+          </span>
+
+        </td>
+
+
+        <td>
+
+          <span class="muted">
+            ${escapeHtml(payment)}
+          </span>
+
+        </td>
+
+
+        <td>
+
+          <div class="actions-cell">
+
+            <button
+              class="small-btn"
+              type="button"
+              onclick="openOrderDetail('${escapeHtml(String(order.id || ""))}')">
+              Detail
+            </button>
+
+            <button
+              class="small-btn"
+              type="button"
+              onclick="changeStatus('${escapeHtml(String(order.id || ""))}')">
+              Status
+            </button>
+
+          </div>
+
+        </td>
+
+      </tr>
+
+    `;
+
+  });
+
+
+  html += `
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  `;
+
+
+  container.innerHTML =
+    html;
+
+}
+
+
+/* ================= FIND ORDER ================= */
+
+function findOrder(id){
+
+  return orders.find(
+    order =>
+      String(order.id) === String(id)
+  );
+
+}
+
+
+/* ================= ORDER DETAIL ================= */
+
+async function openOrderDetail(id){
+
+  const order =
+    findOrder(id);
+
+  if(!order){
+
+    showNotice(
+      "Pesanan tidak ditemukan.",
+      "error"
+    );
+
+    return;
+
+  }
+
+  selectedOrder =
+    order;
+
+  document
+    .getElementById("detailModal")
+    .classList.add("show");
+
+  document
+    .getElementById("detailTitle")
+    .textContent =
+      order.order_id ||
+      order.id ||
+      "Detail Pesanan";
+
+  document
+    .getElementById("detailStatus")
+    .innerHTML =
+      `<span class="status ${statusClass(order.status)}">
+        ${escapeHtml(
+          statusLabel(order.status)
+        )}
+      </span>`;
+
+  const body =
+    document.getElementById("detailBody");
+
+  body.innerHTML =
+    `<div class="loading">
+      Memuat item pesanan...
+    </div>`;
+
+
+  let items = [];
+
+  try{
+
+    const {data,error} =
+      await supabaseClient
+        .from("order_items")
+        .select("*")
+        .eq("order_id",order.id);
+
+    if(error){
+      throw error;
+    }
+
+    items =
+      data || [];
+
+  }catch(error){
+
+    console.error(error);
+
+    body.innerHTML =
+      `<div class="error">
+        Gagal memuat item pesanan.<br>
+        ${escapeHtml(error.message || "")}
+      </div>`;
+
+    return;
+
+  }
+
+
+  const customerName =
+    order.customer_name ||
+    order.name ||
+    "-";
+
+  const email =
+    order.email ||
+    "-";
+
+  const phone =
+    order.phone ||
+    order.whatsapp ||
+    "-";
+
+  const address =
+    order.shipping_address ||
+    order.address ||
+    "-";
+
+  const amount =
+    order.total_amount ??
+    order.gross_amount ??
+    order.total ??
+    0;
+
+
+  let itemsHtml =
+    `<div class="items">`;
+
+
+  if(!items.length){
+
+    itemsHtml +=
+      `<div class="empty">
+        Tidak ada item yang ditemukan.
+      </div>`;
+
+  }else{
+
+    items.forEach(item => {
+
+      const name =
+        item.product_name ||
+        item.name ||
+        "Produk";
+
+      const qty =
+        item.quantity ||
+        item.qty ||
+        1;
+
+      const size =
+        item.size ||
+        "-";
+
+      const price =
+        item.price ||
+        item.unit_price ||
+        0;
+
+      itemsHtml += `
+
+        <div class="item">
+
+          <div>
+
+            <div class="item-name">
+              ${escapeHtml(name)}
+            </div>
+
+            <div class="item-meta">
+              Ukuran: ${escapeHtml(size)}
+              · Qty: ${escapeHtml(qty)}
+            </div>
+
+          </div>
+
+          <strong>
+            ${formatRupiah(
+              Number(price) * Number(qty)
+            )}
+          </strong>
+
+        </div>
+
+      `;
+
+    });
+
+  }
+
+
+  itemsHtml +=
+    `</div>`;
+
+
+  body.innerHTML = `
+
+    <div class="detail-grid">
+
+      <div class="detail-box">
+
+        <div class="detail-label">
+          Pelanggan
+        </div>
+
+        <div class="detail-value">
+          ${escapeHtml(customerName)}
+        </div>
+
+      </div>
+
+
+      <div class="detail-box">
+
+        <div class="detail-label">
+          Email
+        </div>
+
+        <div class="detail-value">
+          ${escapeHtml(email)}
+        </div>
+
+      </div>
+
+
+      <div class="detail-box">
+
+        <div class="detail-label">
+          WhatsApp
+        </div>
+
+        <div class="detail-value">
+          ${escapeHtml(phone)}
+        </div>
+
+      </div>
+
+
+      <div class="detail-box">
+
+        <div class="detail-label">
+          Total
+        </div>
+
+        <div class="detail-value">
+          ${formatRupiah(amount)}
+        </div>
+
+      </div>
+
+
+      <div class="detail-box">
+
+        <div class="detail-label">
+          Alamat Pengiriman
+        </div>
+
+        <div class="detail-value">
+          ${escapeHtml(address)}
+        </div>
+
+      </div>
+
+
+      <div class="detail-box">
+
+        <div class="detail-label">
+          Dibuat
+        </div>
+
+        <div class="detail-value">
+          ${escapeHtml(
+            formatDate(order.created_at)
+          )}
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <h3 style="margin:0 0 10px">
+      Item Pesanan
+    </h3>
+
+    ${itemsHtml}
+
+
+    <div class="modal-actions">
+
+      <button
+        class="btn"
+        type="button"
+        onclick="changeStatus('${escapeHtml(String(order.id))}')">
+        Ubah Status
+      </button>
+
+      <button
+        class="btn btn-dark"
+        type="button"
+        onclick="closeOrderDetail()">
+        Tutup
+      </button>
+
+    </div>
+
+  `;
+
+}
+
+
+/* ================= CLOSE DETAIL ================= */
+
+function closeOrderDetail(){
+
+  document
+    .getElementById("detailModal")
+    .classList.remove("show");
+
+}
+
+
+/* ================= CHANGE STATUS ================= */
+
+async function changeStatus(id){
+
+  const order =
+    findOrder(id);
+
+  if(!order){
+    return;
+  }
+
+  const current =
+    order.status || "pending";
+
+  const status =
+    prompt(
+      "Masukkan status baru:\n\n" +
+      "pending\n" +
+      "paid\n" +
+      "processing\n" +
+      "shipped\n" +
+      "completed\n" +
+      "cancelled\n" +
+      "failed\n" +
+      "refunded",
+      current
+    );
+
+  if(status === null){
+    return;
+  }
+
+  const newStatus =
+    status.trim().toLowerCase();
+
+  const allowed = [
+    "pending",
+    "paid",
+    "processing",
+    "shipped",
+    "completed",
+    "cancelled",
+    "failed",
+    "refunded"
+  ];
+
+  if(!allowed.includes(newStatus)){
+
+    showNotice(
+      "Status tidak valid.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  try{
+
+    const {error} =
+      await supabaseClient
+        .from("orders")
+        .update({
+          status:newStatus,
+          updated_at:new Date().toISOString()
+        })
+        .eq("id",order.id);
+
+    if(error){
+      throw error;
+    }
+
+    showNotice(
+      "Status pesanan berhasil diperbarui."
+    );
+
+    await loadOrders();
+
+    if(
+      document
+        .getElementById("detailModal")
+        .classList.contains("show")
+    ){
+
+      closeOrderDetail();
+
+    }
+
+  }catch(error){
+
+    console.error(error);
+
+    showNotice(
+      error.message ||
+      "Gagal mengubah status pesanan.",
+      "error"
+    );
+
+  }
+
+}
+
+
+/* ================= EVENTS ================= */
+
+document
+  .getElementById("loginBtn")
+  .addEventListener(
+    "click",
+    login
+  );
+
+
+document
+  .getElementById("loginPassword")
+  .addEventListener(
+    "keydown",
+    event => {
+
+      if(event.key === "Enter"){
+        login();
+      }
+
+    }
+  );
+
+
+document
+  .getElementById("logoutBtn")
+  .addEventListener(
+    "click",
+    logout
+  );
+
+
+document
+  .getElementById("refreshTopBtn")
+  .addEventListener(
+    "click",
+    loadOrders
+  );
+
+
+document
+  .getElementById("searchInput")
+  .addEventListener(
+    "input",
+    renderOrders
+  );
+
+
+document
+  .getElementById("statusFilter")
+  .addEventListener(
+    "change",
+    renderOrders
+  );
+
+
+document
+  .getElementById("closeModalBtn")
+  .addEventListener(
+    "click",
+    closeOrderDetail
+  );
+
+
+document
+  .getElementById("detailModal")
+  .addEventListener(
+    "click",
+    event => {
+
+      if(
+        event.target.id === "detailModal"
+      ){
+
+        closeOrderDetail();
+
+      }
+
+    }
+  );
+
+
+/* ================= START ================= */
+
+if(initSupabase()){
+
+  checkSession();
+
+}
+
+
+/* ================= AUTH STATE ================= */
+
+if(
+  supabaseClient
+){
+
+  supabaseClient.auth.onAuthStateChange(
+    (event,session) => {
+
+      if(
+        event === "SIGNED_OUT"
+      ){
+
+        document
+          .getElementById("adminApp")
+          .classList.add("hidden");
+
+        document
+          .getElementById("loginScreen")
+          .classList.remove("hidden");
+
+      }
+
+    }
+  );
+
+}
+
+</script>
+
+</body>
+</html>
