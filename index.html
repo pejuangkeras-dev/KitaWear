@@ -233,6 +233,9 @@ body{background:var(--bg);color:var(--ink)}
 @media(max-width:900px){.account-dashboard{grid-template-columns:235px minmax(0,1fr)}.account-main{padding:25px 20px 35px}.account-hero{padding:28px}.account-bottom-grid{grid-template-columns:1fr}.profile-row{grid-template-columns:125px minmax(0,1fr)}}
 @media(max-width:650px){.auth-overlay.account-expanded .auth-head{top:12px;right:12px}.account-dashboard{grid-template-columns:1fr}.account-sidebar{border-right:0;border-bottom:1px solid #e2ddd4;max-height:none;padding:18px 14px}.account-user-card{display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:center}.account-user-card:before{grid-column:1/-1}.account-user-card .account-avatar{margin:0}.account-nav-group{display:grid;grid-template-columns:1fr 1fr;gap:3px}.account-nav-title{grid-column:1/-1}.account-main{padding:18px 12px 30px}.account-hero{min-height:170px;padding:25px 22px;margin-bottom:14px}.account-hero h3{font-size:28px}.account-hero-badge{display:none}.account-page-head{padding:20px;display:block}.profile-form{padding:21px 18px}.profile-row{grid-template-columns:1fr;gap:7px;margin-bottom:15px}.account-bottom-grid{gap:12px}.account-card{padding:20px}.account-main:before{margin-bottom:9px}}
 
+
+/* ================= PRODUCT DETAIL / SELLER ================= */
+.product-detail-modal{position:fixed;inset:0;z-index:120;background:rgba(17,19,17,.62);display:none;align-items:center;justify-content:center;padding:18px}.product-detail-modal.show{display:flex}.product-detail-box{width:min(1180px,100%);max-height:94vh;overflow:auto;background:#f7f5f0;border-radius:24px;box-shadow:0 30px 100px rgba(0,0,0,.25)}.product-detail-head{position:sticky;top:0;z-index:5;background:rgba(255,253,249,.96);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;padding:15px 20px}.product-detail-head strong{font-size:12px;letter-spacing:.14em;text-transform:uppercase}.product-detail-close{width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:#fff;font-size:20px}.product-detail-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:0}.product-detail-gallery{background:#ebe7df;padding:28px}.product-detail-main-image{width:100%;aspect-ratio:4/4.7;object-fit:cover;border-radius:18px;background:#ddd}.product-detail-thumbs{display:flex;gap:9px;overflow:auto;margin-top:12px}.product-detail-thumb{width:70px;height:82px;object-fit:cover;border-radius:10px;border:2px solid transparent;cursor:pointer;opacity:.7}.product-detail-thumb.active{border-color:#171817;opacity:1}.product-detail-info{padding:34px 34px 42px;background:#fffdf9}.product-detail-eyebrow{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#77736c;font-weight:900}.product-detail-title{font-size:clamp(28px,4vw,46px);line-height:.98;letter-spacing:-.055em;margin:9px 0 10px}.product-detail-price{font-size:26px;font-weight:950;margin:0 0 12px}.product-detail-rating{display:flex;align-items:center;gap:9px;color:#665f55;font-size:13px;padding-bottom:20px;border-bottom:1px solid var(--line)}.product-detail-section{padding:19px 0;border-bottom:1px solid var(--line)}.product-detail-section h4{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.12em}.product-detail-desc{color:#67645e;line-height:1.75;font-size:14px}.product-detail-sizes{display:flex;gap:8px;flex-wrap:wrap}.product-detail-size{min-width:48px;height:40px;border:1px solid var(--line);border-radius:10px;background:#fff;font-weight:800}.product-detail-size.active{background:#171817;color:#fff;border-color:#171817}.product-detail-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.product-detail-btn{height:48px;border-radius:12px;border:1px solid #171817;font-weight:900}.product-detail-btn.dark{background:#171817;color:#fff}.product-detail-btn.light{background:#fff;color:#171817}.seller-card{margin-top:18px;border:1px solid var(--line);border-radius:16px;background:#fffdf9;padding:18px}.seller-card-top{display:flex;align-items:center;gap:12px}.seller-avatar{width:52px;height:52px;border-radius:50%;background:#171817;color:#fff;display:grid;place-items:center;font-weight:950;font-size:20px;flex:none}.seller-meta{min-width:0}.seller-meta strong{display:block;font-size:16px}.seller-meta span{display:block;color:#77736c;font-size:12px;margin-top:3px}.seller-rating{margin-left:auto;text-align:right}.seller-rating strong{font-size:16px}.seller-rating span{font-size:11px;color:#77736c}.seller-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}.seller-actions button{height:38px;border-radius:9px;border:1px solid var(--line);background:#fff;font-weight:800}.seller-actions button:last-child{background:#171817;color:#fff;border-color:#171817}.seller-review-summary{display:grid;grid-template-columns:130px 1fr;gap:20px;align-items:center;margin-top:18px;padding:20px;border:1px solid var(--line);border-radius:16px;background:#fffdf9}.seller-review-score{text-align:center}.seller-review-score strong{display:block;font-size:34px;line-height:1}.seller-review-score span{color:#77736c;font-size:11px}.review-bars{display:grid;gap:6px}.review-bar{display:grid;grid-template-columns:32px 1fr 36px;gap:7px;align-items:center;font-size:10px;color:#77736c}.review-bar i{height:6px;border-radius:999px;background:#e6e1d8;overflow:hidden}.review-bar i b{display:block;height:100%;background:#171817}.review-list{display:grid;gap:10px;margin-top:14px}.review-item{padding:15px;border:1px solid var(--line);border-radius:14px;background:#fff}.review-item-head{display:flex;justify-content:space-between;gap:10px}.review-item-head strong{font-size:13px}.review-item-head span{font-size:11px;color:#77736c}.review-stars{letter-spacing:1px;font-size:12px;margin:5px 0}.review-item p{margin:0;color:#66625b;font-size:13px;line-height:1.65}.review-empty{padding:22px;border:1px dashed #cfc8bc;border-radius:14px;color:#77736c;text-align:center;font-size:13px;background:#fbfaf7}.detail-full-section{padding:0 34px 34px}.detail-full-section h3{font-size:25px;letter-spacing:-.04em;margin:25px 0 14px}.detail-description-box{padding:22px;border:1px solid var(--line);border-radius:16px;background:#fffdf9;color:#66625b;line-height:1.8;font-size:14px}.detail-store-products{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.detail-mini-product{border:1px solid var(--line);border-radius:13px;overflow:hidden;background:#fff;cursor:pointer}.detail-mini-product img{width:100%;aspect-ratio:4/5;object-fit:cover}.detail-mini-product div{padding:10px;font-size:12px}.detail-mini-product strong{display:block;margin-bottom:4px}.detail-mini-product span{font-weight:900}.@media(max-width:850px){.product-detail-grid{grid-template-columns:1fr}.product-detail-gallery{padding:18px}.product-detail-info{padding:25px 20px}.detail-full-section{padding:0 20px 25px}.detail-store-products{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 
@@ -393,6 +396,15 @@ body{background:var(--bg);color:var(--ink)}
     </div>
     <div id="lightboxCaption" class="lightbox-caption"><span id="lightboxProductName" class="lb-name"></span><span id="lightboxProductPrice" class="lb-price"></span></div>
     <div id="lightboxThumbs" class="lightbox-thumbs" onclick="event.stopPropagation()"></div>
+  </div>
+</div>
+
+
+<!-- PRODUCT DETAIL -->
+<div id="productDetailModal" class="product-detail-modal" aria-hidden="true" onclick="closeProductDetail(event)">
+  <div class="product-detail-box" onclick="event.stopPropagation()">
+    <div class="product-detail-head"><strong>KitaWear Product Detail</strong><button class="product-detail-close" type="button" onclick="closeProductDetail()">×</button></div>
+    <div id="productDetailContent"></div>
   </div>
 </div>
 
@@ -707,6 +719,8 @@ async function loadKitaWearProductsFromDatabase(){
 
     const dynamicProducts=data.products.map(p=>({
       id:p.id,
+      store_id:p.store_id || null,
+      store:p.store || null,
       name:String(p.name || ""),
       price:Number(p.price || 0),
       desc:String(p.description || ""),
@@ -1035,34 +1049,169 @@ function render(){
   if(!root) return;
 
   root.innerHTML=products.map((p,i)=>`
-    <article class="card">
-      <div class="photo" data-lightbox-index="${i}" role="button" tabindex="0" aria-label="Lihat foto ${p.name}">
-        <img src="${p.img}" alt="${p.name}" loading="lazy"
-             onerror="this.style.display='none'">
+    <article class="card" onclick="openProductDetail(${i})" style="cursor:pointer">
+      <div class="photo" data-product-index="${i}" role="button" tabindex="0" aria-label="Lihat detail ${p.name}">
+        <img src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">
         ${p.badge?`<span class="badge">${currentLang==="id"?p.badge:t("best_seller")}</span>`:""}
       </div>
-
       <div class="body">
         <h3>${p.name}</h3>
         <div class="price">${rupiah(p.price)}</div>
-
-        <div class="swatches">
-          ${p.colors.map(c=>`<span class="sw" style="background:${c}"></span>`).join("")}
-        </div>
-
+        ${p.store?.name?`<div style="font-size:11px;color:#77736c;margin-bottom:9px">🏪 ${p.store.name}</div>`:""}
+        <div class="swatches">${p.colors.map(c=>`<span class="sw" style="background:${c}"></span>`).join("")}</div>
         <div class="sizes-label">${t("choose_size")}</div>
-
-        <select class="size-select" id="size-${i}" aria-label="${t("size_label")} ${p.name}">
+        <select class="size-select" id="size-${i}" aria-label="${t("size_label")} ${p.name}" onclick="event.stopPropagation()">
           <option value="">${t("choose_size_option")}</option>
           ${p.sizes.map(s=>`<option value="${s}">${s}</option>`).join("")}
         </select>
-
-        <button class="smallbtn" id="add-${i}" onclick="add(${i})">
-          ${t("add_cart")}
-        </button>
+        <button class="smallbtn" id="add-${i}" onclick="event.stopPropagation();add(${i})">${t("add_cart")}</button>
       </div>
     </article>
   `).join("");
+}
+
+/* =========================
+   PRODUCT DETAIL / SELLER
+========================= */
+function escDetail(value){
+  return String(value ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
+}
+function stars(rating){
+  const n=Math.max(0,Math.min(5,Number(rating||0)));
+  return "★".repeat(Math.round(n))+"☆".repeat(5-Math.round(n));
+}
+function productStoreProducts(storeId){
+  return products.filter(x=>x.store_id && x.store_id===storeId);
+}
+function openProductDetail(i){
+  const p=products[i];
+  if(!p)return;
+  window.productDetailIndex=i;
+  const imgs=Array.isArray(p.gallery)&&p.gallery.length?p.gallery:[p.img];
+  const store=p.store||{};
+  const storeName=store.name||"KitaWear Store";
+  const initial=storeName.trim().charAt(0).toUpperCase()||"K";
+  const html=`
+    <div class="product-detail-grid">
+      <div class="product-detail-gallery">
+        <img id="detailMainImage" class="product-detail-main-image" src="${escDetail(imgs[0])}" alt="${escDetail(p.name)}">
+        <div class="product-detail-thumbs">${imgs.map((src,j)=>`<img class="product-detail-thumb ${j===0?"active":""}" src="${escDetail(src)}" onclick="setProductDetailImage(${j},event)" alt="${escDetail(p.name)} ${j+1}">`).join("")}</div>
+      </div>
+      <div class="product-detail-info">
+        <div class="product-detail-eyebrow">KitaWear · Detail Produk</div>
+        <h1 class="product-detail-title">${escDetail(p.name)}</h1>
+        <p class="product-detail-price">${rupiah(p.price)}</p>
+        <div class="product-detail-rating"><span>${stars(p.productRating||0)}</span><strong>${p.productRating?Number(p.productRating).toFixed(1):"—"}</strong><span>${Number(p.reviewCount||0)} ulasan produk</span></div>
+        <div class="product-detail-section"><h4>Deskripsi</h4><div class="product-detail-desc">${escDetail(p.desc||"Produk KitaWear.")}</div></div>
+        <div class="product-detail-section"><h4>Pilih Ukuran</h4><div id="detailSizes" class="product-detail-sizes">${p.sizes.map((size,j)=>`<button class="product-detail-size ${j===0?"active":""}" type="button" onclick="selectDetailSize(this,'${escDetail(size)}')">${escDetail(size)}</button>`).join("")}</div></div>
+        <div class="product-detail-actions"><button class="product-detail-btn light" type="button" onclick="detailAddToCart()">🛒 Tambah ke Keranjang</button><button class="product-detail-btn dark" type="button" onclick="detailBuyNow()">Beli Sekarang</button></div>
+        <div class="seller-card">
+          <div class="seller-card-top"><div class="seller-avatar">${escDetail(initial)}</div><div class="seller-meta"><strong>${escDetail(storeName)}</strong><span>${escDetail(store.slug?"@"+store.slug:"Toko KitaWear")} · ${store.description?escDetail(store.description):"Seller KitaWear"}</span></div><div class="seller-rating"><strong id="detailSellerRating">—</strong><span id="detailSellerReviewCount">0 ulasan</span></div></div>
+          <div class="seller-actions"><button type="button" onclick="alert('Fitur chat seller akan dihubungkan setelah sistem pesan KitaWear aktif.')">Chat Seller</button><button type="button" onclick="scrollProductDetailTo('sellerReviewSection')">Ulasan Toko</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="detail-full-section">
+      <h3>Detail Produk</h3>
+      <div class="detail-description-box">${escDetail(p.desc||"Belum ada deskripsi tambahan.")}</div>
+      <div id="sellerReviewSection">
+        <h3>Penilaian & Ulasan Toko</h3>
+        <div id="sellerReviewSummary" class="seller-review-summary">
+          <div class="seller-review-score"><strong id="sellerReviewScore">—</strong><span id="sellerReviewStars">☆☆☆☆☆</span><span id="sellerReviewCount">0 ulasan</span></div>
+          <div class="review-bars" id="sellerReviewBars"><div class="review-bar"><span>5★</span><i><b style="width:0%"></b></i><span>0%</span></div><div class="review-bar"><span>4★</span><i><b style="width:0%"></b></i><span>0%</span></div><div class="review-bar"><span>3★</span><i><b style="width:0%"></b></i><span>0%</span></div><div class="review-bar"><span>2★</span><i><b style="width:0%"></b></i><span>0%</span></div><div class="review-bar"><span>1★</span><i><b style="width:0%"></b></i><span>0%</span></div></div>
+        </div>
+        <div id="sellerReviewForm" class="seller-card" style="margin-top:14px;display:none">
+          <h4 style="margin:0 0 10px">Beri Penilaian Seller</h4>
+          <div id="reviewStarsInput" style="display:flex;gap:6px;margin-bottom:10px">${[1,2,3,4,5].map(n=>`<button type="button" class="product-detail-size" style="min-width:38px" onclick="chooseSellerRating(${n})">${n}★</button>`).join("")}</div>
+          <textarea id="sellerReviewComment" placeholder="Tulis pengalaman Anda dengan seller..." style="width:100%;min-height:90px;border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical"></textarea>
+          <button type="button" class="product-detail-btn dark" style="width:100%;margin-top:10px" onclick="submitSellerReview()">Kirim Ulasan</button>
+          <div id="sellerReviewFormMsg" style="font-size:12px;color:#77736c;margin-top:8px"></div>
+        </div>
+        <div id="sellerReviewList" class="review-list"><div class="review-empty">Memuat ulasan seller...</div></div>
+      </div>
+      <h3>Produk Lain dari ${escDetail(storeName)}</h3>
+      <div class="detail-store-products">${productStoreProducts(p.store_id).filter(x=>x.id!==p.id).slice(0,4).map(x=>`<div class="detail-mini-product" onclick="openProductDetailById('${escDetail(x.id)}')"><img src="${escDetail(x.img)}" alt="${escDetail(x.name)}"><div><strong>${escDetail(x.name)}</strong><span>${rupiah(x.price)}</span></div></div>`).join("") || `<div class="review-empty" style="grid-column:1/-1">Belum ada produk lain dari toko ini.</div>`}</div>
+    </div>`;
+  document.getElementById("productDetailContent").innerHTML=html;
+  const modal=document.getElementById("productDetailModal");
+  modal.classList.add("show"); modal.setAttribute("aria-hidden","false");
+  document.body.style.overflow="hidden";
+  window.productDetailSize=p.sizes?.[0]||"";
+  chooseSellerRating(5);
+  if(p.store_id)loadSellerReviewsForDetail(p.store_id);
+}
+function openProductDetailById(id){
+  const i=products.findIndex(x=>String(x.id)===String(id));
+  if(i>=0)openProductDetail(i);
+}
+function setProductDetailImage(j,e){
+  e?.stopPropagation();
+  const p=products[window.productDetailIndex]; if(!p)return;
+  const imgs=Array.isArray(p.gallery)&&p.gallery.length?p.gallery:[p.img];
+  const img=document.getElementById("detailMainImage"); if(img)img.src=imgs[j]||imgs[0];
+  document.querySelectorAll(".product-detail-thumb").forEach((el,k)=>el.classList.toggle("active",k===j));
+}
+function selectDetailSize(button,size){
+  document.querySelectorAll(".product-detail-size").forEach(x=>x.classList.remove("active"));
+  button.classList.add("active"); window.productDetailSize=size;
+}
+function detailAddToCart(){
+  const i=window.productDetailIndex; const p=products[i]; const size=window.productDetailSize || p.sizes?.[0];
+  if(!p||!size)return;
+  const existing=cart.find(x=>x.productIndex===i&&x.size===size);
+  if(existing)existing.quantity++;else cart.push({productIndex:i,name:p.name,price:p.price,size,quantity:1});
+  updateCart(); closeProductDetail(); document.getElementById("drawer")?.classList.add("show");
+}
+function detailBuyNow(){detailAddToCart(); document.getElementById("drawer")?.classList.add("show");}
+function scrollProductDetailTo(id){document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"});}
+async function loadSellerReviewsForDetail(storeId){
+  const list=document.getElementById("sellerReviewList");
+  try{
+    const r=await fetch(`/api/reviews?type=seller&store_id=${encodeURIComponent(storeId)}`,{cache:"no-store"});
+    const data=await r.json();
+    const rows=Array.isArray(data.reviews)?data.reviews:[];
+    const summary=data.summary||{rating:0,count:0};
+    const score=document.getElementById("sellerReviewScore"); if(score)score.textContent=summary.count?Number(summary.rating).toFixed(1):"—";
+    const topRating=document.getElementById("detailSellerRating"); if(topRating)topRating.textContent=summary.count?Number(summary.rating).toFixed(1):"—";
+    const topCount=document.getElementById("detailSellerReviewCount"); if(topCount)topCount.textContent=`${summary.count} ulasan`;
+    const count=document.getElementById("sellerReviewCount"); if(count)count.textContent=`${summary.count} ulasan`;
+    const star=document.getElementById("sellerReviewStars"); if(star)star.textContent=stars(summary.rating);
+    const bars=[5,4,3,2,1].map(n=>rows.filter(x=>Number(x.rating)===n).length);
+    const total=rows.length||1;
+    const bar=document.getElementById("sellerReviewBars");
+    if(bar)bar.innerHTML=bars.map((n,i)=>{const pct=Math.round(n/total*100);return `<div class="review-bar"><span>${5-i}★</span><i><b style="width:${pct}%"></b></i><span>${pct}%</span></div>`}).join("");
+    if(list)list.innerHTML=rows.length?rows.map(x=>`<div class="review-item"><div class="review-item-head"><strong>${escDetail(x.reviewer_name||"Pembeli")}</strong><span>${new Date(x.created_at).toLocaleDateString("id-ID")}</span></div><div class="review-stars">${stars(x.rating)}</div><p>${escDetail(x.comment)}</p></div>`).join(""):`<div class="review-empty">Belum ada ulasan seller. Ulasan akan muncul setelah pembeli menyelesaikan pesanan.</div>`;
+    if(kwSupabase){
+      const session=(await kwSupabase.auth.getSession()).data?.session;
+      const form=document.getElementById("sellerReviewForm"); if(form)form.style.display=session?"block":"none";
+    }
+  }catch(e){
+    if(list)list.innerHTML='<div class="review-empty">Ulasan seller belum tersedia.</div>';
+  }
+}
+let selectedSellerRating=5;
+function chooseSellerRating(n){selectedSellerRating=n;document.querySelectorAll("#reviewStarsInput button").forEach((b,i)=>b.classList.toggle("active",i<n));}
+async function submitSellerReview(){
+  const msg=document.getElementById("sellerReviewFormMsg");
+  const p=products[window.productDetailIndex];
+  if(!p?.store_id){if(msg)msg.textContent="Toko seller tidak ditemukan.";return;}
+  try{
+    const session=(await kwSupabase?.auth.getSession())?.data?.session;
+    if(!session){if(msg)msg.textContent="Silakan login terlebih dahulu.";return;}
+    const comment=document.getElementById("sellerReviewComment")?.value.trim()||"";
+    if(comment.length<3){if(msg)msg.textContent="Tulis ulasan minimal 3 karakter.";return;}
+    if(msg)msg.textContent="Mengirim ulasan...";
+    const r=await fetch("/api/reviews",{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({type:"seller",store_id:p.store_id,rating:selectedSellerRating,comment})});
+    const data=await r.json();
+    if(!r.ok)throw new Error(data.error||"Gagal mengirim ulasan.");
+    document.getElementById("sellerReviewComment").value=""; if(msg)msg.textContent="Ulasan berhasil dikirim."; await loadSellerReviewsForDetail(p.store_id);
+  }catch(e){if(msg)msg.textContent=e.message||"Gagal mengirim ulasan.";}
+}
+
+function closeProductDetail(e){
+  const modal=document.getElementById("productDetailModal");
+  if(e&&e.target!==modal)return;
+  modal.classList.remove("show"); modal.setAttribute("aria-hidden","true"); document.body.style.overflow="";
 }
 
 /* =========================
@@ -1421,6 +1570,7 @@ document.addEventListener("keydown",e=>{
 
     document.getElementById("lightbox")?.classList.remove("show");
     document.getElementById("checkoutModal")?.classList.remove("show");
+    closeProductDetail();
   }
 
   if(e.key==="ArrowLeft" &&
@@ -1444,8 +1594,8 @@ document.getElementById("siteSearch")?.addEventListener("input",e=>{
 
 
 /* Product photo click fallback */
-document.addEventListener("click",e=>{const photo=e.target.closest("#products .photo[data-lightbox-index]");if(photo)openLightbox(Number(photo.dataset.lightboxIndex));});
-document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.matches("#products .photo[data-lightbox-index]")){e.preventDefault();openLightbox(Number(e.target.dataset.lightboxIndex));}});
+document.addEventListener("click",e=>{const photo=e.target.closest("#products .photo[data-product-index]");if(photo){e.stopPropagation();openProductDetail(Number(photo.dataset.productIndex));}});
+document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.matches("#products .photo[data-product-index]")){e.preventDefault();openProductDetail(Number(e.target.dataset.productIndex));}});
 
 
 /* =========================
