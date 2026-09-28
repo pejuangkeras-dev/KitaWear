@@ -1,5 +1,43 @@
 export async function onRequestPost(context) {
   try {
+    // Token khusus sementara untuk proses reset admin.
+    const resetToken = context.env.ADMIN_RESET_TOKEN;
+
+    if (!resetToken) {
+      return new Response(
+        JSON.stringify({
+          error: "ADMIN_RESET_TOKEN belum dikonfigurasi."
+        }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
+
+    // Wajib menggunakan header Authorization.
+    const authorization =
+      context.request.headers.get("Authorization");
+
+    if (
+      !authorization ||
+      authorization !== `Bearer ${resetToken}`
+    ) {
+      return new Response(
+        JSON.stringify({
+          error: "Unauthorized."
+        }),
+        {
+          status: 401,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
+
     const body = await context.request.json();
 
     const userId = body.userId;
@@ -33,14 +71,17 @@ export async function onRequestPost(context) {
       );
     }
 
-    const supabaseUrl = context.env.SUPABASE_URL;
-    const serviceRoleKey =
+    const supabaseUrl =
+      context.env.SUPABASE_URL;
+
+    const secretKey =
       context.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (!supabaseUrl || !serviceRoleKey) {
+    if (!supabaseUrl || !secretKey) {
       return new Response(
         JSON.stringify({
-          error: "Konfigurasi server Supabase belum tersedia."
+          error:
+            "Konfigurasi Supabase server belum tersedia."
         }),
         {
           status: 500,
@@ -52,13 +93,13 @@ export async function onRequestPost(context) {
     }
 
     const response = await fetch(
-      `${supabaseUrl}/auth/v1/admin/users/${userId}`,
+      `${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`,
       {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "apikey": serviceRoleKey,
-          "Authorization": `Bearer ${serviceRoleKey}`
+          "apikey": secretKey,
+          "Authorization": `Bearer ${secretKey}`
         },
         body: JSON.stringify({
           password: newPassword
@@ -66,16 +107,15 @@ export async function onRequestPost(context) {
       }
     );
 
-    const resultText = await response.text();
+    const resultText =
+      await response.text();
 
     let result;
 
     try {
       result = JSON.parse(resultText);
     } catch {
-      result = {
-        raw: resultText
-      };
+      result = {};
     }
 
     if (!response.ok) {
