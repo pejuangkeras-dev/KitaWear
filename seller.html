@@ -1,3 +1,4 @@
+```
 <!doctype html>
 <html lang="id">
 <head>
@@ -141,8 +142,10 @@ Setelah disetujui, menu produk dan pesanan akan terbuka.
 </div>
 
 <div class="field">
-<label>URL foto utama</label>
-<input id="productImage" type="url" placeholder="https://...">
+<label>Foto produk</label>
+<input id="productImageFile" type="file" accept="image/jpeg,image/png,image/webp" required>
+<small style="display:block;color:var(--muted);margin-top:6px">Pilih foto dari komputer. JPG, PNG, atau WebP, maksimal 5 MB.</small>
+<div id="productImagePreview" style="display:none;margin-top:10px"><img id="productImagePreviewImg" alt="Preview foto produk" style="width:120px;height:140px;object-fit:cover;border-radius:12px;border:1px solid var(--line)"></div>
 </div>
 
 <div class="field">
@@ -458,83 +461,53 @@ e.message||'Gagal menyimpan toko.'
 
 }
 
+async function uploadProductImage(file){
+if(!file) throw Error('Pilih foto produk terlebih dahulu.');
+if(!file.type.startsWith('image/')) throw Error('File harus berupa gambar.');
+if(file.size>5*1024*1024) throw Error('Ukuran foto maksimal 5 MB.');
+const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+const safeName=`${Date.now()}-${crypto.randomUUID()}.${ext}`;
+const path=`${user.id}/${safeName}`;
+const up=await sb.storage.from('product-images').upload(path,file,{contentType:file.type,upsert:false,cacheControl:'31536000'});
+if(up.error)throw up.error;
+const pub=sb.storage.from('product-images').getPublicUrl(path);
+if(!pub?.data?.publicUrl)throw Error('URL foto tidak berhasil dibuat.');
+return pub.data.publicUrl;
+}
+
 async function saveProduct(e){
-
 e.preventDefault();
-
-$('productMsg').textContent='Menyimpan...';
-
+$('productMsg').textContent='Mengunggah foto dan menyimpan produk...';
 try{
-
-if(!store)
-throw Error('Buat toko terlebih dahulu.');
-
-const slug=
-$('productName').value
-.trim()
-.toLowerCase()
-.replace(/[^a-z0-9]+/g,'-')
-.replace(/^-|-$/g,'')
-+'-'+Date.now();
-
-const image=$('productImage').value.trim();
-
-const p=await sb
-.from('products')
-.insert({
-store_id:store.id,
-name:$('productName').value.trim(),
-slug,
-description:$('productDescription').value.trim(),
-category:$('productCategory').value.trim(),
-price:Number($('productPrice').value),
-image_url:image,
-gallery:image?[image]:[],
-colors:[],
-status:'active'
-})
-.select()
-.single();
-
+if(!store) throw Error('Buat toko terlebih dahulu.');
+const file=$('productImageFile').files?.[0];
+const image=await uploadProductImage(file);
+const slug=$('productName').value.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+Date.now();
+const p=await sb.from('products').insert({store_id:store.id,name:$('productName').value.trim(),slug,description:$('productDescription').value.trim(),category:$('productCategory').value.trim(),price:Number($('productPrice').value),image_url:image,gallery:[image],colors:[],status:'active'}).select().single();
 if(p.error)throw p.error;
-
-const sizes=$('productSizes')
-.value
-.split(',')
-.map(x=>x.trim())
-.filter(Boolean)
-.map(x=>{
-
-const z=x.split(':');
-
-return{
-product_id:p.data.id,
-size:z[0].trim().toUpperCase(),
-stock:Number(z[1]||0)
-}
-
-});
-
-const s=await sb
-.from('product_sizes')
-.insert(sizes);
-
+const sizes=$('productSizes').value.split(',').map(x=>x.trim()).filter(Boolean).map(x=>{const z=x.split(':');return{product_id:p.data.id,size:z[0].trim().toUpperCase(),stock:Number(z[1]||0)}});
+const s=await sb.from('product_sizes').insert(sizes);
 if(s.error)throw s.error;
-
-$('productMsg').textContent=
-'Produk berhasil ditambahkan.';
-
+$('productMsg').textContent='Produk berhasil ditambahkan.';
 e.target.reset();
-
+$('productImagePreview').style.display='none';
+$('productImagePreviewImg').removeAttribute('src');
 await loadProducts();
-
-}catch(e){
-
-$('productMsg').textContent=
-e.message||'Gagal menyimpan produk.'
-
+}catch(e){$('productMsg').textContent=e.message||'Gagal menyimpan produk.'}
 }
 
+async function replaceProductImage(productId,input){
+try{
+const file=input.files?.[0];
+if(!file)return;
+$('productMsg').textContent='Mengunggah foto pengganti...';
+const image=await uploadProductImage(file);
+const q=await sb.from('products').update({image_url:image,gallery:[image]}).eq('id',productId).eq('store_id',store.id);
+if(q.error)throw q.error;
+$('productMsg').textContent='Foto produk berhasil diganti.';
+await loadProducts();
+}catch(e){$('productMsg').textContent=e.message||'Gagal mengganti foto produk.'}
+finally{input.value='';}
 }
 
 async function loadProducts(){
@@ -577,7 +550,10 @@ ${(p.product_sizes||[])
 
 </div>
 
-<span></span>
+<span>
+<input type="file" id="photo-${esc(p.id)}" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="replaceProductImage('${esc(p.id)}',this)">
+<button class="btn light" type="button" onclick="document.getElementById('photo-${esc(p.id)}').click()">Ganti foto</button>
+</span>
 
 </div>
 
@@ -1154,6 +1130,17 @@ $('productForm')
 saveProduct
 );
 
+$('productImageFile')
+.addEventListener(
+'change',
+e=>{
+const file=e.target.files?.[0];
+if(!file){$('productImagePreview').style.display='none';return;}
+$('productImagePreviewImg').src=URL.createObjectURL(file);
+$('productImagePreview').style.display='block';
+}
+);
+
 $('applicationForm')
 .addEventListener(
 'submit',
@@ -1215,3 +1202,4 @@ init();
 
 </body>
 </html>
+```
