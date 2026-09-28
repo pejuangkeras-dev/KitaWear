@@ -1,28 +1,50 @@
-export async function onRequestPost(context) {
-  const json = (data, status = 200) =>
-    new Response(JSON.stringify(data), {
-      status,
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": "no-store"
-      }
-    });
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store"
+    }
+  });
+}
 
+function isValidUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
+export async function onRequestPost(context) {
   try {
-    // ==========================================
-    // 1. CEK TOKEN RESET
-    // ==========================================
+    // =========================================================
+    // 1. AMBIL KONFIGURASI SERVER
+    // =========================================================
+
     const resetToken = context.env.ADMIN_RESET_TOKEN;
+    const supabaseUrl = context.env.SUPABASE_URL;
+    const serviceRoleKey = context.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!resetToken) {
-      console.error("ADMIN_RESET_TOKEN belum dikonfigurasi.");
       return json(
         {
-          error: "Server reset belum dikonfigurasi."
+          error: "ADMIN_RESET_TOKEN belum dikonfigurasi."
         },
         500
       );
     }
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return json(
+        {
+          error: "Konfigurasi Supabase server belum tersedia."
+        },
+        500
+      );
+    }
+
+    // =========================================================
+    // 2. CEK RESET TOKEN
+    // =========================================================
 
     const authorization =
       context.request.headers.get("Authorization");
@@ -39,9 +61,10 @@ export async function onRequestPost(context) {
       );
     }
 
-    // ==========================================
-    // 2. BACA DATA
-    // ==========================================
+    // =========================================================
+    // 3. BACA DATA REQUEST
+    // =========================================================
+
     let body;
 
     try {
@@ -49,7 +72,7 @@ export async function onRequestPost(context) {
     } catch {
       return json(
         {
-          error: "Data request tidak valid."
+          error: "Body request bukan JSON yang valid."
         },
         400
       );
@@ -67,11 +90,11 @@ export async function onRequestPost(context) {
       );
     }
 
-    // Validasi UUID supaya request tidak diarahkan ke URL aneh.
-    const uuidPattern =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    // =========================================================
+    // 4. VALIDASI USER ID
+    // =========================================================
 
-    if (!uuidPattern.test(userId)) {
+    if (!isValidUuid(userId)) {
       return json(
         {
           error: "Admin User ID tidak valid."
@@ -79,6 +102,10 @@ export async function onRequestPost(context) {
         400
       );
     }
+
+    // =========================================================
+    // 5. VALIDASI PASSWORD
+    // =========================================================
 
     if (newPassword.length < 6) {
       return json(
@@ -89,65 +116,28 @@ export async function onRequestPost(context) {
       );
     }
 
-    // ==========================================
-    // 3. AMBIL ENV SUPABASE
-    // ==========================================
-    const supabaseUrl =
-      String(context.env.SUPABASE_URL || "").trim();
-
-    const serviceRoleKey =
-      String(
-        context.env.SUPABASE_SERVICE_ROLE_KEY || ""
-      ).trim();
-
-    if (!supabaseUrl) {
-      console.error("SUPABASE_URL tidak tersedia.");
+    if (newPassword.length > 72) {
       return json(
         {
-          error: "SUPABASE_URL belum dikonfigurasi di Cloudflare."
+          error: "Password terlalu panjang."
         },
-        500
+        400
       );
     }
 
-    if (!serviceRoleKey) {
-      console.error(
-        "SUPABASE_SERVICE_ROLE_KEY tidak tersedia."
-      );
+    // =========================================================
+    // 6. NORMALISASI SUPABASE URL
+    // =========================================================
 
-      return json(
-        {
-          error:
-            "SUPABASE_SERVICE_ROLE_KEY belum dikonfigurasi di Cloudflare."
-        },
-        500
-      );
-    }
+    const baseUrl = supabaseUrl.replace(/\/+$/, "");
 
-    // ==========================================
-    // 4. NORMALISASI URL SUPABASE
-    // ==========================================
-    const cleanSupabaseUrl =
-      supabaseUrl.replace(/\/+$/, "");
+    // =========================================================
+    // 7. UPDATE PASSWORD MELALUI SUPABASE ADMIN API
+    // =========================================================
 
-    const adminUrl =
-      `${cleanSupabaseUrl}/auth/v1/admin/users/${encodeURIComponent(
-        userId
-      )}`;
-
-    // Jangan pernah log URL lengkap yang mengandung secret.
-    console.log(
-      "Memanggil Supabase Auth Admin API untuk user:",
-      userId
-    );
-
-    // ==========================================
-    // 5. UPDATE PASSWORD DI SUPABASE
-    // ==========================================
-    let response;
-
-    try {
-      response = await fetch(adminUrl, {
+    const response = await fetch(
+      `${baseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`,
+      {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -157,78 +147,45 @@ export async function onRequestPost(context) {
         body: JSON.stringify({
           password: newPassword
         })
-      });
-    } catch (fetchError) {
+      }
+    );
+
+    // =========================================================
+    // 8. BACA RESPONSE SUPABASE
+    // =========================================================
+
+    const responseText = await response.text();
+
+    let result = {};
+
+    try {
+      result = responseText
+        ? JSON.parse(responseText)
+        : {};
+    } catch {
+      result = {};
+    }
+
+    // =========================================================
+    // 9. JIKA SUPABASE MENOLAK REQUEST
+    // =========================================================
+
+    if (!response.ok) {
       console.error(
-        "Gagal melakukan koneksi ke Supabase:",
-        fetchError?.message || "fetch error"
+        "Supabase admin password update failed:",
+        {
+          status: response.status,
+          response: responseText.slice(0, 1000)
+        }
       );
 
       return json(
         {
           error:
-            "Cloudflare tidak dapat terhubung ke Supabase."
-        },
-        502
-      );
-    }
-
-    // ==========================================
-    // 6. BACA RESPONSE SUPABASE
-    // ==========================================
-    const responseText = await response.text();
-
-    let result = null;
-
-    try {
-      result = responseText
-        ? JSON.parse(responseText)
-        : null;
-    } catch {
-      result = null;
-    }
-
-    console.log(
-      "Supabase Auth response status:",
-      response.status
-    );
-
-    // ==========================================
-    // 7. JIKA SUPABASE MENOLAK REQUEST
-    // ==========================================
-   if (!response.ok) {
-  console.error(
-    "SUPABASE HTTP STATUS:",
-    response.status
-  );
-
-  console.error(
-    "SUPABASE RESPONSE:",
-    responseText.slice(0, 2000)
-  );
-
-  return json(
-    {
-      error:
-        result?.msg ||
-        result?.message ||
-        result?.error_description ||
-        result?.error ||
-        `Supabase HTTP ${response.status}`,
-      status: response.status,
-      details:
-        responseText.slice(0, 1000)
-    },
-    response.status >= 400 && response.status <= 599
-      ? response.status
-      : 502
-  );
-}
-        {
-          error:
             result?.msg ||
             result?.message ||
             result?.error_description ||
+            result?.error ||
             `Supabase menolak request (HTTP ${response.status}).`
         },
         response.status >= 400 && response.status <= 599
@@ -237,28 +194,32 @@ export async function onRequestPost(context) {
       );
     }
 
-    // ==========================================
-    // 8. BERHASIL
-    // ==========================================
+    // =========================================================
+    // 10. BERHASIL
+    // =========================================================
+
     console.log(
       "Password admin berhasil diperbarui:",
       userId
     );
 
-    return json({
-      success: true,
-      message: "Password admin berhasil diubah."
-    });
+    return json(
+      {
+        success: true,
+        message: "Password admin berhasil diubah."
+      },
+      200
+    );
+
   } catch (error) {
     console.error(
       "Unexpected admin reset error:",
-      error?.message || "unknown error"
+      error?.message || error
     );
 
     return json(
       {
-        error:
-          "Terjadi kesalahan pada server saat reset password."
+        error: "Terjadi kesalahan pada server saat reset password."
       },
       500
     );
