@@ -60,6 +60,7 @@ async function getUser(url,anon,token){
   })
 
   if(!r.ok)return null
+
   return await r.json()
 }
 
@@ -67,6 +68,7 @@ export async function onRequestGet({request,env}){
   try{
     const url=baseUrl(env.SUPABASE_URL)
     const key=String(env.SUPABASE_SERVICE_ROLE_KEY||"").trim()
+    const anon=String(env.SUPABASE_ANON_KEY||"").trim()
 
     if(!url||!key){
       return json({
@@ -81,20 +83,31 @@ export async function onRequestGet({request,env}){
     const productId=q.get("product_id")||""
     const productName=q.get("product_name")||""
 
+    const auth=String(
+      request.headers.get("Authorization")||""
+    )
+
+    const token=auth
+      .replace(/^Bearer\s+/i,"")
+      .trim()
+
     if(type==="seller"&&!storeId){
       return json({
         reviews:[],
-        summary:{rating:0,count:0}
+        summary:{rating:0,count:0},
+        canReview:false
       })
     }
 
     let path=""
 
     if(type==="product"){
+
       if(!productId&&!productName){
         return json({
           reviews:[],
-          summary:{rating:0,count:0}
+          summary:{rating:0,count:0},
+          canReview:false
         })
       }
 
@@ -127,9 +140,15 @@ export async function onRequestGet({request,env}){
         `&order=created_at.desc&limit=100`
     }
 
-    const reviews=await sbFetch(url,key,path)
+    const reviews=await sbFetch(
+      url,
+      key,
+      path
+    )
 
-    const rows=Array.isArray(reviews)?reviews:[]
+    const rows=Array.isArray(reviews)
+      ? reviews
+      : []
 
     const rating=rows.length
       ? rows.reduce(
@@ -138,12 +157,88 @@ export async function onRequestGet({request,env}){
         )/rows.length
       : 0
 
+    let canReview=false
+
+    if(
+      type==="seller" &&
+      storeId &&
+      anon &&
+      token
+    ){
+
+      const user=await getUser(
+        url,
+        anon,
+        token
+      )
+
+      if(user?.email){
+
+        const orders=await sbFetch(
+          url,
+          key,
+          `/rest/v1/orders`+
+          `?select=id,status,customer_email`+
+          `&customer_email=eq.${encodeURIComponent(user.email)}`+
+          `&status=in.(delivered,completed)`+
+          `&limit=100`
+        )
+
+        const orderIds=
+          (Array.isArray(orders)?orders:[])
+          .map(x=>x.id)
+          .filter(Boolean)
+
+        if(orderIds.length){
+
+          const items=await sbFetch(
+            url,
+            key,
+            `/rest/v1/order_items`+
+            `?select=id,order_id,store_id`+
+            `&store_id=eq.${encodeURIComponent(storeId)}`+
+            `&order_id=in.(${orderIds.join(",")})`+
+            `&limit=500`
+          )
+
+          const matches=
+            (Array.isArray(items)?items:[])
+            .filter(x=>orderIds.includes(x.order_id))
+
+          if(matches.length){
+
+            const existing=await sbFetch(
+              url,
+              key,
+              `/rest/v1/seller_reviews`+
+              `?select=id,order_id`+
+              `&reviewer_id=eq.${encodeURIComponent(user.id)}`+
+              `&store_id=eq.${encodeURIComponent(storeId)}`+
+              `&order_id=in.(${orderIds.join(",")})`+
+              `&limit=100`
+            )
+
+            const reviewedOrderIds=new Set(
+              (Array.isArray(existing)?existing:[])
+              .map(x=>x.order_id)
+              .filter(Boolean)
+            )
+
+            canReview=matches.some(
+              x=>!reviewedOrderIds.has(x.order_id)
+            )
+          }
+        }
+      }
+    }
+
     return json({
       reviews:rows,
       summary:{
         rating:Number(rating.toFixed(1)),
         count:rows.length
-      }
+      },
+      canReview
     })
 
   }catch(e){
@@ -151,6 +246,7 @@ export async function onRequestGet({request,env}){
     return json({
       reviews:[],
       summary:{rating:0,count:0},
+      canReview:false,
       error:e.message||"Gagal mengambil ulasan."
     },200)
   }
@@ -269,8 +365,8 @@ export async function onRequestPost({request,env}){
     const matches=
       (Array.isArray(items)?items:[])
       .filter(
-        x =>
-          type==="seller" ||
+        x=>
+          type==="seller"||
           (
             productName &&
             x.product_name===productName
