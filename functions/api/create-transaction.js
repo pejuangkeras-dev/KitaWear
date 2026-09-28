@@ -493,10 +493,10 @@ export async function onRequestPost(
                 address,
 
               status:
-                "pending",
+  "pending_payment",
 
-              payment_status:
-                "pending",
+payment_status:
+  "pending",
 
               subtotal,
 
