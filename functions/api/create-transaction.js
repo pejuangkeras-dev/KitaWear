@@ -492,7 +492,7 @@ export async function onRequestPost(
               shipping_address:
                 address,
 
-              status:
+status:
   "pending_payment",
 
 payment_status:
