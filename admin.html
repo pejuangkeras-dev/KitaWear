@@ -41,9 +41,7 @@ body{
   font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
 
-button,
-input,
-select{
+button,input,select{
   font:inherit;
 }
 
@@ -55,6 +53,12 @@ a{
   color:inherit;
   text-decoration:none;
 }
+
+.hidden{
+  display:none!important;
+}
+
+/* ================= TOP ================= */
 
 .top{
   position:sticky;
@@ -106,6 +110,8 @@ a{
   gap:8px;
 }
 
+/* ================= BUTTONS ================= */
+
 .btn{
   border:1px solid var(--line);
   background:var(--paper);
@@ -118,6 +124,11 @@ a{
 
 .btn:hover{
   background:#f0eee8;
+}
+
+.btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
 }
 
 .btn-dark{
@@ -135,6 +146,8 @@ a{
   background:var(--red);
   border-color:var(--red);
 }
+
+/* ================= LAYOUT ================= */
 
 .wrap{
   width:min(1400px,94%);
@@ -181,6 +194,8 @@ h1{
   flex-wrap:wrap;
 }
 
+/* ================= STATS ================= */
+
 .stats{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -213,6 +228,8 @@ h1{
   color:var(--muted);
   font-size:11px;
 }
+
+/* ================= PANEL ================= */
 
 .panel{
   background:var(--paper);
@@ -253,11 +270,6 @@ h1{
   outline:none;
 }
 
-.search:focus,
-.select:focus{
-  border-color:#999;
-}
-
 .select{
   min-height:40px;
   padding:0 12px;
@@ -266,6 +278,14 @@ h1{
   background:#fff;
   outline:none;
 }
+
+.search:focus,
+.select:focus,
+.field input:focus{
+  border-color:#999;
+}
+
+/* ================= TABLE ================= */
 
 .table-wrap{
   overflow:auto;
@@ -320,6 +340,40 @@ tr:last-child td{
   font-weight:900;
 }
 
+.actions-cell{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+
+.small-btn{
+  min-height:34px;
+  padding:0 10px;
+  border-radius:9px;
+  border:1px solid var(--line);
+  background:#fff;
+  font-size:11px;
+  font-weight:800;
+}
+
+.small-btn:hover{
+  background:#f0eee8;
+}
+
+.loading,
+.empty,
+.error{
+  padding:45px 20px;
+  text-align:center;
+  color:var(--muted);
+}
+
+.error{
+  color:var(--red);
+}
+
+/* ================= STATUS ================= */
+
 .status{
   display:inline-flex;
   align-items:center;
@@ -355,37 +409,7 @@ tr:last-child td{
   color:var(--blue);
 }
 
-.actions-cell{
-  display:flex;
-  gap:6px;
-  flex-wrap:wrap;
-}
-
-.small-btn{
-  min-height:34px;
-  padding:0 10px;
-  border-radius:9px;
-  border:1px solid var(--line);
-  background:#fff;
-  font-size:11px;
-  font-weight:800;
-}
-
-.small-btn:hover{
-  background:#f0eee8;
-}
-
-.loading,
-.empty,
-.error{
-  padding:45px 20px;
-  text-align:center;
-  color:var(--muted);
-}
-
-.error{
-  color:var(--red);
-}
+/* ================= NOTICE ================= */
 
 .notice{
   position:fixed;
@@ -414,6 +438,8 @@ tr:last-child td{
   border-left:4px solid #ef6262;
   text-align:left;
 }
+
+/* ================= MODAL ================= */
 
 .modal{
   position:fixed;
@@ -460,6 +486,7 @@ tr:last-child td{
   border-radius:10px;
   border:1px solid var(--line);
   background:#fff;
+  font-size:22px;
 }
 
 .modal-body{
@@ -532,6 +559,7 @@ tr:last-child td{
   flex-wrap:wrap;
 }
 
+/* ================= STATUS MODAL ================= */
 
 .status-option{
   width:100%;
@@ -576,11 +604,13 @@ tr:last-child td{
 }
 
 .status-option-title{
+  display:block;
   font-weight:850;
   font-size:13px;
 }
 
 .status-option-desc{
+  display:block;
   color:var(--muted);
   font-size:11px;
   margin-top:2px;
@@ -623,6 +653,8 @@ tr:last-child td{
   font-weight:800;
   margin-bottom:6px;
 }
+
+/* ================= LOGIN ================= */
 
 .login-screen{
   min-height:100vh;
@@ -678,10 +710,6 @@ tr:last-child td{
   min-height:46px;
 }
 
-.hidden{
-  display:none!important;
-}
-
 .footer-note{
   margin-top:20px;
   color:var(--muted);
@@ -689,7 +717,10 @@ tr:last-child td{
   font-size:11px;
 }
 
+/* ================= RESPONSIVE ================= */
+
 @media(max-width:1000px){
+
   .stats{
     grid-template-columns:repeat(2,1fr);
   }
@@ -701,6 +732,7 @@ tr:last-child td{
 }
 
 @media(max-width:650px){
+
   h1{
     font-size:34px;
   }
@@ -748,27 +780,38 @@ tr:last-child td{
 
 <body>
 
-<!-- ================= LOGIN ================= -->
+<!-- =========================================================
+     LOGIN
+========================================================= -->
 
 <section id="loginScreen" class="login-screen">
 
   <div class="login-card">
 
     <div class="logo">
+
       <svg class="logo-mark" viewBox="0 0 48 48" fill="none">
-        <path d="M24 7c-5 0-8 3-8 7 0 3 2 5 5 6"
-              stroke="currentColor"
-              stroke-width="3.2"
-              stroke-linecap="round"/>
-        <path d="M21 20 7 31c-3 2-2 7 2 8h30c4-1 5-6 2-8L27 20"
-              stroke="currentColor"
-              stroke-width="3.2"
-              stroke-linejoin="round"/>
-        <path d="m18 39 6-7 6 7"
-              stroke="currentColor"
-              stroke-width="3.2"
-              stroke-linecap="round"
-              stroke-linejoin="round"/>
+        <path
+          d="M24 7c-5 0-8 3-8 7 0 3 2 5 5 6"
+          stroke="currentColor"
+          stroke-width="3.2"
+          stroke-linecap="round"
+        />
+
+        <path
+          d="M21 20 7 31c-3 2-2 7 2 8h30c4-1 5-6 2-8L27 20"
+          stroke="currentColor"
+          stroke-width="3.2"
+          stroke-linejoin="round"
+        />
+
+        <path
+          d="m18 39 6-7 6 7"
+          stroke="currentColor"
+          stroke-width="3.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
 
       KitaWear
@@ -784,27 +827,32 @@ tr:last-child td{
     </p>
 
     <div class="field">
-      <label>Email</label>
+      <label for="loginEmail">Email</label>
+
       <input
         id="loginEmail"
         type="email"
         placeholder="admin@email.com"
-        autocomplete="email">
+        autocomplete="email"
+      >
     </div>
 
     <div class="field">
-      <label>Password</label>
+      <label for="loginPassword">Password</label>
+
       <input
         id="loginPassword"
         type="password"
         placeholder="Password"
-        autocomplete="current-password">
+        autocomplete="current-password"
+      >
     </div>
 
     <button
       id="loginBtn"
       class="btn btn-dark login-btn"
-      type="button">
+      type="button"
+    >
       Masuk ke Admin
     </button>
 
@@ -817,7 +865,9 @@ tr:last-child td{
 </section>
 
 
-<!-- ================= ADMIN APP ================= -->
+<!-- =========================================================
+     ADMIN APP
+========================================================= -->
 
 <div id="adminApp" class="hidden">
 
@@ -828,19 +878,27 @@ tr:last-child td{
     <a href="/" class="logo">
 
       <svg class="logo-mark" viewBox="0 0 48 48" fill="none">
-        <path d="M24 7c-5 0-8 3-8 7 0 3 2 5 5 6"
-              stroke="currentColor"
-              stroke-width="3.2"
-              stroke-linecap="round"/>
-        <path d="M21 20 7 31c-3 2-2 7 2 8h30c4-1 5-6 2-8L27 20"
-              stroke="currentColor"
-              stroke-width="3.2"
-              stroke-linejoin="round"/>
-        <path d="m18 39 6-7 6 7"
-              stroke="currentColor"
-              stroke-width="3.2"
-              stroke-linecap="round"
-              stroke-linejoin="round"/>
+        <path
+          d="M24 7c-5 0-8 3-8 7 0 3 2 5 5 6"
+          stroke="currentColor"
+          stroke-width="3.2"
+          stroke-linecap="round"
+        />
+
+        <path
+          d="M21 20 7 31c-3 2-2 7 2 8h30c4-1 5-6 2-8L27 20"
+          stroke="currentColor"
+          stroke-width="3.2"
+          stroke-linejoin="round"
+        />
+
+        <path
+          d="m18 39 6-7 6 7"
+          stroke="currentColor"
+          stroke-width="3.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
 
       KitaWear
@@ -862,7 +920,8 @@ tr:last-child td{
       <button
         id="logoutBtn"
         class="btn"
-        type="button">
+        type="button"
+      >
         Keluar
       </button>
 
@@ -901,7 +960,8 @@ tr:last-child td{
       <button
         id="refreshTopBtn"
         class="btn btn-dark"
-        type="button">
+        type="button"
+      >
         ↻ Refresh Pesanan
       </button>
 
@@ -1009,11 +1069,13 @@ tr:last-child td{
           id="searchInput"
           class="search"
           type="search"
-          placeholder="Cari order ID / customer...">
+          placeholder="Cari order ID / customer..."
+        >
 
         <select
           id="statusFilter"
-          class="select">
+          class="select"
+        >
 
           <option value="all">
             Semua status
@@ -1075,11 +1137,14 @@ tr:last-child td{
 </div>
 
 
-<!-- ================= DETAIL MODAL ================= -->
+<!-- =========================================================
+     DETAIL MODAL
+========================================================= -->
 
 <div
   id="detailModal"
-  class="modal">
+  class="modal"
+>
 
   <div class="modal-card">
 
@@ -1091,52 +1156,61 @@ tr:last-child td{
           Detail Pesanan
         </h2>
 
-        <div id="detailStatus">
-        </div>
+        <div id="detailStatus"></div>
 
       </div>
 
       <button
         id="closeModalBtn"
         class="close"
-        type="button">
+        type="button"
+      >
         ×
       </button>
 
     </div>
 
-
     <div
       id="detailBody"
-      class="modal-body">
-
-    </div>
+      class="modal-body"
+    ></div>
 
   </div>
 
 </div>
 
 
-
-<!-- ================= STATUS MODAL ================= -->
+<!-- =========================================================
+     STATUS MODAL
+========================================================= -->
 
 <div
   id="statusModal"
-  class="modal">
+  class="modal"
+>
 
   <div class="modal-card status-modal-card">
 
     <div class="modal-head">
 
       <div>
-        <h2>Ubah Status Pesanan</h2>
-        <div id="statusOrderLabel" class="muted"></div>
+
+        <h2>
+          Ubah Status Pesanan
+        </h2>
+
+        <div
+          id="statusOrderLabel"
+          class="muted"
+        ></div>
+
       </div>
 
       <button
         id="closeStatusModalBtn"
         class="close"
-        type="button">
+        type="button"
+      >
         ×
       </button>
 
@@ -1145,8 +1219,13 @@ tr:last-child td{
     <div class="modal-body">
 
       <div class="status-current">
-        <div class="status-current-label">Status saat ini</div>
+
+        <div class="status-current-label">
+          Status saat ini
+        </div>
+
         <div id="statusCurrent"></div>
+
       </div>
 
       <div id="statusOptions"></div>
@@ -1156,14 +1235,16 @@ tr:last-child td{
         <button
           id="cancelStatusBtn"
           class="btn"
-          type="button">
+          type="button"
+        >
           Batal
         </button>
 
         <button
           id="saveStatusBtn"
           class="btn btn-dark"
-          type="button">
+          type="button"
+        >
           Simpan Status
         </button>
 
@@ -1175,54 +1256,57 @@ tr:last-child td{
 
 </div>
 
-<!-- ================= NOTICE ================= -->
+
+<!-- =========================================================
+     NOTICE
+========================================================= -->
 
 <div
   id="notice"
-  class="notice">
-</div>
+  class="notice"
+></div>
 
 
 <script>
 
 /* =========================================================
-   KITAWear ADMIN
-   ========================================================= */
+   KITAWear ADMIN CENTER
+   Cloudflare Pages + Supabase
+========================================================= */
 
 /*
-  IMPORTANT:
-  Gunakan Publishable/Anon Key saja di browser.
+  HANYA menggunakan Publishable/Anon Key di browser.
 
   JANGAN masukkan:
-  SUPABASE_SERVICE_ROLE_KEY
+  - SUPABASE_SERVICE_ROLE_KEY
+  - MIDTRANS_SERVER_KEY
+  - ADMIN_RESET_TOKEN
 */
 
-/*
-  Supabase config is loaded from a Netlify Function.
+/* =========================================================
+   SUPABASE CONFIG
+========================================================= */
 
-  This keeps the public project URL and publishable/anon key out of
-  the repository, which also prevents Netlify Secrets Scanning from
-  treating the public URL as a leaked environment-variable value.
-
-  IMPORTANT: the function must NEVER return a secret/service-role key.
-*/
 let SUPABASE_URL = "";
 let SUPABASE_ANON_KEY = "";
 
 let supabaseClient = null;
+
 let currentUser = null;
 let orders = [];
 let selectedOrder = null;
 
 
-/* ================= INIT ================= */
+/* =========================================================
+   INITIALIZE SUPABASE
+========================================================= */
 
 async function initSupabase(){
 
   try{
 
     const response = await fetch(
-      "/api/public-config"
+      "/api/public-config",
       {
         method:"GET",
         cache:"no-store",
@@ -1237,27 +1321,50 @@ async function initSupabase(){
     let config = null;
 
     try{
+
       config = JSON.parse(raw);
-    }catch(parseError){
+
+    }catch(error){
+
+      console.error(
+        "Public config response:",
+        raw.slice(0,500)
+      );
+
       throw new Error(
         "Endpoint konfigurasi tidak mengembalikan JSON yang valid."
       );
+
     }
 
     if(!response.ok || config?.error){
+
       throw new Error(
         config?.error ||
         `Gagal memuat konfigurasi (${response.status}).`
       );
+
     }
 
-    SUPABASE_URL = String(config?.supabaseUrl || "").trim();
-    SUPABASE_ANON_KEY = String(config?.supabaseAnonKey || "").trim();
+    SUPABASE_URL =
+      String(
+        config?.supabaseUrl || ""
+      ).trim();
 
-    if(!SUPABASE_URL || !SUPABASE_ANON_KEY){
+    SUPABASE_ANON_KEY =
+      String(
+        config?.supabaseAnonKey || ""
+      ).trim();
+
+    if(
+      !SUPABASE_URL ||
+      !SUPABASE_ANON_KEY
+    ){
+
       throw new Error(
-        "Konfigurasi Supabase belum lengkap di Netlify Environment Variables."
+        "Konfigurasi Supabase belum lengkap di Cloudflare Environment Variables."
       );
+
     }
 
     supabaseClient =
@@ -1277,42 +1384,66 @@ async function initSupabase(){
 
   }catch(error){
 
-    console.error("Supabase init:",error);
+    console.error(
+      "Supabase init:",
+      error
+    );
 
     showNotice(
-      error.message ||
+      error?.message ||
       "Gagal memuat konfigurasi Supabase.",
       "error"
     );
 
     return false;
+
   }
+
 }
 
 
-/* ================= NOTICE ================= */
+/* =========================================================
+   NOTICE
+========================================================= */
 
-function showNotice(message,type="success"){
+function showNotice(
+  message,
+  type="success"
+){
 
   const el =
     document.getElementById("notice");
 
-  el.textContent = message;
+  el.textContent =
+    message;
 
   el.className =
     "notice show " +
-    (type === "error" ? "error" : "success");
+    (
+      type === "error"
+        ? "error"
+        : "success"
+    );
 
-  clearTimeout(window.noticeTimer);
+  clearTimeout(
+    window.noticeTimer
+  );
 
   window.noticeTimer =
-    setTimeout(()=>{
-      el.className = "notice";
-    },5000);
+    setTimeout(
+      ()=>{
+        el.className =
+          "notice";
+      },
+      5000
+    );
+
 }
 
 
-/* ================= HELPERS ================= */
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function formatRupiah(value){
 
@@ -1327,6 +1458,7 @@ function formatRupiah(value){
       maximumFractionDigits:0
     }
   ).format(number);
+
 }
 
 
@@ -1336,57 +1468,78 @@ function formatDate(value){
     return "-";
   }
 
-  const d =
+  const date =
     new Date(value);
 
-  if(Number.isNaN(d.getTime())){
+  if(
+    Number.isNaN(
+      date.getTime()
+    )
+  ){
+
     return "-";
+
   }
 
-  return d.toLocaleString(
+  return date.toLocaleString(
     "id-ID",
     {
       dateStyle:"medium",
       timeStyle:"short"
     }
   );
+
 }
 
 
 function escapeHtml(value){
 
-  return String(value ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+  return String(
+    value ?? ""
+  )
+  .replaceAll(
+    "&",
+    "&amp;"
+  )
+  .replaceAll(
+    "<",
+    "&lt;"
+  )
+  .replaceAll(
+    ">",
+    "&gt;"
+  )
+  .replaceAll(
+    '"',
+    "&quot;"
+  )
+  .replaceAll(
+    "'",
+    "&#039;"
+  );
+
 }
 
 
 function statusLabel(status){
 
   const map = {
-
     pending:"Pending",
-
     paid:"Paid",
-
     processing:"Processing",
-
     shipped:"Shipped",
-
     completed:"Completed",
-
     cancelled:"Cancelled",
-
     failed:"Failed",
-
     refunded:"Refunded"
-
   };
 
-  return map[status] || status || "-";
+  return (
+    map[status] ||
+    status ||
+    "-"
+  );
+
 }
 
 
@@ -1406,18 +1559,37 @@ function statusClass(status){
   return allowed.includes(status)
     ? status
     : "pending";
+
 }
 
 
-/* ================= AUTH ================= */
+/* =========================================================
+   AUTH — LOGIN
+========================================================= */
 
 async function login(){
 
+  if(!supabaseClient){
+
+    showNotice(
+      "Supabase belum siap. Silakan tunggu sebentar lalu coba lagi.",
+      "error"
+    );
+
+    return;
+
+  }
+
   const email =
-    document.getElementById("loginEmail").value.trim();
+    document
+      .getElementById("loginEmail")
+      .value
+      .trim();
 
   const password =
-    document.getElementById("loginPassword").value;
+    document
+      .getElementById("loginPassword")
+      .value;
 
   if(!email || !password){
 
@@ -1427,21 +1599,27 @@ async function login(){
     );
 
     return;
+
   }
 
   const button =
     document.getElementById("loginBtn");
 
   button.disabled = true;
-  button.textContent = "Memproses...";
+  button.textContent =
+    "Memproses...";
 
   try{
 
-    const {data,error} =
-      await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-      });
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.auth
+        .signInWithPassword({
+          email,
+          password
+        });
 
     if(error){
       throw error;
@@ -1454,24 +1632,32 @@ async function login(){
 
   }catch(error){
 
-    console.error(error);
+    console.error(
+      "Admin login:",
+      error
+    );
 
     showNotice(
-      error.message ||
-      "Gagal masuk.",
+      error?.message ||
+      "Gagal masuk ke Admin.",
       "error"
     );
 
   }finally{
 
     button.disabled = false;
-    button.textContent = "Masuk ke Admin";
+
+    button.textContent =
+      "Masuk ke Admin";
 
   }
+
 }
 
 
-/* ================= ROLE CHECK ================= */
+/* =========================================================
+   ROLE CHECK
+========================================================= */
 
 async function checkAdminAccess(){
 
@@ -1483,11 +1669,19 @@ async function checkAdminAccess(){
 
   }
 
-  const {data,error} =
+  const {
+    data,
+    error
+  } =
     await supabaseClient
       .from("profiles")
-      .select("id,full_name,role,phone")
-      .eq("id",currentUser.id)
+      .select(
+        "id,full_name,role,phone"
+      )
+      .eq(
+        "id",
+        currentUser.id
+      )
       .maybeSingle();
 
   if(error){
@@ -1498,6 +1692,8 @@ async function checkAdminAccess(){
 
     await supabaseClient.auth.signOut();
 
+    currentUser = null;
+
     throw new Error(
       "Profil akun tidak ditemukan."
     );
@@ -1507,6 +1703,8 @@ async function checkAdminAccess(){
   if(data.role !== "admin"){
 
     await supabaseClient.auth.signOut();
+
+    currentUser = null;
 
     throw new Error(
       "Akses ditolak. Akun ini bukan admin."
@@ -1521,7 +1719,9 @@ async function checkAdminAccess(){
 }
 
 
-/* ================= SHOW ADMIN ================= */
+/* =========================================================
+   SHOW ADMIN APP
+========================================================= */
 
 function showAdminApp(profile){
 
@@ -1536,50 +1736,68 @@ function showAdminApp(profile){
 }
 
 
-/* ================= SESSION ================= */
+/* =========================================================
+   SESSION
+========================================================= */
 
 async function checkSession(){
+
+  if(!supabaseClient){
+    return;
+  }
 
   const {
     data:{
       session
     }
   } =
-    await supabaseClient.auth.getSession();
+    await supabaseClient.auth
+      .getSession();
 
-  if(session){
+  if(!session){
+    return;
+  }
 
-    currentUser =
-      session.user;
+  currentUser =
+    session.user;
 
-    try{
+  try{
 
-      await checkAdminAccess();
+    await checkAdminAccess();
 
-    }catch(error){
+  }catch(error){
 
-      console.error(error);
+    console.error(
+      "Session admin:",
+      error
+    );
 
-      showNotice(
-        error.message,
-        "error"
-      );
-
-    }
+    showNotice(
+      error?.message ||
+      "Session admin tidak valid.",
+      "error"
+    );
 
   }
 
 }
 
 
-/* ================= LOGOUT ================= */
+/* =========================================================
+   LOGOUT
+========================================================= */
 
 async function logout(){
 
-  await supabaseClient.auth.signOut();
+  if(supabaseClient){
+
+    await supabaseClient.auth.signOut();
+
+  }
 
   currentUser = null;
   orders = [];
+  selectedOrder = null;
 
   document
     .getElementById("adminApp")
@@ -1592,31 +1810,39 @@ async function logout(){
 }
 
 
-/* ================= LOAD ORDERS ================= */
+/* =========================================================
+   LOAD ORDERS
+========================================================= */
 
 async function loadOrders(){
 
+  if(!supabaseClient){
+    return;
+  }
+
   const container =
-    document.getElementById("ordersContainer");
+    document.getElementById(
+      "ordersContainer"
+    );
 
   container.innerHTML =
     '<div class="loading">Memuat pesanan...</div>';
 
   try{
 
-    /*
-      Kita ambil order terbaru.
-
-      Tidak menggunakan service role.
-      RLS admin harus sudah mengizinkan
-      admin membaca orders.
-    */
-
-    const {data,error} =
+    const {
+      data,
+      error
+    } =
       await supabaseClient
         .from("orders")
         .select("*")
-        .order("created_at",{ascending:false});
+        .order(
+          "created_at",
+          {
+            ascending:false
+          }
+        );
 
     if(error){
       throw error;
@@ -1638,7 +1864,10 @@ async function loadOrders(){
     container.innerHTML =
       `<div class="error">
         Gagal memuat pesanan.<br>
-        ${escapeHtml(error.message || "Unknown error")}
+        ${escapeHtml(
+          error?.message ||
+          "Unknown error"
+        )}
       </div>`;
 
     showNotice(
@@ -1651,7 +1880,9 @@ async function loadOrders(){
 }
 
 
-/* ================= STATS ================= */
+/* =========================================================
+   STATS
+========================================================= */
 
 function renderStats(){
 
@@ -1660,42 +1891,50 @@ function renderStats(){
 
   const pending =
     orders.filter(
-      o => o.status === "pending"
+      order =>
+        order.status === "pending"
     ).length;
 
   const processing =
     orders.filter(
-      o =>
-        o.status === "processing" ||
-        o.status === "paid" ||
-        o.status === "shipped"
+      order =>
+        order.status === "processing" ||
+        order.status === "paid" ||
+        order.status === "shipped"
     ).length;
 
   const completed =
     orders.filter(
-      o => o.status === "completed"
+      order =>
+        order.status === "completed"
     ).length;
 
-  document.getElementById(
-    "statTotal"
-  ).textContent = total;
+  document
+    .getElementById("statTotal")
+    .textContent =
+      total;
 
-  document.getElementById(
-    "statPending"
-  ).textContent = pending;
+  document
+    .getElementById("statPending")
+    .textContent =
+      pending;
 
-  document.getElementById(
-    "statProcessing"
-  ).textContent = processing;
+  document
+    .getElementById("statProcessing")
+    .textContent =
+      processing;
 
-  document.getElementById(
-    "statCompleted"
-  ).textContent = completed;
+  document
+    .getElementById("statCompleted")
+    .textContent =
+      completed;
 
 }
 
 
-/* ================= FILTER ================= */
+/* =========================================================
+   FILTER
+========================================================= */
 
 function getFilteredOrders(){
 
@@ -1711,22 +1950,23 @@ function getFilteredOrders(){
       .getElementById("statusFilter")
       .value;
 
-  return orders.filter(order => {
+  return orders.filter(
+    order => {
 
-    const matchesStatus =
-      status === "all" ||
-      order.status === status;
+      const matchesStatus =
+        status === "all" ||
+        order.status === status;
 
-    if(!matchesStatus){
-      return false;
-    }
+      if(!matchesStatus){
+        return false;
+      }
 
-    if(!search){
-      return true;
-    }
+      if(!search){
+        return true;
+      }
 
-    const haystack =
-      [
+      const haystack = [
+
         order.id,
         order.order_id,
         order.customer_name,
@@ -1734,24 +1974,32 @@ function getFilteredOrders(){
         order.phone,
         order.whatsapp,
         order.payment_status
+
       ]
       .filter(Boolean)
       .join(" ")
       .toLowerCase();
 
-    return haystack.includes(search);
+      return haystack.includes(
+        search
+      );
 
-  });
+    }
+  );
 
 }
 
 
-/* ================= RENDER ORDERS ================= */
+/* =========================================================
+   RENDER ORDERS
+========================================================= */
 
 function renderOrders(){
 
   const container =
-    document.getElementById("ordersContainer");
+    document.getElementById(
+      "ordersContainer"
+    );
 
   const filtered =
     getFilteredOrders();
@@ -1776,163 +2024,160 @@ function renderOrders(){
         <thead>
 
           <tr>
-
             <th>Order</th>
-
             <th>Pelanggan</th>
-
             <th>Tanggal</th>
-
             <th>Total</th>
-
             <th>Status</th>
-
             <th>Pembayaran</th>
-
             <th>Aksi</th>
-
           </tr>
 
         </thead>
 
         <tbody>
+
   `;
 
+  filtered.forEach(
+    order => {
 
-  filtered.forEach(order => {
+      const id =
+        order.order_id ||
+        order.id ||
+        "-";
 
-    const id =
-      order.order_id ||
-      order.id ||
-      "-";
+      const customer =
+        order.customer_name ||
+        order.name ||
+        "Pelanggan";
 
-    const customer =
-      order.customer_name ||
-      order.name ||
-      "Pelanggan";
+      const phone =
+        order.phone ||
+        order.whatsapp ||
+        "";
 
-    const phone =
-      order.phone ||
-      order.whatsapp ||
-      "";
+      const amount =
+        order.total_amount ??
+        order.gross_amount ??
+        order.total ??
+        0;
 
-    const amount =
-      order.total_amount ??
-      order.gross_amount ??
-      order.total ??
-      0;
+      const status =
+        order.status ||
+        "pending";
 
-    const status =
-      order.status ||
-      "pending";
+      const payment =
+        order.payment_status ||
+        order.transaction_status ||
+        "-";
 
-    const payment =
-      order.payment_status ||
-      order.transaction_status ||
-      "-";
+      html += `
 
-    html += `
+        <tr>
 
-      <tr>
+          <td>
 
-        <td>
+            <div class="order-id">
+              ${escapeHtml(id)}
+            </div>
 
-          <div class="order-id">
-            ${escapeHtml(id)}
-          </div>
+            <div class="muted">
+              ID ${escapeHtml(
+                String(
+                  order.id || ""
+                ).slice(0,8)
+              )}
+            </div>
 
-          <div class="muted">
-            ID ${escapeHtml(
-              String(order.id || "").slice(0,8)
-            )}
-          </div>
+          </td>
 
-        </td>
+          <td>
 
+            <div class="customer">
+              ${escapeHtml(customer)}
+            </div>
 
-        <td>
+            ${
+              phone
+                ? `
+                  <div class="muted">
+                    ${escapeHtml(phone)}
+                  </div>
+                `
+                : ""
+            }
 
-          <div class="customer">
-            ${escapeHtml(customer)}
-          </div>
+          </td>
 
-          ${
-            phone
-              ? `<div class="muted">
-                   ${escapeHtml(phone)}
-                 </div>`
-              : ""
-          }
-
-        </td>
-
-
-        <td>
-          ${escapeHtml(
-            formatDate(order.created_at)
-          )}
-        </td>
-
-
-        <td>
-
-          <div class="amount">
-            ${formatRupiah(amount)}
-          </div>
-
-        </td>
-
-
-        <td>
-
-          <span class="status ${statusClass(status)}">
-
+          <td>
             ${escapeHtml(
-              statusLabel(status)
+              formatDate(
+                order.created_at
+              )
             )}
+          </td>
 
-          </span>
+          <td>
 
-        </td>
+            <div class="amount">
+              ${formatRupiah(amount)}
+            </div>
 
+          </td>
 
-        <td>
+          <td>
 
-          <span class="muted">
-            ${escapeHtml(payment)}
-          </span>
+            <span class="status ${statusClass(status)}">
+              ${escapeHtml(
+                statusLabel(status)
+              )}
+            </span>
 
-        </td>
+          </td>
 
+          <td>
 
-        <td>
+            <span class="muted">
+              ${escapeHtml(payment)}
+            </span>
 
-          <div class="actions-cell">
+          </td>
 
-            <button
-              class="small-btn"
-              type="button"
-              onclick="openOrderDetail('${escapeHtml(String(order.id || ""))}')">
-              Detail
-            </button>
+          <td>
 
-            <button
-              class="small-btn"
-              type="button"
-              onclick="changeStatus('${escapeHtml(String(order.id || ""))}')">
-              Status
-            </button>
+            <div class="actions-cell">
 
-          </div>
+              <button
+                class="small-btn"
+                type="button"
+                data-detail-id="${escapeHtml(
+                  String(order.id || "")
+                )}"
+              >
+                Detail
+              </button>
 
-        </td>
+              <button
+                class="small-btn"
+                type="button"
+                data-status-id="${escapeHtml(
+                  String(order.id || "")
+                )}"
+              >
+                Status
+              </button>
 
-      </tr>
+            </div>
 
-    `;
+          </td>
 
-  });
+        </tr>
 
+      `;
+
+    }
+  );
 
   html += `
 
@@ -1944,26 +2189,72 @@ function renderOrders(){
 
   `;
 
-
   container.innerHTML =
     html;
+
+  container
+    .querySelectorAll(
+      "[data-detail-id]"
+    )
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            openOrderDetail(
+              button.dataset.detailId
+            );
+
+          }
+        );
+
+      }
+    );
+
+  container
+    .querySelectorAll(
+      "[data-status-id]"
+    )
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            changeStatus(
+              button.dataset.statusId
+            );
+
+          }
+        );
+
+      }
+    );
 
 }
 
 
-/* ================= FIND ORDER ================= */
+/* =========================================================
+   FIND ORDER
+========================================================= */
 
 function findOrder(id){
 
   return orders.find(
     order =>
-      String(order.id) === String(id)
+      String(order.id) ===
+      String(id)
   );
 
 }
 
 
-/* ================= ORDER DETAIL ================= */
+/* =========================================================
+   ORDER DETAIL
+========================================================= */
 
 async function openOrderDetail(id){
 
@@ -1998,30 +2289,41 @@ async function openOrderDetail(id){
   document
     .getElementById("detailStatus")
     .innerHTML =
-      `<span class="status ${statusClass(order.status)}">
+      `<span class="status ${statusClass(
+        order.status
+      )}">
         ${escapeHtml(
-          statusLabel(order.status)
+          statusLabel(
+            order.status
+          )
         )}
       </span>`;
 
   const body =
-    document.getElementById("detailBody");
+    document.getElementById(
+      "detailBody"
+    );
 
   body.innerHTML =
     `<div class="loading">
       Memuat item pesanan...
     </div>`;
 
-
   let items = [];
 
   try{
 
-    const {data,error} =
+    const {
+      data,
+      error
+    } =
       await supabaseClient
         .from("order_items")
         .select("*")
-        .eq("order_id",order.id);
+        .eq(
+          "order_id",
+          order.id
+        );
 
     if(error){
       throw error;
@@ -2032,18 +2334,22 @@ async function openOrderDetail(id){
 
   }catch(error){
 
-    console.error(error);
+    console.error(
+      "Order items:",
+      error
+    );
 
     body.innerHTML =
       `<div class="error">
         Gagal memuat item pesanan.<br>
-        ${escapeHtml(error.message || "")}
+        ${escapeHtml(
+          error?.message || ""
+        )}
       </div>`;
 
     return;
 
   }
-
 
   const customerName =
     order.customer_name ||
@@ -2070,10 +2376,8 @@ async function openOrderDetail(id){
     order.total ??
     0;
 
-
   let itemsHtml =
     `<div class="items">`;
-
 
   if(!items.length){
 
@@ -2084,62 +2388,65 @@ async function openOrderDetail(id){
 
   }else{
 
-    items.forEach(item => {
+    items.forEach(
+      item => {
 
-      const name =
-        item.product_name ||
-        item.name ||
-        "Produk";
+        const name =
+          item.product_name ||
+          item.name ||
+          "Produk";
 
-      const qty =
-        item.quantity ||
-        item.qty ||
-        1;
+        const qty =
+          item.quantity ||
+          item.qty ||
+          1;
 
-      const size =
-        item.size ||
-        "-";
+        const size =
+          item.size ||
+          "-";
 
-      const price =
-        item.price ||
-        item.unit_price ||
-        0;
+        const price =
+          item.price ||
+          item.unit_price ||
+          0;
 
-      itemsHtml += `
+        itemsHtml += `
 
-        <div class="item">
+          <div class="item">
 
-          <div>
+            <div>
 
-            <div class="item-name">
-              ${escapeHtml(name)}
+              <div class="item-name">
+                ${escapeHtml(name)}
+              </div>
+
+              <div class="item-meta">
+                Ukuran:
+                ${escapeHtml(size)}
+                · Qty:
+                ${escapeHtml(qty)}
+              </div>
+
             </div>
 
-            <div class="item-meta">
-              Ukuran: ${escapeHtml(size)}
-              · Qty: ${escapeHtml(qty)}
-            </div>
+            <strong>
+              ${formatRupiah(
+                Number(price) *
+                Number(qty)
+              )}
+            </strong>
 
           </div>
 
-          <strong>
-            ${formatRupiah(
-              Number(price) * Number(qty)
-            )}
-          </strong>
+        `;
 
-        </div>
-
-      `;
-
-    });
+      }
+    );
 
   }
 
-
   itemsHtml +=
     `</div>`;
-
 
   body.innerHTML = `
 
@@ -2152,7 +2459,9 @@ async function openOrderDetail(id){
         </div>
 
         <div class="detail-value">
-          ${escapeHtml(customerName)}
+          ${escapeHtml(
+            customerName
+          )}
         </div>
 
       </div>
@@ -2218,7 +2527,9 @@ async function openOrderDetail(id){
 
         <div class="detail-value">
           ${escapeHtml(
-            formatDate(order.created_at)
+            formatDate(
+              order.created_at
+            )
           )}
         </div>
 
@@ -2239,14 +2550,16 @@ async function openOrderDetail(id){
       <button
         class="btn"
         type="button"
-        onclick="changeStatus('${escapeHtml(String(order.id))}')">
+        id="detailChangeStatusBtn"
+      >
         Ubah Status
       </button>
 
       <button
         class="btn btn-dark"
         type="button"
-        onclick="closeOrderDetail()">
+        id="detailCloseBtn"
+      >
         Tutup
       </button>
 
@@ -2254,156 +2567,368 @@ async function openOrderDetail(id){
 
   `;
 
+  document
+    .getElementById(
+      "detailChangeStatusBtn"
+    )
+    .addEventListener(
+      "click",
+      () => {
+
+        changeStatus(
+          order.id
+        );
+
+      }
+    );
+
+  document
+    .getElementById(
+      "detailCloseBtn"
+    )
+    .addEventListener(
+      "click",
+      closeOrderDetail
+    );
+
 }
 
 
-/* ================= CLOSE DETAIL ================= */
+/* =========================================================
+   CLOSE DETAIL
+========================================================= */
 
 function closeOrderDetail(){
 
   document
-    .getElementById("detailModal")
+    .getElementById(
+      "detailModal"
+    )
     .classList.remove("show");
 
 }
 
 
-/* ================= CHANGE STATUS ================= */
+/* =========================================================
+   STATUS
+========================================================= */
 
 const ADMIN_STATUS_OPTIONS = [
-  {value:"pending",title:"Pending",desc:"Pesanan baru menunggu pembayaran atau tindakan."},
-  {value:"paid",title:"Paid",desc:"Pembayaran sudah diterima."},
-  {value:"processing",title:"Diproses",desc:"Seller sedang menyiapkan pesanan."},
-  {value:"shipped",title:"Dikirim",desc:"Pesanan sudah diserahkan untuk pengiriman."},
-  {value:"completed",title:"Selesai",desc:"Pesanan sudah selesai diterima."},
-  {value:"cancelled",title:"Dibatalkan",desc:"Pesanan dibatalkan."},
-  {value:"failed",title:"Gagal",desc:"Pembayaran atau transaksi gagal."},
-  {value:"refunded",title:"Dikembalikan",desc:"Dana sudah dikembalikan kepada pembeli."}
+
+  {
+    value:"pending",
+    title:"Pending",
+    desc:"Pesanan baru menunggu pembayaran atau tindakan."
+  },
+
+  {
+    value:"paid",
+    title:"Paid",
+    desc:"Pembayaran sudah diterima."
+  },
+
+  {
+    value:"processing",
+    title:"Diproses",
+    desc:"Seller sedang menyiapkan pesanan."
+  },
+
+  {
+    value:"shipped",
+    title:"Dikirim",
+    desc:"Pesanan sudah diserahkan untuk pengiriman."
+  },
+
+  {
+    value:"completed",
+    title:"Selesai",
+    desc:"Pesanan sudah selesai diterima."
+  },
+
+  {
+    value:"cancelled",
+    title:"Dibatalkan",
+    desc:"Pesanan dibatalkan."
+  },
+
+  {
+    value:"failed",
+    title:"Gagal",
+    desc:"Pembayaran atau transaksi gagal."
+  },
+
+  {
+    value:"refunded",
+    title:"Dikembalikan",
+    desc:"Dana sudah dikembalikan kepada pembeli."
+  }
+
 ];
 
 let selectedStatus = "";
 let selectedStatusOrderId = "";
 
+
 function changeStatus(id){
 
-  const order = findOrder(id);
+  const order =
+    findOrder(id);
 
   if(!order){
-    showNotice("Pesanan tidak ditemukan.","error");
+
+    showNotice(
+      "Pesanan tidak ditemukan.",
+      "error"
+    );
+
     return;
+
   }
 
-  selectedOrder = order;
-  selectedStatusOrderId = String(order.id);
-  selectedStatus = order.status || "pending";
+  selectedOrder =
+    order;
 
-  document.getElementById("statusOrderLabel").textContent =
-    order.order_id || order.id || "Pesanan";
+  selectedStatusOrderId =
+    String(order.id);
 
-  document.getElementById("statusCurrent").innerHTML =
-    `<span class="status ${statusClass(selectedStatus)}">${escapeHtml(statusLabel(selectedStatus))}</span>`;
+  selectedStatus =
+    order.status ||
+    "pending";
+
+  document
+    .getElementById(
+      "statusOrderLabel"
+    )
+    .textContent =
+      order.order_id ||
+      order.id ||
+      "Pesanan";
+
+  document
+    .getElementById(
+      "statusCurrent"
+    )
+    .innerHTML =
+      `<span class="status ${statusClass(
+        selectedStatus
+      )}">
+        ${escapeHtml(
+          statusLabel(
+            selectedStatus
+          )
+        )}
+      </span>`;
 
   renderStatusOptions();
 
-  document.getElementById("statusModal").classList.add("show");
+  closeOrderDetail();
+
+  document
+    .getElementById(
+      "statusModal"
+    )
+    .classList.add("show");
+
 }
+
 
 function renderStatusOptions(){
 
-  const container = document.getElementById("statusOptions");
+  const container =
+    document.getElementById(
+      "statusOptions"
+    );
 
-  container.innerHTML = ADMIN_STATUS_OPTIONS.map(option => `
-    <button
-      class="status-option ${selectedStatus === option.value ? "active" : ""}"
-      type="button"
-      data-status="${escapeHtml(option.value)}">
+  container.innerHTML =
+    ADMIN_STATUS_OPTIONS
+      .map(
+        option => `
 
-      <span class="status-option-left">
-        <span class="status-dot"></span>
-        <span>
-          <span class="status-option-title">${escapeHtml(option.title)}</span>
-          <span class="status-option-desc">${escapeHtml(option.desc)}</span>
-        </span>
-      </span>
+          <button
+            class="status-option ${
+              selectedStatus === option.value
+                ? "active"
+                : ""
+            }"
+            type="button"
+            data-status="${escapeHtml(
+              option.value
+            )}"
+          >
 
-      <span class="status-check">${selectedStatus === option.value ? "✓" : ""}</span>
-    </button>
-  `).join("");
+            <span class="status-option-left">
 
-  container.querySelectorAll("[data-status]").forEach(button => {
-    button.addEventListener("click",()=>{
-      selectedStatus = button.dataset.status;
-      renderStatusOptions();
-    });
-  });
+              <span class="status-dot"></span>
+
+              <span>
+
+                <span class="status-option-title">
+                  ${escapeHtml(
+                    option.title
+                  )}
+                </span>
+
+                <span class="status-option-desc">
+                  ${escapeHtml(
+                    option.desc
+                  )}
+                </span>
+
+              </span>
+
+            </span>
+
+            <span class="status-check">
+              ${
+                selectedStatus === option.value
+                  ? "✓"
+                  : ""
+              }
+            </span>
+
+          </button>
+
+        `
+      )
+      .join("");
+
+  container
+    .querySelectorAll(
+      "[data-status]"
+    )
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            selectedStatus =
+              button.dataset.status;
+
+            renderStatusOptions();
+
+          }
+        );
+
+      }
+    );
+
 }
+
 
 function closeStatusModal(){
-  document.getElementById("statusModal").classList.remove("show");
+
+  document
+    .getElementById(
+      "statusModal"
+    )
+    .classList.remove("show");
+
   selectedStatus = "";
   selectedStatusOrderId = "";
+
 }
+
+
+/* =========================================================
+   SAVE STATUS
+========================================================= */
 
 async function saveOrderStatus(){
 
-  if(!selectedStatusOrderId || !selectedStatus){
+  if(
+    !selectedStatusOrderId ||
+    !selectedStatus
+  ){
+
     return;
+
   }
 
-  const button = document.getElementById("saveStatusBtn");
-  const originalText = button.textContent;
+  const button =
+    document.getElementById(
+      "saveStatusBtn"
+    );
+
+  const originalText =
+    button.textContent;
 
   button.disabled = true;
-  button.textContent = "Menyimpan...";
+  button.textContent =
+    "Menyimpan...";
 
   try{
 
-    const {data,error} = await supabaseClient.rpc(
-      "admin_update_order_status",
-      {
-        p_order_id:selectedStatusOrderId,
-        p_status:selectedStatus
-      }
-    );
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.rpc(
+        "admin_update_order_status",
+        {
+          p_order_id:
+            selectedStatusOrderId,
+
+          p_status:
+            selectedStatus
+        }
+      );
 
     if(error){
       throw error;
     }
 
     if(!data?.ok){
-      throw new Error("Status pesanan gagal diperbarui.");
+
+      throw new Error(
+        "Status pesanan gagal diperbarui."
+      );
+
     }
 
     closeStatusModal();
 
-    showNotice("Status pesanan berhasil diperbarui.");
+    showNotice(
+      "Status pesanan berhasil diperbarui.",
+      "success"
+    );
 
     await loadOrders();
 
-    if(document.getElementById("detailModal").classList.contains("show")){
-      await openOrderDetail(selectedOrder?.id || selectedStatusOrderId);
-    }
-
   }catch(error){
 
-    console.error("Admin update order status:",error);
+    console.error(
+      "Admin update order status:",
+      error
+    );
 
     showNotice(
-      error.message || "Gagal mengubah status pesanan.",
+      error?.message ||
+      "Gagal mengubah status pesanan.",
       "error"
     );
 
   }finally{
+
     button.disabled = false;
-    button.textContent = originalText;
+
+    button.textContent =
+      originalText;
+
   }
+
 }
 
 
-/* ================= EVENTS ================= */
+/* =========================================================
+   EVENTS
+========================================================= */
 
 document
-  .getElementById("loginBtn")
+  .getElementById(
+    "loginBtn"
+  )
   .addEventListener(
     "click",
     login
@@ -2411,13 +2936,17 @@ document
 
 
 document
-  .getElementById("loginPassword")
+  .getElementById(
+    "loginPassword"
+  )
   .addEventListener(
     "keydown",
     event => {
 
       if(event.key === "Enter"){
+
         login();
+
       }
 
     }
@@ -2425,7 +2954,9 @@ document
 
 
 document
-  .getElementById("logoutBtn")
+  .getElementById(
+    "logoutBtn"
+  )
   .addEventListener(
     "click",
     logout
@@ -2433,7 +2964,9 @@ document
 
 
 document
-  .getElementById("refreshTopBtn")
+  .getElementById(
+    "refreshTopBtn"
+  )
   .addEventListener(
     "click",
     loadOrders
@@ -2441,7 +2974,9 @@ document
 
 
 document
-  .getElementById("searchInput")
+  .getElementById(
+    "searchInput"
+  )
   .addEventListener(
     "input",
     renderOrders
@@ -2449,7 +2984,9 @@ document
 
 
 document
-  .getElementById("statusFilter")
+  .getElementById(
+    "statusFilter"
+  )
   .addEventListener(
     "change",
     renderOrders
@@ -2457,7 +2994,9 @@ document
 
 
 document
-  .getElementById("closeModalBtn")
+  .getElementById(
+    "closeModalBtn"
+  )
   .addEventListener(
     "click",
     closeOrderDetail
@@ -2465,13 +3004,16 @@ document
 
 
 document
-  .getElementById("detailModal")
+  .getElementById(
+    "detailModal"
+  )
   .addEventListener(
     "click",
     event => {
 
       if(
-        event.target.id === "detailModal"
+        event.target.id ===
+        "detailModal"
       ){
 
         closeOrderDetail();
@@ -2483,7 +3025,9 @@ document
 
 
 document
-  .getElementById("closeStatusModalBtn")
+  .getElementById(
+    "closeStatusModalBtn"
+  )
   .addEventListener(
     "click",
     closeStatusModal
@@ -2491,7 +3035,9 @@ document
 
 
 document
-  .getElementById("cancelStatusBtn")
+  .getElementById(
+    "cancelStatusBtn"
+  )
   .addEventListener(
     "click",
     closeStatusModal
@@ -2499,7 +3045,9 @@ document
 
 
 document
-  .getElementById("saveStatusBtn")
+  .getElementById(
+    "saveStatusBtn"
+  )
   .addEventListener(
     "click",
     saveOrderStatus
@@ -2507,52 +3055,86 @@ document
 
 
 document
-  .getElementById("statusModal")
+  .getElementById(
+    "statusModal"
+  )
   .addEventListener(
     "click",
     event => {
-      if(event.target.id === "statusModal"){
+
+      if(
+        event.target.id ===
+        "statusModal"
+      ){
+
         closeStatusModal();
+
       }
+
     }
   );
 
 
-document.addEventListener("keydown",event=>{
-  if(event.key === "Escape"){
-    closeStatusModal();
-    closeOrderDetail();
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if(event.key === "Escape"){
+
+      closeStatusModal();
+      closeOrderDetail();
+
+    }
+
   }
-});
+);
 
 
-/* ================= START ================= */
+/* =========================================================
+   START ADMIN
+========================================================= */
 
 (async function startAdmin(){
 
-  const ready = await initSupabase();
+  const ready =
+    await initSupabase();
 
   if(!ready){
+
     return;
+
   }
 
-  supabaseClient.auth.onAuthStateChange(
-    (event,session) => {
+  supabaseClient.auth
+    .onAuthStateChange(
+      (event,session) => {
 
-      if(event === "SIGNED_OUT"){
+        if(
+          event === "SIGNED_OUT"
+        ){
 
-        document
-          .getElementById("adminApp")
-          .classList.add("hidden");
+          currentUser = null;
 
-        document
-          .getElementById("loginScreen")
-          .classList.remove("hidden");
+          document
+            .getElementById(
+              "adminApp"
+            )
+            .classList.add(
+              "hidden"
+            );
+
+          document
+            .getElementById(
+              "loginScreen"
+            )
+            .classList.remove(
+              "hidden"
+            );
+
+        }
 
       }
-
-    }
-  );
+    );
 
   await checkSession();
 
