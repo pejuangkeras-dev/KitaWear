@@ -19,3 +19,4 @@ Do **not** put Midtrans Server Key in this repository. Keep these values in Netl
 - `MIDTRANS_IS_PRODUCTION` = `false` for Sandbox
 
 The Netlify Functions directory is `netlify/functions`.
+Cloudflare config update
