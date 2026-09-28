@@ -101,6 +101,10 @@ body{background:var(--bg);color:var(--ink)}
 .account-link{display:flex;align-items:center;justify-content:space-between;padding:13px 14px;border:1px solid var(--line);border-radius:11px;background:#fff;text-decoration:none;font-weight:800}
 .account-link small{color:#777;font-weight:600}
 .auth-note{font-size:11px;color:#777;line-height:1.55;margin-top:12px}
+.auth-forgot{display:block;width:100%;margin:12px 0 0;border:0;background:transparent;color:#555;text-decoration:underline;font-size:12px;font-weight:750;cursor:pointer;padding:4px}
+.auth-forgot:hover{color:#111}
+.reset-password-panel{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.reset-password-panel .field{margin-bottom:10px}
 @media(max-width:680px){.account-btn{max-width:110px;padding:0 9px}.auth-box{padding:21px}}
 </style>
 </head>
@@ -309,6 +313,20 @@ body{background:var(--bg);color:var(--ink)}
 
         <button id="authSubmit" class="auth-submit" type="submit">Masuk</button>
       </form>
+
+      <button id="forgotPasswordButton" class="auth-forgot" type="button" onclick="sendPasswordReset()">Lupa password?</button>
+
+      <div id="resetPasswordPanel" class="reset-password-panel" style="display:none">
+        <div class="field">
+          <label>Password Baru</label>
+          <input id="resetPassword" type="password" minlength="6" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label>Ulangi Password Baru</label>
+          <input id="resetPasswordConfirm" type="password" minlength="6" autocomplete="new-password">
+        </div>
+        <button id="resetPasswordButton" class="auth-submit" type="button" onclick="updateForgottenPassword()">Simpan Password Baru</button>
+      </div>
 
       <div id="authMessage" class="auth-message"></div>
       <div class="auth-note">
@@ -1197,9 +1215,17 @@ async function initKitaWearAuth(){
     const sessionResult=await kwSupabase.auth.getSession();
     await applyKitaWearSession(sessionResult.data?.session || null);
 
-    kwSupabase.auth.onAuthStateChange((_event,session)=>{
-      setTimeout(()=>applyKitaWearSession(session || null),0);
+    kwSupabase.auth.onAuthStateChange((event,session)=>{
+      setTimeout(()=>{
+        applyKitaWearSession(session || null);
+        if(event==="PASSWORD_RECOVERY") openResetPassword();
+      },0);
     });
+
+    const accountParam=new URLSearchParams(location.search).get("account");
+    if(accountParam==="reset" && sessionResult.data?.session){
+      setTimeout(()=>openResetPassword(),100);
+    }
   }catch(error){
     console.warn("KitaWear auth:",error);
     updateAccountButton(null,null);
@@ -1302,6 +1328,8 @@ function setAuthMode(mode){
   const submit=document.getElementById("authSubmit");
   const title=document.getElementById("authTitle");
   const message=document.getElementById("authMessage");
+  const forgot=document.getElementById("forgotPasswordButton");
+  const resetPanel=document.getElementById("resetPasswordPanel");
 
   loginTab?.classList.toggle("active",kwAuthMode==="login");
   registerTab?.classList.toggle("active",kwAuthMode==="register");
@@ -1309,6 +1337,8 @@ function setAuthMode(mode){
   if(nameField) nameField.style.display=kwAuthMode==="register" ? "block" : "none";
   if(submit) submit.textContent=kwAuthMode==="register" ? "Buat Akun" : "Masuk";
   if(title) title.textContent=kwAuthMode==="register" ? "Buat Akun KitaWear" : "Masuk ke KitaWear";
+  if(forgot) forgot.style.display=kwAuthMode==="login" ? "block" : "none";
+  if(resetPanel) resetPanel.style.display="none";
   if(message) message.textContent="";
 }
 
@@ -1346,6 +1376,7 @@ async function submitAuth(event){
       if(result.data?.session){
         await applyKitaWearSession(result.data.session);
         setAuthMessage("Akun berhasil dibuat.");
+        setTimeout(()=>closeAccount(),650);
       }else{
         setAuthMessage("Akun berhasil dibuat. Periksa email untuk verifikasi jika diminta.");
       }
@@ -1355,12 +1386,91 @@ async function submitAuth(event){
 
       await applyKitaWearSession(result.data?.session || null);
       setAuthMessage("Berhasil masuk.");
+      setTimeout(()=>closeAccount(),650);
     }
   }catch(error){
     setAuthMessage(error.message || "Gagal memproses akun.");
   }finally{
     button.disabled=false;
     button.textContent=kwAuthMode==="register" ? "Buat Akun" : "Masuk";
+  }
+}
+
+async function sendPasswordReset(){
+  if(!kwSupabase){
+    setAuthMessage("Konfigurasi akun belum siap. Coba lagi.");
+    return;
+  }
+
+  const email=document.getElementById("authEmail")?.value.trim();
+  if(!email){
+    setAuthMessage("Masukkan email akun terlebih dahulu.");
+    document.getElementById("authEmail")?.focus();
+    return;
+  }
+
+  const button=document.getElementById("forgotPasswordButton");
+  if(button){button.disabled=true;button.textContent="Mengirim...";}
+
+  try{
+    const redirectTo=`${window.location.origin}${window.location.pathname}?account=reset`;
+    const result=await kwSupabase.auth.resetPasswordForEmail(email,{redirectTo});
+    if(result.error) throw result.error;
+    setAuthMessage("Link reset password sudah dikirim. Silakan cek email Anda.");
+  }catch(error){
+    setAuthMessage(error.message || "Gagal mengirim link reset password.");
+  }finally{
+    if(button){button.disabled=false;button.textContent="Lupa password?";}
+  }
+}
+
+function openResetPassword(){
+  const guest=document.getElementById("authGuest");
+  const user=document.getElementById("authUser");
+  const tabs=document.querySelector("#authGuest .auth-tabs");
+  const form=document.getElementById("authForm");
+  const forgot=document.getElementById("forgotPasswordButton");
+  const panel=document.getElementById("resetPasswordPanel");
+  const title=document.getElementById("authTitle");
+  if(!guest || !panel) return;
+
+  guest.style.display="block";
+  user?.classList.remove("show");
+  if(tabs) tabs.style.display="none";
+  if(form) form.style.display="none";
+  if(forgot) forgot.style.display="none";
+  panel.style.display="block";
+  if(title) title.textContent="Buat Password Baru";
+
+  const overlay=document.getElementById("authOverlay");
+  overlay?.classList.add("show");
+  overlay?.setAttribute("aria-hidden","false");
+  document.getElementById("resetPassword")?.focus();
+}
+
+async function updateForgottenPassword(){
+  if(!kwSupabase){setAuthMessage("Konfigurasi akun belum siap. Coba lagi.");return;}
+
+  const password=document.getElementById("resetPassword")?.value || "";
+  const confirm=document.getElementById("resetPasswordConfirm")?.value || "";
+  const button=document.getElementById("resetPasswordButton");
+
+  if(password.length<6){setAuthMessage("Password baru minimal 6 karakter.");return;}
+  if(password!==confirm){setAuthMessage("Konfirmasi password tidak sama.");return;}
+
+  if(button){button.disabled=true;button.textContent="Menyimpan...";}
+  try{
+    const result=await kwSupabase.auth.updateUser({password});
+    if(result.error) throw result.error;
+    setAuthMessage("Password berhasil diubah.");
+    setTimeout(()=>{
+      closeAccount();
+      window.history.replaceState({},document.title,window.location.pathname);
+    },700);
+  }catch(error){
+    setAuthMessage(error.message || "Gagal mengubah password.");
+  }finally{
+    if(button){button.disabled=false;button.textContent="Simpan Password Baru";}
   }
 }
 
