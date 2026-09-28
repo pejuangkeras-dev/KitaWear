@@ -1167,7 +1167,13 @@ function scrollProductDetailTo(id){document.getElementById(id)?.scrollIntoView({
 async function loadSellerReviewsForDetail(storeId){
   const list=document.getElementById("sellerReviewList");
   try{
-    const r=await fetch(`/api/reviews?type=seller&store_id=${encodeURIComponent(storeId)}`,{cache:"no-store"});
+    const session=(await kwSupabase?.auth.getSession())?.data?.session;
+const r=await fetch(`/api/reviews?type=seller&store_id=${encodeURIComponent(storeId)}`,{
+  cache:"no-store",
+  headers:session?.access_token
+    ? {Authorization:`Bearer ${session.access_token}`}
+    : {}
+});
     const data=await r.json();
     const rows=Array.isArray(data.reviews)?data.reviews:[];
     const summary=data.summary||{rating:0,count:0};
