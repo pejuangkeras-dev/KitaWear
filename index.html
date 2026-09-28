@@ -166,6 +166,73 @@ body{background:var(--bg);color:var(--ink)}
   .profile-row>label{text-align:left}
   .profile-actions{margin-left:0}
 }
+
+/* ================= KITAWear ACCOUNT PREMIUM REDESIGN ================= */
+.auth-overlay.account-expanded{padding:0;background:#f5f2ec;align-items:stretch;justify-content:stretch}
+.auth-overlay.account-expanded .auth-box{width:100vw;height:100vh;max-height:none;padding:0;border:0;border-radius:0;overflow:hidden;background:#f5f2ec;box-shadow:none}
+.auth-overlay.account-expanded .auth-head{position:fixed;right:24px;top:76px;z-index:80;margin:0}
+.auth-overlay.account-expanded .auth-head h3{display:none}
+.auth-overlay.account-expanded .auth-close{width:42px;height:42px;background:rgba(255,253,249,.92);border:1px solid #ded8cd;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.account-dashboard{height:100%;display:grid;grid-template-columns:300px minmax(0,1fr);min-height:0;background:#f5f2ec}
+.account-sidebar{background:#fffdf9;border-right:1px solid #e2ddd4;padding:26px 18px 22px;overflow:auto}
+.account-user-card{display:block;padding:2px 12px 22px;border-bottom:1px solid #e6e0d7;margin-bottom:18px}
+.account-user-card:before{content:"KitaWear";display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#8a847a;font-weight:900;margin-bottom:16px}
+.account-user-card .account-avatar{width:76px;height:76px;border-radius:50%;background:#171817;color:#fff;font-size:30px;margin-bottom:13px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.account-user-text strong{font-size:17px;letter-spacing:-.02em;color:#171817}
+.account-user-text button{color:#77736c;font-size:12px;margin-top:4px}
+.account-user-text button:hover{color:#171817}
+.account-nav-group{padding:7px 0 15px;border-bottom:1px solid #ebe5dc;margin-bottom:7px}
+.account-nav-group:last-child{border-bottom:0}
+.account-nav-title{font-size:10px;text-transform:uppercase;letter-spacing:.13em;font-weight:900;color:#8b857c;padding:8px 12px 9px}
+.account-nav-item{padding:11px 13px;border-radius:11px;color:#44413c;font-size:13px;font-weight:650;transition:.18s}
+.account-nav-item:hover{background:#f2eee7;color:#171817}
+.account-nav-item.active{background:#171817;color:#fff;font-weight:800;box-shadow:0 8px 20px rgba(23,24,23,.12)}
+.account-tools .account-nav-item{margin-top:2px}
+.account-tools .logout-nav{color:#b3261e}
+.account-main{background:#f5f2ec;padding:32px 38px 44px;overflow:auto}
+.account-main:before{content:"KitaWear  ·  Akun Saya";display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8a847a;font-weight:850;margin:0 0 14px 2px}
+.account-hero{position:relative;min-height:178px;border-radius:24px;overflow:hidden;margin-bottom:20px;background:linear-gradient(105deg,#151615 0%,#252522 48%,#4d4439 100%);color:#fff;padding:34px 38px;display:flex;align-items:center;justify-content:space-between;gap:25px;box-shadow:0 18px 45px rgba(23,24,23,.13)}
+.account-hero:after{content:"";position:absolute;right:-80px;top:-100px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle at center,rgba(255,255,255,.16),rgba(255,255,255,0) 66%)}
+.account-hero-copy{position:relative;z-index:2;max-width:650px}
+.account-hero-kicker{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#d5d0c7;font-weight:900;margin-bottom:10px}
+.account-hero h3{font-size:34px;line-height:1;margin:0 0 10px;letter-spacing:-.055em}
+.account-hero p{margin:0;color:#c9c5bd;font-size:13px;line-height:1.65;max-width:560px}
+.account-hero-badge{position:relative;z-index:2;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:11px 16px;font-size:11px;font-weight:800;white-space:nowrap;background:rgba(255,255,255,.06)}
+.account-section{display:none;background:transparent;border:0;min-height:100%;padding:0}
+.account-section.active{display:block}
+.account-page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;background:#fffdf9;border:1px solid #e4ded5;border-radius:20px;padding:24px 27px;margin-bottom:16px;box-shadow:0 8px 28px rgba(23,24,23,.035)}
+.account-page-head h3{font-size:22px;margin:0 0 5px;font-weight:900;color:#171817;letter-spacing:-.035em}
+.account-page-head p{margin:0;color:#77736c;font-size:12px;line-height:1.55}
+.profile-form{max-width:none;background:#fffdf9;border:1px solid #e4ded5;border-radius:20px;padding:28px 27px;box-shadow:0 8px 28px rgba(23,24,23,.035)}
+.profile-row{display:grid;grid-template-columns:minmax(145px,.35fr) minmax(0,1fr);align-items:center;gap:24px;margin-bottom:18px}
+.profile-row>label{text-align:left;color:#35322e;font-size:12px;font-weight:800}
+.profile-row input{width:100%;height:44px;border:1px solid #d9d3ca;border-radius:10px;background:#fff;padding:0 13px;font-size:13px;outline:none;color:#171817}
+.profile-row input:focus{border-color:#171817;box-shadow:0 0 0 3px rgba(23,24,23,.06)}
+.profile-row small{color:#918b82;font-size:10px;margin-top:6px}
+.profile-readonly{min-height:44px;display:flex;align-items:center;color:#5e5951;font-size:13px;background:#f3f0ea;border:1px solid #e4ded5;border-radius:10px;padding:0 13px}
+.profile-actions{display:flex;align-items:center;gap:14px;margin:25px 0 0 0;padding-top:20px;border-top:1px solid #ece6dd}
+.profile-save{border:0;background:#171817;color:#fff;padding:12px 22px;border-radius:11px;font-size:12px;font-weight:850;cursor:pointer;box-shadow:0 8px 20px rgba(23,24,23,.12)}
+.profile-save:hover{background:#2a2c2a}
+.account-bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.account-card{background:#fffdf9;border:1px solid #e4ded5;border-radius:20px;padding:23px 25px;box-shadow:0 8px 28px rgba(23,24,23,.035)}
+.account-card-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.account-card-icon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#171817;color:#fff;font-size:17px}
+.account-card-head strong{display:block;font-size:15px;letter-spacing:-.02em}
+.account-card-head span{display:block;color:#8a847b;font-size:11px;margin-top:3px}
+.account-profile-preview{display:flex;align-items:center;gap:18px}
+.account-preview-avatar{width:82px;height:82px;border-radius:50%;background:#171817;color:#fff;display:grid;place-items:center;font-size:31px;font-weight:900;flex:none}
+.account-card-btn{border:0;background:#171817;color:#fff;border-radius:10px;padding:10px 16px;font-size:11px;font-weight:800;cursor:pointer}
+.account-member{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:17px;border-radius:16px;background:#f5ead6}
+.account-member-icon{width:45px;height:45px;border-radius:50%;background:#ead7b3;display:grid;place-items:center;font-size:20px}
+.account-member-copy{flex:1}
+.account-member-copy strong{display:block;font-size:13px}
+.account-member-copy span{display:block;color:#756c5e;font-size:11px;line-height:1.5;margin-top:4px}
+.account-member-status{background:#ead09e;border-radius:999px;padding:8px 12px;font-size:10px;font-weight:900;color:#5c4a26}
+.narrow-form{max-width:none}
+.account-empty{border:1px dashed #d5cfc5;background:#fffdf9;border-radius:16px;padding:40px;text-align:center;color:#77736c;font-size:13px;line-height:1.7}
+@media(max-width:900px){.account-dashboard{grid-template-columns:235px minmax(0,1fr)}.account-main{padding:25px 20px 35px}.account-hero{padding:28px}.account-bottom-grid{grid-template-columns:1fr}.profile-row{grid-template-columns:125px minmax(0,1fr)}}
+@media(max-width:650px){.auth-overlay.account-expanded .auth-head{top:12px;right:12px}.account-dashboard{grid-template-columns:1fr}.account-sidebar{border-right:0;border-bottom:1px solid #e2ddd4;max-height:none;padding:18px 14px}.account-user-card{display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:center}.account-user-card:before{grid-column:1/-1}.account-user-card .account-avatar{margin:0}.account-nav-group{display:grid;grid-template-columns:1fr 1fr;gap:3px}.account-nav-title{grid-column:1/-1}.account-main{padding:18px 12px 30px}.account-hero{min-height:170px;padding:25px 22px;margin-bottom:14px}.account-hero h3{font-size:28px}.account-hero-badge{display:none}.account-page-head{padding:20px;display:block}.profile-form{padding:21px 18px}.profile-row{grid-template-columns:1fr;gap:7px;margin-bottom:15px}.account-bottom-grid{gap:12px}.account-card{padding:20px}.account-main:before{margin-bottom:9px}}
+
 </style>
 </head>
 
@@ -431,6 +498,15 @@ body{background:var(--bg);color:var(--ink)}
         </aside>
 
         <section class="account-main">
+          <div class="account-hero">
+            <div class="account-hero-copy">
+              <div class="account-hero-kicker">KitaWear Account</div>
+              <h3>Profil Saya</h3>
+              <p>Kelola informasi profil Anda untuk pengalaman belanja yang lebih aman, nyaman, dan personal di KitaWear.</p>
+            </div>
+            <div class="account-hero-badge">Simple Style · Everyday Confidence</div>
+          </div>
+
           <div id="accountSection-profile" class="account-section active">
             <div class="account-page-head">
               <h3>Profil Saya</h3>
@@ -474,6 +550,34 @@ body{background:var(--bg);color:var(--ink)}
               <div class="profile-actions">
                 <button class="profile-save" type="button" onclick="saveKitaWearProfile()">Simpan</button>
                 <span id="profileMessage"></span>
+              </div>
+            </div>
+
+            <div class="account-bottom-grid">
+              <div class="account-card">
+                <div class="account-card-head">
+                  <div class="account-card-icon">◎</div>
+                  <div><strong>Foto Profil</strong><span>Gunakan identitas visual untuk akun KitaWear Anda.</span></div>
+                </div>
+                <div class="account-profile-preview">
+                  <div class="account-preview-avatar" id="accountPreviewAvatar">K</div>
+                  <div>
+                    <strong style="display:block;font-size:13px;margin-bottom:8px">Profil KitaWear</strong>
+                    <button class="account-card-btn" type="button" onclick="showAccountSection('profile')">Kelola Profil</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="account-card">
+                <div class="account-card-head">
+                  <div class="account-card-icon">♛</div>
+                  <div><strong>Keanggotaan</strong><span>Nikmati pengalaman belanja KitaWear yang lebih personal.</span></div>
+                </div>
+                <div class="account-member">
+                  <div class="account-member-icon">♛</div>
+                  <div class="account-member-copy"><strong>Member KitaWear</strong><span>Promo, voucher, dan penawaran khusus akan ditampilkan di akun Anda.</span></div>
+                  <div class="account-member-status">Aktif</div>
+                </div>
               </div>
             </div>
           </div>
