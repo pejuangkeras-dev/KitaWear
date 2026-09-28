@@ -196,16 +196,34 @@ export async function onRequestPost(context) {
     // ==========================================
     // 7. JIKA SUPABASE MENOLAK REQUEST
     // ==========================================
-    if (!response.ok) {
-      console.error(
-        "Supabase Auth update gagal:",
-        result?.msg ||
-          result?.message ||
-          result?.error_description ||
-          `HTTP ${response.status}`
-      );
+   if (!response.ok) {
+  console.error(
+    "SUPABASE HTTP STATUS:",
+    response.status
+  );
 
-      return json(
+  console.error(
+    "SUPABASE RESPONSE:",
+    responseText.slice(0, 2000)
+  );
+
+  return json(
+    {
+      error:
+        result?.msg ||
+        result?.message ||
+        result?.error_description ||
+        result?.error ||
+        `Supabase HTTP ${response.status}`,
+      status: response.status,
+      details:
+        responseText.slice(0, 1000)
+    },
+    response.status >= 400 && response.status <= 599
+      ? response.status
+      : 502
+  );
+}
         {
           error:
             result?.msg ||
