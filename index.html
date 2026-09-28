@@ -837,128 +837,288 @@ async function startPayment(e){
   e.preventDefault();
 
   if(!cart.length){
-    showKwNotice(t("notice_empty"),t("notice_empty_title"));
+    showKwNotice(
+      t("notice_empty"),
+      t("notice_empty_title")
+    );
     return;
   }
 
-  const formIds=["buyerName","buyerEmail","buyerPhone","buyerAddress"];
+  const formIds = [
+    "buyerName",
+    "buyerEmail",
+    "buyerPhone",
+    "buyerAddress"
+  ];
+
   for(const id of formIds){
-    const el=document.getElementById(id);
-    if(!el.value.trim()){
-      el.focus();
-      showKwNotice(t("notice_required"),t("notice_required"));
+    const el = document.getElementById(id);
+
+    if(!el || !el.value.trim()){
+      if(el) el.focus();
+
+      showKwNotice(
+        t("notice_required"),
+        t("notice_required")
+      );
+
       return;
     }
   }
 
-  const btn=document.getElementById("payButton");
-  btn.disabled=true;
-  btn.textContent=t("payment_loading");
+  const btn =
+    document.getElementById("payButton");
+
+  btn.disabled = true;
+  btn.textContent = t("payment_loading");
 
   try{
-    const session=await getKitaSession();
-    if(!session){
-      showKwNotice("Silakan masuk atau daftar akun sebelum melakukan pembayaran.","Akun diperlukan");
-      openAccount();
-      return;
-    }
 
-    const configRes=await fetch("/.netlify/functions/config",{
-      method:"GET",
-      headers:{"Accept":"application/json"},
-      cache:"no-store"
-    });
+    /* =========================================
+       DATA CUSTOMER + CART
+    ========================================= */
 
-    const configText=await configRes.text();
-    let config={};
+    const payload = {
+      customer: {
+        name:
+          document
+            .getElementById("buyerName")
+            .value
+            .trim(),
 
-    try{
-      config=JSON.parse(configText);
-    }catch(parseErr){
-      if(configText.trim().startsWith("<")){
-        throw new Error("Endpoint pembayaran KitaWear belum aktif di Netlify.");
-      }
-      throw new Error("Respons konfigurasi pembayaran tidak valid.");
-    }
+        email:
+          document
+            .getElementById("buyerEmail")
+            .value
+            .trim(),
 
-    if(!configRes.ok || !config.clientKey){
-      throw new Error(config.error || t("payment_config"));
-    }
+        phone:
+          document
+            .getElementById("buyerPhone")
+            .value
+            .trim(),
 
-    if(!config.snapUrl){
-      throw new Error("URL Midtrans Snap belum tersedia.");
-    }
-
-    if(!window.snap){
-      await new Promise((resolve,reject)=>{
-        const s=document.createElement("script");
-        s.src=config.snapUrl;
-        s.setAttribute("data-client-key",config.clientKey);
-        s.onload=resolve;
-        s.onerror=()=>reject(new Error(t("payment_midtrans")));
-        document.head.appendChild(s);
-      });
-    }
-
-    const payload={
-      customer:{
-        name:document.getElementById("buyerName").value.trim(),
-        email:document.getElementById("buyerEmail").value.trim(),
-        phone:document.getElementById("buyerPhone").value.trim(),
-        address:document.getElementById("buyerAddress").value.trim()
+        address:
+          document
+            .getElementById("buyerAddress")
+            .value
+            .trim()
       },
-      items:cart.map(x=>({
-        productId:x.productId||null,
-        storeId:x.storeId||null,
-        name:x.name,
-        size:x.size,
-        quantity:x.quantity
-      }))
+
+      items:
+        cart.map(x => ({
+          name: x.name,
+          size: x.size,
+          quantity: x.quantity
+        }))
     };
 
-    const res=await fetch("/.netlify/functions/create-transaction",{
-      method:"POST",
-      headers:{"Content-Type":"application/json","Authorization":`Bearer ${session.access_token}`},
-      body:JSON.stringify(payload)
-    });
 
-    const responseText=await res.text();
-    let data={};
+    /* =========================================
+       CLOUDFLARE FUNCTION
+    ========================================= */
+
+    const res = await fetch(
+      "/api/create-transaction",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+
+          "Accept":
+            "application/json"
+        },
+
+        body:
+          JSON.stringify(payload)
+      }
+    );
+
+
+    /* =========================================
+       BACA RESPONSE
+    ========================================= */
+
+    const responseText =
+      await res.text();
+
+    let data = {};
 
     try{
-      data=JSON.parse(responseText);
-    }catch(parseErr){
-      if(responseText.trim().startsWith("<")){
-        throw new Error("Function create-transaction belum aktif di Netlify. Pastikan folder netlify/functions ikut ter-deploy.");
+
+      data =
+        responseText
+          ? JSON.parse(responseText)
+          : {};
+
+    }catch(parseError){
+
+      console.error(
+        "Cloudflare response:",
+        responseText
+      );
+
+      if(
+        responseText
+          .trim()
+          .startsWith("<")
+      ){
+
+        throw new Error(
+          "Cloudflare Function tidak mengembalikan JSON. Periksa deployment Functions."
+        );
+
       }
-      throw new Error("Respons transaksi pembayaran tidak valid.");
+
+      throw new Error(
+        "Respons transaksi tidak valid."
+      );
+
     }
 
-    if(!res.ok || !data.token){
-      throw new Error(data.error || t("payment_transaction"));
+
+    if(
+      !res.ok ||
+      !data.token
+    ){
+
+      throw new Error(
+        data.error ||
+        "Gagal membuat transaksi pembayaran."
+      );
+
     }
 
-    window.snap.pay(data.token,{
-      onSuccess:function(){
-        showKwNotice(t("payment_success"),t("payment_success_title"));
-      },
-      onPending:function(){
-        showKwNotice(t("payment_pending"),t("payment_pending_title"));
-      },
-      onError:function(){
-        showKwNotice(t("payment_error"),t("payment_error_title"));
-      },
-      onClose:function(){}
-    });
+
+    /* =========================================
+       MIDTRANS SNAP
+       Client Key berasal dari response
+       Cloudflare, bukan dari Server Key.
+    ========================================= */
+
+    if(!window.snap){
+
+      await new Promise(
+        (resolve, reject) => {
+
+          const script =
+            document.createElement(
+              "script"
+            );
+
+          script.src =
+            data.snapUrl ||
+            "https://app.sandbox.midtrans.com/snap/snap.js";
+
+          if(data.clientKey){
+
+            script.setAttribute(
+              "data-client-key",
+              data.clientKey
+            );
+
+          }
+
+          script.onload =
+            resolve;
+
+          script.onerror = () => {
+
+            reject(
+              new Error(
+                "Gagal memuat Midtrans Snap."
+              )
+            );
+
+          };
+
+          document.head.appendChild(
+            script
+          );
+
+        }
+      );
+
+    }
+
+
+    /* =========================================
+       BUKA MIDTRANS
+    ========================================= */
+
+    window.snap.pay(
+      data.token,
+      {
+
+        onSuccess: function(){
+
+          showKwNotice(
+            t("payment_success"),
+            t("payment_success_title")
+          );
+
+          /*
+            Pesanan sudah dibuat di Supabase
+            sebelum Midtrans dibuka.
+          */
+
+        },
+
+        onPending: function(){
+
+          showKwNotice(
+            t("payment_pending"),
+            t("payment_pending_title")
+          );
+
+        },
+
+        onError: function(){
+
+          showKwNotice(
+            t("payment_error"),
+            t("payment_error_title")
+          );
+
+        },
+
+        onClose: function(){
+
+          /*
+            Pembeli menutup popup Midtrans.
+            Tidak menghapus order.
+          */
+
+        }
+
+      }
+    );
+
 
   }catch(err){
-    showKwNotice(err.message || t("payment_general"),t("payment_general_title"));
+
+    console.error(
+      "KitaWear payment error:",
+      err
+    );
+
+    showKwNotice(
+      err.message ||
+        t("payment_general"),
+      t("payment_general_title")
+    );
+
   }finally{
-    btn.disabled=false;
-    btn.textContent=t("pay_button");
+
+    btn.disabled = false;
+
+    btn.textContent =
+      t("pay_button");
+
   }
 }
-
 /* =========================
    LIGHTBOX
 ========================= */
