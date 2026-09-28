@@ -433,9 +433,19 @@ body{background:var(--bg);color:var(--ink)}
           <input id="authName" autocomplete="name">
         </div>
 
+        <div class="field" id="authPhoneField" style="display:none">
+          <label>Nomor Telepon</label>
+          <input id="authPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="08xxxxxxxxxx">
+        </div>
+
         <div class="field">
           <label>Password</label>
           <input id="authPassword" type="password" minlength="6" autocomplete="current-password" required>
+        </div>
+
+        <div class="field" id="authPasswordConfirmField" style="display:none">
+          <label>Konfirmasi Password</label>
+          <input id="authPasswordConfirm" type="password" minlength="6" autocomplete="new-password">
         </div>
 
         <button id="authSubmit" class="auth-submit" type="submit">Masuk</button>
@@ -1488,7 +1498,7 @@ async function applyKitaWearSession(session){
   if(kwCurrentUser && kwSupabase){
     const result=await kwSupabase
       .from("profiles")
-      .select("id,full_name,role")
+      .select("id,full_name,phone,role")
       .eq("id",kwCurrentUser.id)
       .maybeSingle();
 
@@ -1676,6 +1686,10 @@ function setAuthMode(mode){
   const loginTab=document.getElementById("authLoginTab");
   const registerTab=document.getElementById("authRegisterTab");
   const nameField=document.getElementById("authNameField");
+  const phoneField=document.getElementById("authPhoneField");
+  const passwordConfirmField=document.getElementById("authPasswordConfirmField");
+  const passwordInput=document.getElementById("authPassword");
+  const passwordConfirmInput=document.getElementById("authPasswordConfirm");
   const submit=document.getElementById("authSubmit");
   const title=document.getElementById("authTitle");
   const message=document.getElementById("authMessage");
@@ -1686,6 +1700,10 @@ function setAuthMode(mode){
   registerTab?.classList.toggle("active",kwAuthMode==="register");
 
   if(nameField) nameField.style.display=kwAuthMode==="register" ? "block" : "none";
+  if(phoneField) phoneField.style.display=kwAuthMode==="register" ? "block" : "none";
+  if(passwordConfirmField) passwordConfirmField.style.display=kwAuthMode==="register" ? "block" : "none";
+  if(passwordInput) passwordInput.autocomplete=kwAuthMode==="register" ? "new-password" : "current-password";
+  if(passwordConfirmInput) passwordConfirmInput.value="";
   if(submit) submit.textContent=kwAuthMode==="register" ? "Buat Akun" : "Masuk";
   if(title) title.textContent=kwAuthMode==="register" ? "Buat Akun KitaWear" : "Masuk ke KitaWear";
   if(forgot) forgot.style.display=kwAuthMode==="login" ? "block" : "none";
@@ -1704,10 +1722,42 @@ async function submitAuth(event){
   const email=document.getElementById("authEmail").value.trim();
   const password=document.getElementById("authPassword").value;
   const fullName=document.getElementById("authName").value.trim();
+  const phone=document.getElementById("authPhone")?.value.trim() || "";
+  const passwordConfirm=document.getElementById("authPasswordConfirm")?.value || "";
   const button=document.getElementById("authSubmit");
 
   if(!email || !password){
     setAuthMessage("Email dan password wajib diisi.");
+    return;
+  }
+
+  if(kwAuthMode==="register" && !fullName){
+    setAuthMessage("Nama wajib diisi.");
+    document.getElementById("authName")?.focus();
+    return;
+  }
+
+  if(kwAuthMode==="register" && !phone){
+    setAuthMessage("Nomor telepon wajib diisi.");
+    document.getElementById("authPhone")?.focus();
+    return;
+  }
+
+  if(kwAuthMode==="register" && !passwordConfirm){
+    setAuthMessage("Konfirmasi password wajib diisi.");
+    document.getElementById("authPasswordConfirm")?.focus();
+    return;
+  }
+
+  if(kwAuthMode==="register" && password !== passwordConfirm){
+    setAuthMessage("Konfirmasi password tidak sama.");
+    document.getElementById("authPasswordConfirm")?.focus();
+    return;
+  }
+
+  if(kwAuthMode==="register" && phone.replace(/\D/g,"").length < 10){
+    setAuthMessage("Nomor telepon tidak valid. Masukkan minimal 10 digit.");
+    document.getElementById("authPhone")?.focus();
     return;
   }
 
@@ -1719,12 +1769,19 @@ async function submitAuth(event){
       const result=await kwSupabase.auth.signUp({
         email,
         password,
-        options:{data:{full_name:fullName || email.split("@")[0]}}
+        options:{data:{full_name:fullName,phone:phone}}
       });
 
       if(result.error) throw result.error;
 
       if(result.data?.session){
+        const profileUpdate=await kwSupabase
+          .from("profiles")
+          .update({full_name:fullName,phone:phone})
+          .eq("id",result.data.session.user.id);
+
+        if(profileUpdate.error) console.warn("KitaWear profile phone:",profileUpdate.error);
+
         await applyKitaWearSession(result.data.session);
         setAuthMessage("Akun berhasil dibuat.");
         setTimeout(()=>closeAccount(),650);
