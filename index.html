@@ -316,6 +316,34 @@ body{background:var(--bg);color:var(--ink)}
   .product-card-btn{height:44px}
   .size-choice-options{grid-template-columns:repeat(2,1fr)}
 }
+<style>
+.order-filter-row{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+.order-filter,.orders-refresh{border:1px solid var(--line);background:#fffdf9;border-radius:999px;padding:9px 13px;font-size:12px;font-weight:800}
+.order-filter.active{background:#171817;color:#fff;border-color:#171817}
+.orders-refresh{margin-left:auto}
+.buyer-orders-list{display:grid;gap:12px}
+.buyer-order-card{border:1px solid var(--line);border-radius:16px;background:#fffdf9;padding:16px}
+.buyer-order-head,.buyer-order-foot{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.buyer-order-head>div{display:flex;flex-direction:column;gap:4px}
+.buyer-order-head span,.buyer-order-item span{font-size:11px;color:#77736c}
+.buyer-order-status{padding:7px 10px;border-radius:999px;font-size:10px;font-weight:900;background:#eee;color:#444}
+.buyer-order-status.paid,.buyer-order-status.processing{background:#eef4ef;color:#2f6b4f}
+.buyer-order-status.shipped{background:#edf3f8;color:#285d82}
+.buyer-order-status.completed{background:#e5eee8;color:#2f6b4f}
+.buyer-order-status.cancelled,.buyer-order-status.refunded{background:#f8e9e7;color:#9b342b}
+.buyer-order-items{margin:13px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.buyer-order-item{display:flex;justify-content:space-between;gap:12px;padding:12px 0}
+.buyer-order-item>div{display:flex;flex-direction:column;gap:4px}
+.buyer-order-foot{font-size:12px;color:#77736c}
+.buyer-order-detail{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.buyer-order-detail summary{cursor:pointer;font-weight:800;font-size:12px}
+.buyer-order-detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+.buyer-order-detail-grid>div{background:#f7f5f0;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:4px}
+.buyer-order-detail-grid span,.buyer-seller-shipment span{font-size:10px;color:#77736c}
+.buyer-order-detail-grid strong{font-size:12px}
+.buyer-seller-shipment{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;padding:10px;background:#f7f5f0;border-radius:10px;font-size:11px}
+@media(max-width:600px){.orders-refresh{margin-left:0}.buyer-order-head,.buyer-order-foot{align-items:flex-start;flex-direction:column}.buyer-order-detail-grid{grid-template-columns:1fr}}
+</style>
 </style>
 </head>
 
@@ -713,7 +741,7 @@ body{background:var(--bg);color:var(--ink)}
             </div>
           </div>
 
-          <div id="accountSection-orders" class="account-section"><div class="account-page-head"><h3>Pesanan Saya</h3><p>Pesanan yang Anda buat melalui MarketKita akan ditampilkan di sini.</p></div><div class="account-empty">Belum ada tampilan riwayat pesanan di halaman akun.</div></div>
+          <div id="accountSection-orders" class="account-section"><div class="account-page-head"><div><h3>Pesanan Saya</h3><p>Riwayat pesanan dan status pengiriman Anda.</p></div><button type="button" class="orders-refresh" onclick="loadBuyerOrders()">↻ Muat Ulang</button></div><div class="order-filter-row"><button class="order-filter active" data-order-filter="all" onclick="filterBuyerOrders('all')">Semua</button><button class="order-filter" data-order-filter="pending_payment" onclick="filterBuyerOrders('pending_payment')">Belum Bayar</button><button class="order-filter" data-order-filter="processing" onclick="filterBuyerOrders('processing')">Diproses</button><button class="order-filter" data-order-filter="shipped" onclick="filterBuyerOrders('shipped')">Dikirim</button><button class="order-filter" data-order-filter="completed" onclick="filterBuyerOrders('completed')">Selesai</button></div><div id="buyerOrdersList" class="buyer-orders-list"><div class="account-empty">Memuat pesanan...</div></div></div>
           <div id="accountSection-alerts" class="account-section"><div class="account-page-head"><h3>Notifikasi</h3><p>Informasi penting mengenai akun dan pesanan Anda.</p></div><div class="account-empty">Belum ada notifikasi baru.</div></div>
           <div id="accountSection-bank" class="account-section"><div class="account-page-head"><h3>Bank &amp; Kartu</h3><p>Simpan metode pembayaran untuk penggunaan berikutnya.</p></div><div class="account-empty">Belum ada kartu atau rekening yang ditambahkan.</div></div>
           <div id="accountSection-address" class="account-section"><div class="account-page-head"><h3>Alamat</h3><p>Alamat pengiriman Anda.</p></div><div class="account-empty">Belum ada alamat yang ditambahkan.</div></div>
@@ -1730,7 +1758,10 @@ async function startPayment(e){
 
     const res=await fetch("/api/create-transaction",{
       method:"POST",
-      headers:{"Content-Type":"application/json"},
+      headers:{
+        "Content-Type":"application/json",
+        ...(kwSupabase ? ((await kwSupabase.auth.getSession()).data?.session?.access_token ? {Authorization:`Bearer ${(await kwSupabase.auth.getSession()).data.session.access_token}`} : {}) : {})
+      },
       body:JSON.stringify(payload)
     });
 
@@ -2032,6 +2063,7 @@ function showAccountSection(section){
 
   const nav=document.querySelector('.account-nav-item[data-account-section="'+section+'"]');
   if(nav) nav.classList.add("active");
+  if(section==="orders") loadBuyerOrders();
 }
 
 async function saveMarketKitaProfile(){
@@ -2065,6 +2097,96 @@ async function saveMarketKitaProfile(){
     if(message) message.textContent=error.message || "Gagal menyimpan profil.";
   }finally{
     if(button){button.disabled=false;button.textContent="Simpan";}
+  }
+}
+
+let buyerOrdersCache=[];
+let buyerOrderFilter="all";
+
+function buyerOrderStatusLabel(status){
+  const map={
+    pending_payment:"Belum Bayar",
+    paid:"Pembayaran Diterima",
+    processing:"Diproses Seller",
+    shipped:"Dikirim",
+    delivered:"Pesanan Sampai",
+    completed:"Selesai",
+    cancelled:"Dibatalkan",
+    refunded:"Dikembalikan",
+    disputed:"Dalam Sengketa"
+  };
+  return map[status] || status || "Menunggu";
+}
+
+function buyerOrderStatusClass(status){
+  return String(status||"pending").replace(/[^a-z_]/g,"");
+}
+
+function filterBuyerOrders(filter){
+  buyerOrderFilter=filter||"all";
+  document.querySelectorAll(".order-filter").forEach(btn=>{
+    btn.classList.toggle("active",btn.dataset.orderFilter===buyerOrderFilter);
+  });
+  renderBuyerOrders();
+}
+
+function renderBuyerOrders(){
+  const root=document.getElementById("buyerOrdersList");
+  if(!root)return;
+  const rows=buyerOrderFilter==="all"
+    ? buyerOrdersCache
+    : buyerOrdersCache.filter(x=>x.status===buyerOrderFilter);
+  if(!rows.length){
+    root.innerHTML='<div class="account-empty">Belum ada pesanan pada status ini.</div>';
+    return;
+  }
+  root.innerHTML=rows.map(order=>{
+    const items=Array.isArray(order.items)?order.items:[];
+    const sellers=Array.isArray(order.sellers)?order.sellers:[];
+    const sellerNames=sellers.map(s=>s.store_id).filter(Boolean).length;
+    return `<article class="buyer-order-card">
+      <div class="buyer-order-head">
+        <div><strong>${escDetail(order.order_number)}</strong><span>${new Date(order.created_at).toLocaleString("id-ID")}</span></div>
+        <span class="buyer-order-status ${buyerOrderStatusClass(order.status)}">${buyerOrderStatusLabel(order.status)}</span>
+      </div>
+      <div class="buyer-order-items">
+        ${items.map(item=>`<div class="buyer-order-item"><div><strong>${escDetail(item.product_name)}</strong><span>Ukuran ${escDetail(item.size)} · Qty ${item.quantity}</span></div><strong>${rupiah(item.line_total)}</strong></div>`).join("")}
+      </div>
+      <div class="buyer-order-foot">
+        <span>${sellerNames} toko · ${items.length} item</span>
+        <strong>Total ${rupiah(order.total)}</strong>
+      </div>
+      <details class="buyer-order-detail"><summary>Lihat detail pesanan</summary>
+        <div class="buyer-order-detail-grid">
+          <div><span>Pembayaran</span><strong>${escDetail(order.payment_status||"-")}</strong></div>
+          <div><span>Alamat</span><strong>${escDetail(order.shipping_address||"-")}</strong></div>
+          <div><span>Nomor WhatsApp</span><strong>${escDetail(order.customer_phone||"-")}</strong></div>
+          <div><span>Dibuat</span><strong>${new Date(order.created_at).toLocaleString("id-ID")}</strong></div>
+        </div>
+        ${sellers.map(s=>`<div class="buyer-seller-shipment"><strong>Pengiriman Seller</strong><span>Status: ${escDetail(s.shipping_status||"-")}</span><span>Resi: ${escDetail(s.tracking_number||"Belum tersedia")}</span></div>`).join("")}
+      </details>
+    </article>`;
+  }).join("");
+}
+
+async function loadBuyerOrders(){
+  const root=document.getElementById("buyerOrdersList");
+  if(!root)return;
+  if(!kwSupabase || !kwCurrentUser){
+    root.innerHTML='<div class="account-empty">Silakan masuk untuk melihat Pesanan Saya.</div>';
+    return;
+  }
+  root.innerHTML='<div class="account-empty">Memuat pesanan...</div>';
+  try{
+    const session=(await kwSupabase.auth.getSession()).data?.session;
+    if(!session){root.innerHTML='<div class="account-empty">Sesi login sudah berakhir. Silakan masuk kembali.</div>';return;}
+    const response=await fetch("/api/buyer-orders",{headers:{Authorization:`Bearer ${session.access_token}`,Accept:"application/json"},cache:"no-store"});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(data.error||"Gagal mengambil pesanan.");
+    buyerOrdersCache=Array.isArray(data.orders)?data.orders:[];
+    renderBuyerOrders();
+  }catch(error){
+    root.innerHTML=`<div class="account-empty">Gagal memuat pesanan: ${escDetail(error.message||"Terjadi kesalahan.")}</div>`;
   }
 }
 
