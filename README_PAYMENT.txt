@@ -1,4 +1,4 @@
-KitaWear Payment — Cloudflare Pages
+MarketKita Payment — Cloudflare Pages
 
 Required Cloudflare environment variables:
 - SUPABASE_URL
