@@ -590,238 +590,77 @@ ${(p.product_sizes||[])
 
 async function loadOrders(){
 
-  const sellerQuery = await sb
-    .from('order_sellers')
-    .select(`
-      order_id,
-      store_id,
-      seller_id,
-      subtotal,
-      platform_fee,
-      shipping_fee,
-      total,
-      seller_status,
-      shipping_status,
-      tracking_number,
-      seller_note,
-      admin_note,
-      orders(
-        id,
-        order_number,
-        customer_name,
-        customer_email,
-        customer_phone,
-        shipping_address,
-        status,
-        payment_status,
-        subtotal,
-        shipping_fee,
-        total,
-        created_at
-      )
-    `)
-    .eq('store_id', store.id)
-    .order('created_at', {ascending:false});
+  const q = await sb.rpc(
+    'get_seller_order_items',
+    {p_store_id: store.id}
+  );
 
-  if(sellerQuery.error) throw sellerQuery.error;
+  if(q.error) throw q.error;
 
-  const sellerRows = sellerQuery.data || [];
+  const raw = q.data || [];
 
-  if(!sellerRows.length){
-
-    window.sellerOrderRows = [];
-
-    $('sOrders').textContent = '0';
-    $('sSales').textContent = money(0);
-    $('oPaid').textContent = '0';
-    $('oProcessing').textContent = '0';
-    $('oShipped').textContent = '0';
-    $('oDone').textContent = '0';
-
-    renderSellerOrders();
-    return;
-  }
-
-  const orderIds = sellerRows
-    .map(x => x.order_id)
-    .filter(Boolean);
-
-  const itemsQuery = await sb
-    .from('order_items')
-    .select(`
-      id,
-      order_id,
-      product_id,
-      product_name,
-      size,
-      quantity,
-      unit_price,
-      line_total,
-      store_id
-    `)
-    .eq('store_id', store.id)
-    .in('order_id', orderIds)
-    .order('created_at', {ascending:false});
-
-  if(itemsQuery.error) throw itemsQuery.error;
-
-  const itemRows = itemsQuery.data || [];
-
-  const sellerMap = new Map();
-
-  sellerRows.forEach(sellerOrder => {
-
-    sellerMap.set(
-      String(sellerOrder.order_id),
-      sellerOrder
-    );
-
-  });
-
-  const rows = [];
-
-  itemRows.forEach(item => {
-
-    const sellerOrder =
-      sellerMap.get(
-        String(item.order_id)
-      );
-
-    if(!sellerOrder) return;
-
-    const baseOrder =
-      sellerOrder.orders || {};
-
-    rows.push({
-
-      id: item.id,
-
-      order_id:
-        item.order_id,
-
-      product_id:
-        item.product_id,
-
-      product_name:
-        item.product_name,
-
-      size:
-        item.size,
-
-      quantity:
-        item.quantity,
-
-      unit_price:
-        item.unit_price,
-
-      line_total:
-        item.line_total,
-
-      store_id:
-        item.store_id,
-
-      seller_id:
-        sellerOrder.seller_id,
-
-      seller_status:
-        sellerOrder.seller_status,
-
-      shipping_status:
-        sellerOrder.shipping_status,
-
-      tracking_number:
-        sellerOrder.tracking_number,
-
-      seller_note:
-        sellerOrder.seller_note,
-
-      admin_note:
-        sellerOrder.admin_note,
-
-      orders: {
-
-        ...baseOrder,
-
-        status:
-          sellerOrder.seller_status ||
-          baseOrder.status,
-
-        payment_status:
-          baseOrder.payment_status
-
-      }
-
-    });
-
-  });
+  const rows = raw.map(x => ({
+    id: x.id,
+    order_id: x.order_id,
+    product_id: x.product_id,
+    product_name: x.product_name,
+    size: x.size,
+    quantity: x.quantity,
+    unit_price: x.unit_price,
+    line_total: x.line_total,
+    store_id: x.store_id,
+    seller_id: x.seller_id,
+    seller_status: x.seller_status,
+    shipping_status: x.shipping_status,
+    tracking_number: x.tracking_number,
+    seller_note: x.seller_note,
+    admin_note: x.admin_note,
+    orders: {
+      id: x.order_id,
+      order_number: x.order_number,
+      customer_name: x.customer_name,
+      customer_email: x.customer_email,
+      customer_phone: x.customer_phone,
+      shipping_address: x.shipping_address,
+      status: x.order_status,
+      payment_status: x.payment_status,
+      subtotal: x.subtotal,
+      shipping_fee: x.shipping_fee,
+      total: x.total,
+      created_at: x.created_at
+    }
+  }));
 
   window.sellerOrderRows = rows;
 
   const byOrder = new Map();
+  rows.forEach(row => byOrder.set(String(row.order_id), row));
+  const ordersOnly = [...byOrder.values()].map(row => row.orders || {});
 
-  rows.forEach(row => {
+  $('sOrders').textContent = String(byOrder.size);
 
-    byOrder.set(
-      row.order_id,
-      row
-    );
+  $('sSales').textContent = money(
+    rows.reduce((sum,row) => sum + (Number(row.line_total)||0), 0)
+  );
 
-  });
+  $('oPaid').textContent = String(
+    ordersOnly.filter(order => order.status === 'paid').length
+  );
 
-  const ordersOnly =
-    [...byOrder.values()]
-      .map(row => row.orders || {});
+  $('oProcessing').textContent = String(
+    ordersOnly.filter(order => order.status === 'processing').length
+  );
 
-  $('sOrders').textContent =
-    String(byOrder.size);
+  $('oShipped').textContent = String(
+    ordersOnly.filter(order => order.status === 'shipped').length
+  );
 
-  $('sSales').textContent =
-    money(
-      rows.reduce(
-        (sum, row) =>
-          sum +
-          (Number(row.line_total) || 0),
-        0
-      )
-    );
-
-  $('oPaid').textContent =
-    String(
-      ordersOnly.filter(
-        order =>
-          order.status === 'paid'
-      ).length
-    );
-
-  $('oProcessing').textContent =
-    String(
-      ordersOnly.filter(
-        order =>
-          order.status === 'processing'
-      ).length
-    );
-
-  $('oShipped').textContent =
-    String(
-      ordersOnly.filter(
-        order =>
-          order.status === 'shipped'
-      ).length
-    );
-
-  $('oDone').textContent =
-    String(
-      ordersOnly.filter(
-        order =>
-          ['delivered','completed']
-            .includes(order.status)
-      ).length
-    );
+  $('oDone').textContent = String(
+    ordersOnly.filter(order => ['delivered','completed'].includes(order.status)).length
+  );
 
   renderSellerOrders();
-
 }
-
 
 function renderSellerOrders(){
 
