@@ -1190,6 +1190,17 @@ function openProductDetail(i){
   const store=p.store||{};
   const storeName=store.name||"KitaWear Store";
   const initial=storeName.trim().charAt(0).toUpperCase()||"K";
+  const detailCategory=String(p.category||"").trim().toLowerCase();
+  const clothingCategories=["t-shirt","tshirt","tee","shirt","kaos","kemeja","jacket","jaket","hoodie","sweater","cardigan","dress","celana","pants","jeans","rok","skirt","pakaian","clothing","apparel","outerwear"];
+  const isClothing=clothingCategories.some(x=>detailCategory===x||detailCategory.includes(x));
+  const detailSizes=[...(p.sizes||[])];
+  if(isClothing){
+    const sizeOrder={M:1,L:2,XL:3,XXL:4};
+    detailSizes.sort((a,b)=>{
+      const aa=String(a).trim().toUpperCase(),bb=String(b).trim().toUpperCase();
+      return (sizeOrder[aa]||99)-(sizeOrder[bb]||99);
+    });
+  }
   const html=`
     <div class="product-detail-grid">
       <div class="product-detail-gallery">
@@ -1202,7 +1213,7 @@ function openProductDetail(i){
         <p class="product-detail-price">${rupiah(p.price)}</p>
         <div class="product-detail-rating"><span>${stars(p.productRating||0)}</span><strong>${p.productRating?Number(p.productRating).toFixed(1):"—"}</strong><span>${Number(p.reviewCount||0)} ulasan produk</span></div>
         <div class="product-detail-section"><h4>Deskripsi</h4><div class="product-detail-desc">${escDetail(p.desc||"Produk KitaWear.")}</div></div>
-        <div class="product-detail-section"><h4>Pilih Ukuran</h4><div id="detailSizes" class="product-detail-sizes">${p.sizes.map((size,j)=>`<button class="product-detail-size ${j===0?"active":""}" type="button" onclick="selectDetailSize(this,'${escDetail(size)}')">${escDetail(size)}</button>`).join("")}</div></div>
+        <div class="product-detail-section"><h4>Pilih Ukuran</h4><div id="detailSizes" class="product-detail-sizes">${detailSizes.map((size,j)=>`<button class="product-detail-size ${j===0?"active":""}" type="button" onclick="selectDetailSize(this,'${escDetail(size)}')">${escDetail(size)}</button>`).join("")}</div></div>
         <div class="product-detail-actions"><button class="product-detail-btn light" type="button" onclick="detailAddToCart()">🛒 Tambah ke Keranjang</button><button class="product-detail-btn dark" type="button" onclick="detailBuyNow()">Beli Sekarang</button></div>
         <div class="seller-card">
           <div class="seller-card-top"><div class="seller-avatar">${escDetail(initial)}</div><div class="seller-meta"><strong>${escDetail(storeName)}</strong><span>${escDetail(store.slug?"@"+store.slug:"Toko KitaWear")} · ${store.description?escDetail(store.description):"Seller KitaWear"}</span></div><div class="seller-rating"><strong id="detailSellerRating">—</strong><span id="detailSellerReviewCount">0 ulasan</span></div></div>
