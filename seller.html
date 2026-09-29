@@ -792,55 +792,6 @@ async function loadOrders(){
 
 }
 
-const q=await sb
-.from('order_items')
-.select(
-'id,order_id,product_name,size,quantity,unit_price,line_total,store_id,orders(id,order_number,customer_name,customer_email,customer_phone,shipping_address,status,payment_status,subtotal,shipping_fee,total,created_at)'
-)
-.eq('store_id',store.id)
-.order('created_at',{ascending:false});
-
-if(q.error)throw q.error;
-
-const rows=q.data||[];
-
-window.sellerOrderRows=rows;
-
-const byOrder=new Map();
-
-rows.forEach(x=>byOrder.set(x.order_id,x));
-
-const ordersOnly=
-[...byOrder.values()]
-.map(x=>x.orders||{});
-
-$('sOrders').textContent=byOrder.size;
-
-$('sSales').textContent=
-money(
-rows.reduce(
-(a,x)=>a+(Number(x.line_total)||0),
-0
-)
-);
-
-$('oPaid').textContent=
-ordersOnly.filter(o=>o.status==='paid').length;
-
-$('oProcessing').textContent=
-ordersOnly.filter(o=>o.status==='processing').length;
-
-$('oShipped').textContent=
-ordersOnly.filter(o=>o.status==='shipped').length;
-
-$('oDone').textContent=
-ordersOnly.filter(
-o=>['delivered','completed'].includes(o.status)
-).length;
-
-renderSellerOrders();
-
-}
 
 function renderSellerOrders(){
 
