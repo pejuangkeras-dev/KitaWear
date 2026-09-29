@@ -1,22 +1,27 @@
 # KitaWear
 
-KitaWear online store with Netlify Functions and Midtrans payment integration.
+KitaWear online marketplace running on **Cloudflare Pages + Cloudflare Pages Functions + Supabase + Midtrans**.
 
 ## Structure
 
-- `index.html` — storefront, cart, checkout, product lightbox
-- `netlify.toml` — tells Netlify to use `netlify/functions`
-- `netlify/functions/config.mjs` — exposes safe Midtrans client configuration
-- `netlify/functions/create-transaction.mjs` — creates Midtrans Snap transactions
-- `netlify/functions/midtrans-notification.mjs` — receives Midtrans notifications
+- `index.html` — storefront, cart, checkout, product lightbox and buyer account
+- `admin.html` — Supabase Auth protected Admin Center
+- `seller.html` — Supabase Auth protected Seller Center
+- `auth-guard.js` — shared Supabase Auth + role guard for protected pages
+- `functions/api/*` — Cloudflare Pages Functions
+- `marketplace_security.sql` — marketplace database/RLS security SQL
 
-## Important
+## Cloudflare environment variables
 
-Do **not** put Midtrans Server Key in this repository. Keep these values in Netlify Environment Variables:
-
+Public/runtime configuration:
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY` (legacy compatible) or migrate the endpoint to a publishable key
 - `MIDTRANS_CLIENT_KEY`
-- `MIDTRANS_SERVER_KEY`
-- `MIDTRANS_IS_PRODUCTION` = `false` for Sandbox
+- `MIDTRANS_IS_PRODUCTION`
 
-The Netlify Functions directory is `netlify/functions`.
-Cloudflare config update
+Server-only:
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `MIDTRANS_SERVER_KEY`
+- any reset/admin secret used by the API
+
+Never expose server-only keys in HTML or client-side JavaScript.

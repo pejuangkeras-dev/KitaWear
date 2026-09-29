@@ -6,6 +6,7 @@
 <title>KitaWear — Admin Center</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth-guard.js"></script>
 
 <style>
 :root{
@@ -1746,20 +1747,13 @@ async function checkSession(){
     return;
   }
 
-  const {
-    data:{
-      session
-    }
-  } =
-    await supabaseClient.auth
-      .getSession();
+  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
 
-  if(!session){
+  if(userError || !userData?.user){
     return;
   }
 
-  currentUser =
-    session.user;
+  currentUser = userData.user;
 
   try{
 

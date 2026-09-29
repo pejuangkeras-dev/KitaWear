@@ -1,13 +1,17 @@
-KITAWear + Midtrans
+KitaWear Payment — Cloudflare Pages
 
-1. Upload this folder/ZIP to Netlify.
-2. In Netlify: Project configuration > Environment variables, add:
-   MIDTRANS_CLIENT_KEY = Client Key dari Midtrans
-   MIDTRANS_SERVER_KEY = Server Key dari Midtrans (RAHASIA, jangan taruh di HTML)
-   MIDTRANS_IS_PRODUCTION = false untuk Sandbox, true untuk pembayaran nyata.
-3. Set variables for Functions/runtime and redeploy after changing them.
-4. Test with Sandbox first.
-5. For production, switch MIDTRANS_IS_PRODUCTION=true and use Production Client/Server Key.
+Required Cloudflare environment variables:
+- SUPABASE_URL
+- SUPABASE_ANON_KEY
+- SUPABASE_SERVICE_ROLE_KEY (server only)
+- MIDTRANS_CLIENT_KEY
+- MIDTRANS_SERVER_KEY (server only)
+- MIDTRANS_IS_PRODUCTION=true|false
 
-Payment endpoint: /.netlify/functions/create-transaction
-Notification endpoint: /.netlify/functions/midtrans-notification
+Payment endpoint:
+/api/create-transaction
+
+Midtrans notification endpoint:
+/api/midtrans-notification
+
+Never place MIDTRANS_SERVER_KEY or SUPABASE_SERVICE_ROLE_KEY in HTML, browser JavaScript, or public configuration.
