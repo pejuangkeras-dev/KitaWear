@@ -78,11 +78,23 @@ export async function onRequestGet(context) {
       "/rest/v1/stores?select=id,name,slug,status&status=eq.active&limit=100"
     );
 
-    const storeIds = Array.isArray(stores)
-      ? stores
-          .map(store => store.id)
-          .filter(Boolean)
-      : [];
+    const storeRows = Array.isArray(stores) ? stores : [];
+
+    const storeIds = storeRows
+      .map(store => store.id)
+      .filter(Boolean);
+
+    const storeById = new Map(
+      storeRows.map(store => [
+        store.id,
+        {
+          id: store.id,
+          name: store.name || "",
+          slug: store.slug || "",
+          status: store.status || ""
+        }
+      ])
+    );
 
     if (!storeIds.length) {
       return json({
@@ -159,6 +171,9 @@ export async function onRequestGet(context) {
         id: product.id,
 
         store_id: product.store_id,
+
+        store:
+          storeById.get(product.store_id) || null,
 
         name: product.name,
 
