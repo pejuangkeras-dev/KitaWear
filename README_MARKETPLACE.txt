@@ -1,4 +1,4 @@
-KitaWear Marketplace — Cloudflare Edition
+MarketKita Marketplace — Cloudflare Edition
 
 Runtime:
 - Cloudflare Pages
