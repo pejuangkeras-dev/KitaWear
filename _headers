@@ -1,0 +1,7 @@
+/seller
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0
+  CDN-Cache-Control: no-store
+
+/seller.html
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0
+  CDN-Cache-Control: no-store
