@@ -1,6 +1,6 @@
-# KitaWear
+# MarketKita
 
-KitaWear online marketplace running on **Cloudflare Pages + Cloudflare Pages Functions + Supabase + Midtrans**.
+MarketKita online marketplace running on **Cloudflare Pages + Cloudflare Pages Functions + Supabase + Midtrans**.
 
 ## Structure
 
