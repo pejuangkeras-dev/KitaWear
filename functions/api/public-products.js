@@ -99,7 +99,7 @@ export async function onRequestGet(context) {
     const products = await supabaseGet(
       supabaseUrl,
       serviceRoleKey,
-      `/rest/v1/products?select=id,store_id,name,price,description,image_url,gallery,colors,status,created_at&status=eq.active&store_id=in.(${encodeURIComponent(storeIdFilter)})&order=created_at.desc`
+      `/rest/v1/products?select=id,store_id,name,price,description,category,image_url,gallery,colors,status,created_at&status=eq.active&store_id=in.(${encodeURIComponent(storeIdFilter)})&order=created_at.desc`
     );
 
     const rows = Array.isArray(products)
@@ -168,6 +168,9 @@ export async function onRequestGet(context) {
 
         description:
           product.description || "",
+
+        category:
+          product.category || "",
 
         image_url:
           product.image_url || "",
