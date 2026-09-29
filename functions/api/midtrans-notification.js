@@ -235,27 +235,43 @@ export async function onRequestPost(context) {
       );
     }
 
-    const mapped = mapMidtransStatus(
-      body?.transaction_status,
-      body?.fraud_status
-    );
+   const mapped = mapMidtransStatus(
+  body?.transaction_status,
+  body?.fraud_status
+);
 
-    await supabaseRequest(
-      supabaseUrl,
-      serviceRoleKey,
-      `/rest/v1/orders?id=eq.${encodeURIComponent(order.id)}`,
-      {
-        method: "PATCH",
-        headers: {
-          Prefer: "return=minimal"
-        },
-        body: JSON.stringify({
-          status: mapped.orderStatus,
-          payment_status: mapped.paymentStatus
-        })
-      }
-    );
+await supabaseRequest(
+  supabaseUrl,
+  serviceRoleKey,
+  `/rest/v1/orders?id=eq.${encodeURIComponent(order.id)}`,
+  {
+    method: "PATCH",
+    headers: {
+      Prefer: "return=minimal"
+    },
+    body: JSON.stringify({
+      status: mapped.orderStatus,
+      payment_status: mapped.paymentStatus
+    })
+  }
+);
 
+// Sinkronkan status pembayaran ke semua seller
+// yang berada di dalam order yang sama.
+await supabaseRequest(
+  supabaseUrl,
+  serviceRoleKey,
+  `/rest/v1/order_sellers?order_id=eq.${encodeURIComponent(order.id)}`,
+  {
+    method: "PATCH",
+    headers: {
+      Prefer: "return=minimal"
+    },
+    body: JSON.stringify({
+      seller_status: mapped.orderStatus
+    })
+  }
+);
     return json({
       ok: true,
       order_id: orderId,
