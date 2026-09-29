@@ -1,4 +1,4 @@
-/* KitaWear — Supabase Auth route guard for Cloudflare Pages */
+/* MarketKita — Supabase Auth route guard for Cloudflare Pages */
 (function () {
   'use strict';
 
