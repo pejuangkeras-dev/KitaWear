@@ -1,31 +1,67 @@
-export async function onRequestGet(context) {
-  const supabaseUrl = context.env.SUPABASE_URL;
-  const supabaseAnonKey = context.env.SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return new Response(
-      JSON.stringify({
-        error: "Konfigurasi Supabase belum tersedia."
-      }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json"
-        }
-      }
-    );
-  }
-
-  return new Response(
-    JSON.stringify({
-      supabaseUrl,
-      supabaseAnonKey
-    }),
-    {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json"
-      }
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store"
     }
-  );
+  });
+}
+
+export async function onRequestGet(context) {
+  try {
+    const env = context.env;
+
+    const supabaseUrl =
+      String(env.SUPABASE_URL || "").trim();
+
+    const supabaseAnonKey =
+      String(env.SUPABASE_ANON_KEY || "").trim();
+
+    const clientKey =
+      String(env.MIDTRANS_CLIENT_KEY || "").trim();
+
+    const isProduction =
+      String(
+        env.MIDTRANS_IS_PRODUCTION || "false"
+      ).toLowerCase() === "true";
+
+    const snapUrl = isProduction
+      ? "https://app.midtrans.com/snap/snap.js"
+      : "https://app.sandbox.midtrans.com/snap/snap.js";
+
+    if (
+      !supabaseUrl ||
+      !supabaseAnonKey ||
+      !clientKey
+    ) {
+      return json({
+        error:
+          "Konfigurasi publik KitaWear belum lengkap."
+      }, 500);
+    }
+
+    return json({
+      supabaseUrl,
+      supabaseAnonKey,
+
+      clientKey,
+      snapUrl,
+
+      midtransProduction:
+        isProduction
+    });
+
+  } catch (error) {
+    console.error(
+      "KitaWear public-config error:",
+      error?.message || error
+    );
+
+    return json({
+      error:
+        error?.message ||
+        "Gagal memuat konfigurasi KitaWear."
+    }, 500);
+  }
 }
