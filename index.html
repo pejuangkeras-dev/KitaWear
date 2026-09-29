@@ -824,6 +824,7 @@ async function loadKitaWearProductsFromDatabase(){
       name:String(p.name || ""),
       price:Number(p.price || 0),
       desc:String(p.description || ""),
+      category:String(p.category || "").trim(),
       badge:"",
       img:String(p.image_url || ""),
       gallery:Array.isArray(p.gallery) && p.gallery.length
@@ -1340,12 +1341,18 @@ function openSizeChoice(i,action="cart"){
   if(!modal||!name||!options||!confirm) return;
 
   name.textContent=p.name;
-  const sizeOrder={XS:1,S:2,M:3,L:4,XL:5,XXL:6,XXXL:7};
-  const orderedSizes=[...(p.sizes||[])].sort((a,b)=>{
-    const aa=String(a).trim().toUpperCase(), bb=String(b).trim().toUpperCase();
-    return (sizeOrder[aa]||99)-(sizeOrder[bb]||99);
-  });
-  options.innerHTML=orderedSizes.map(size=>
+  const category=String(p.category||"").trim().toLowerCase();
+  const clothingCategories=["t-shirt","tshirt","tee","shirt","kaos","kemeja","jacket","jaket","hoodie","sweater","cardigan","dress","celana","pants","jeans","rok","skirt","pakaian","clothing","apparel","outerwear"];
+  const isClothing=clothingCategories.some(x=>category===x || category.includes(x));
+  const displaySizes=isClothing
+    ? [...(p.sizes||[])].sort((a,b)=>{
+        const sizeOrder={XS:1,S:2,M:3,L:4,XL:5,XXL:6,XXXL:7};
+        const aa=String(a).trim().toUpperCase(), bb=String(b).trim().toUpperCase();
+        return (sizeOrder[aa]||99)-(sizeOrder[bb]||99);
+      })
+    : [...(p.sizes||[])];
+
+  options.innerHTML=displaySizes.map(size=>
     `<button class="size-choice-option" type="button" onclick="selectSizeChoice(this,'${escDetail(size)}')">${escDetail(size)}</button>`
   ).join("");
 
