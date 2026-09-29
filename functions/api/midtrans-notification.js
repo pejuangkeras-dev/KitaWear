@@ -289,6 +289,19 @@ await supabaseRequest(
         }
       );
     }
+
+      // Buat payout seller secara idempotent setelah pembayaran paid.
+      await supabaseRequest(
+        supabaseUrl,
+        serviceRoleKey,
+        "/rest/v1/rpc/create_order_payouts",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            p_order_id: order.id
+          })
+        }
+      );
     return json({
       ok: true,
       order_id: orderId,
