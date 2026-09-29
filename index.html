@@ -1189,7 +1189,7 @@ const r=await fetch(`/api/reviews?type=seller&store_id=${encodeURIComponent(stor
     if(list)list.innerHTML=rows.length?rows.map(x=>`<div class="review-item"><div class="review-item-head"><strong>${escDetail(x.reviewer_name||"Pembeli")}</strong><span>${new Date(x.created_at).toLocaleDateString("id-ID")}</span></div><div class="review-stars">${stars(x.rating)}</div><p>${escDetail(x.comment)}</p></div>`).join(""):`<div class="review-empty">Belum ada ulasan seller. Ulasan akan muncul setelah pembeli menyelesaikan pesanan.</div>`;
     if(kwSupabase){
       const session=(await kwSupabase.auth.getSession()).data?.session;
-      const form=document.getElementById("sellerReviewForm"); if(form)form.style.display=session?"block":"none";
+      const form=document.getElementById("sellerReviewForm"); if(form)form.style.display=data.canReview?"block":"none";
     }
   }catch(e){
     if(list)list.innerHTML='<div class="review-empty">Ulasan seller belum tersedia.</div>';
