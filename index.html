@@ -558,6 +558,10 @@ body{background:var(--bg);color:var(--ink)}
                 <div class="profile-readonly" id="profilePhone">Belum ditambahkan</div>
               </div>
               <div class="profile-row">
+                <label>Role Akun</label>
+                <div class="profile-readonly" id="profileRole">BUYER</div>
+              </div>
+              <div class="profile-row">
                 <label>Nama Toko</label>
                 <div class="profile-readonly" id="profileStore">-</div>
               </div>
@@ -1753,6 +1757,7 @@ function populateAccountProfile(){
   set("profileFullName",String(profile?.full_name || user.user_metadata?.full_name || ""));
   setText("profileEmail",user.email || "-");
   setText("profilePhone",String(profile?.phone || user.user_metadata?.phone || "Belum ditambahkan"));
+  setText("profileRole",String(profile?.role || "buyer").toUpperCase());
   setText("profileStore",profile?.role==="seller" || profile?.role==="admin" ? "KitaWear" : "-");
 }
 
