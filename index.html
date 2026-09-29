@@ -1269,7 +1269,7 @@ function detailAddToCart(){
   const i=window.productDetailIndex; const p=products[i]; const size=window.productDetailSize || p.sizes?.[0];
   if(!p||!size)return;
   const existing=cart.find(x=>x.productIndex===i&&x.size===size);
-  if(existing)existing.quantity++;else cart.push({productIndex:i,name:p.name,price:p.price,size,quantity:1});
+  if(existing)existing.quantity++;else cart.push({productIndex:i,product_id:p.id,store_id:p.store_id,name:p.name,price:p.price,size,quantity:1});
   updateCart(); closeProductDetail(); document.getElementById("drawer")?.classList.add("show");
 }
 function detailBuyNow(){detailAddToCart(); document.getElementById("drawer")?.classList.add("show");}
@@ -1396,6 +1396,8 @@ function confirmSizeChoice(){
   if(existing)existing.quantity++;
   else cart.push({
     productIndex:i,
+    product_id:p.id,
+    store_id:p.store_id,
     name:p.name,
     price:p.price,
     size:sizeChoiceSelected,
@@ -1429,6 +1431,8 @@ function addFromProductCard(i){
 
   cart.push({
     productIndex:i,
+    product_id:p.id,
+    store_id:p.store_id,
     name:p.name,
     price:p.price,
     size:"",
@@ -1455,6 +1459,8 @@ function add(i){
   }else{
     cart.push({
       productIndex:i,
+      product_id:products[i].id,
+      store_id:products[i].store_id,
       name:products[i].name,
       price:products[i].price,
       size:size,
@@ -1714,6 +1720,8 @@ async function startPayment(e){
         address:document.getElementById("buyerAddress").value.trim()
       },
       items:cart.map(x=>({
+        product_id:x.product_id || products[x.productIndex]?.id,
+        store_id:x.store_id || products[x.productIndex]?.store_id,
         name:x.name,
         size:x.size,
         quantity:x.quantity
