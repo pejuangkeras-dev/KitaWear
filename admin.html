@@ -1267,6 +1267,28 @@ tr:last-child td{
 </div>
 
 
+
+
+<!-- SELLER REVIEW CONFIRMATION MODAL -->
+<div id="sellerReviewModal" class="modal">
+  <div class="modal-card status-modal-card">
+    <div class="modal-head">
+      <div>
+        <h2 id="sellerReviewTitle">Konfirmasi Pengajuan</h2>
+        <div id="sellerReviewSubtitle" class="muted"></div>
+      </div>
+      <button id="closeSellerReviewBtn" class="close" type="button">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="sellerReviewBody" class="status-current"></div>
+      <div class="modal-actions">
+        <button id="cancelSellerReviewBtn" class="btn" type="button">Batal</button>
+        <button id="confirmSellerReviewBtn" class="btn btn-dark" type="button">Konfirmasi</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- =========================================================
      NOTICE
 ========================================================= -->
@@ -1925,20 +1947,70 @@ function renderSellerApplications(){
     html+='<tr><td><div class="customer">'+escapeHtml(p.full_name||"Tanpa nama")+'</div><div class="muted">'+escapeHtml(p.phone||app.user_id||"—")+'</div><div class="muted">Role: '+escapeHtml(p.role||"—")+'</div></td><td><strong>'+escapeHtml(app.requested_store_name)+'</strong></td><td><span class="muted">'+escapeHtml(app.requested_slug)+'</span></td><td style="max-width:280px">'+escapeHtml(app.description||"—")+'</td><td><span class="status '+statusClass(status)+'">'+escapeHtml(statusLabel(status))+'</span></td><td>'+escapeHtml(formatDate(app.created_at))+'</td><td>'+(status==="pending"?'<div class="actions-cell"><button class="small-btn" type="button" data-approve-seller="'+escapeHtml(app.id)+'">Setujui</button><button class="small-btn" type="button" data-reject-seller="'+escapeHtml(app.id)+'">Tolak</button></div>':'<span class="muted">Sudah diproses</span>')+'</td></tr>';
   });
   html+='</tbody></table></div>'; container.innerHTML=html;
-  container.querySelectorAll("[data-approve-seller]").forEach(b=>b.addEventListener("click",()=>reviewSellerApplication(b.dataset.approveSeller,"approved")));
-  container.querySelectorAll("[data-reject-seller]").forEach(b=>b.addEventListener("click",()=>reviewSellerApplication(b.dataset.rejectSeller,"rejected")));
+  container.querySelectorAll("[data-approve-seller]").forEach(b=>b.addEventListener("click",()=>openSellerReviewModal(b.dataset.approveSeller,"approved")));
+  container.querySelectorAll("[data-reject-seller]").forEach(b=>b.addEventListener("click",()=>openSellerReviewModal(b.dataset.rejectSeller,"rejected")));
 }
 
-async function reviewSellerApplication(applicationId,decision){
-  const app=sellerApplications.find(x=>String(x.id)===String(applicationId)); if(!app)return;
-  const label=decision==="approved"?"MENYETUJUI":"MENOLAK";
-  if(!window.confirm(label+' pengajuan seller "'+(app.requested_store_name||"")+'"?'))return;
+let pendingSellerReview=null;
+
+function openSellerReviewModal(applicationId,decision){
+  const app=sellerApplications.find(x=>String(x.id)===String(applicationId));
+  if(!app)return;
+
+  pendingSellerReview={applicationId,decision};
+
+  const approved=decision==="approved";
+  document.getElementById("sellerReviewTitle").textContent=
+    approved ? "Setujui Pengajuan Seller" : "Tolak Pengajuan Seller";
+  document.getElementById("sellerReviewSubtitle").textContent=
+    approved ? "Akun akan berubah dari buyer menjadi seller." : "Akun akan tetap menjadi buyer.";
+  document.getElementById("sellerReviewBody").innerHTML=
+    "<strong>"+escapeHtml(app.requested_store_name||"Pengajuan Seller")+"</strong><br>"+
+    "<span class=\"muted\">Pemohon: "+escapeHtml(app.profile?.full_name||"Tanpa nama")+"</span><br>"+
+    "<span class=\"muted\">Slug: "+escapeHtml(app.requested_slug||"—")+"</span>";
+
+  const button=document.getElementById("confirmSellerReviewBtn");
+  button.textContent=approved ? "Setujui" : "Tolak";
+  button.className=approved ? "btn btn-dark" : "btn btn-danger";
+
+  document.getElementById("sellerReviewModal").classList.add("show");
+}
+
+function closeSellerReviewModal(){
+  document.getElementById("sellerReviewModal").classList.remove("show");
+  pendingSellerReview=null;
+}
+
+async function reviewSellerApplication(){
+  if(!pendingSellerReview)return;
+
+  const {applicationId,decision}=pendingSellerReview;
+  closeSellerReviewModal();
+
   try{
-    const {data,error}=await supabaseClient.rpc("admin_review_seller_application",{p_application_id:applicationId,p_decision:decision});
-    if(error)throw error; if(!data?.ok)throw new Error("Pengajuan gagal diproses.");
-    showNotice(decision==="approved"?"Pengajuan disetujui. Akun sekarang menjadi seller.":"Pengajuan ditolak. Role akun tetap buyer.","success");
+    const {data,error}=await supabaseClient.rpc(
+      "admin_review_seller_application",
+      {p_application_id:applicationId,p_decision:decision}
+    );
+
+    if(error)throw error;
+    if(!data?.ok)throw new Error("Pengajuan gagal diproses.");
+
+    showNotice(
+      decision==="approved"
+        ? "Pengajuan disetujui. Akun sekarang menjadi seller."
+        : "Pengajuan ditolak. Role akun tetap buyer.",
+      "success"
+    );
+
     await loadSellerApplications();
-  }catch(error){console.error("Review seller application:",error);showNotice(error?.message||"Gagal memproses pengajuan seller.","error");}
+  }catch(error){
+    console.error("Review seller application:",error);
+    showNotice(
+      error?.message||"Gagal memproses pengajuan seller.",
+      "error"
+    );
+  }
 }
 
 /* =========================================================
@@ -2985,6 +3057,13 @@ async function saveOrderStatus(){
 
 document.getElementById("sellerApplicationFilter").addEventListener("change",renderSellerApplications);
 document.getElementById("refreshSellerApplicationsBtn").addEventListener("click",loadSellerApplications);
+
+document.getElementById("closeSellerReviewBtn").addEventListener("click",closeSellerReviewModal);
+document.getElementById("cancelSellerReviewBtn").addEventListener("click",closeSellerReviewModal);
+document.getElementById("confirmSellerReviewBtn").addEventListener("click",reviewSellerApplication);
+document.getElementById("sellerReviewModal").addEventListener("click",event=>{
+  if(event.target.id==="sellerReviewModal") closeSellerReviewModal();
+});
 
 /* =========================================================
    EVENTS
