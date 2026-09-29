@@ -1477,7 +1477,21 @@ function updateCart(){
               : `<label style="font-size:11px;font-weight:800;display:block;margin-bottom:5px">${t("size_label")}</label>
                  <select class="cart-size-select" onchange="setCartItemSize(${i},this.value)">
                    <option value="">Pilih ukuran</option>
-                   ${(products[x.productIndex]?.sizes||[]).map(s=>`<option value="${escDetail(s)}">${escDetail(s)}</option>`).join("")}
+                   ${(()=>{
+  const cp=products[x.productIndex]||{};
+  const cat=String(cp.category||"").trim().toLowerCase();
+  const clothingCategories=["t-shirt","tshirt","tee","shirt","kaos","kemeja","jacket","jaket","hoodie","sweater","cardigan","dress","celana","pants","jeans","rok","skirt","pakaian","clothing","apparel","outerwear"];
+  const isClothing=clothingCategories.some(x=>cat===x||cat.includes(x));
+  const sizes=[...(cp.sizes||[])];
+  if(isClothing){
+    const order={M:1,L:2,XL:3,XXL:4};
+    sizes.sort((a,b)=>{
+      const aa=String(a).trim().toUpperCase(),bb=String(b).trim().toUpperCase();
+      return (order[aa]||99)-(order[bb]||99);
+    });
+  }
+  return sizes.map(s=>`<option value="${escDetail(s)}">${escDetail(s)}</option>`).join("");
+})()}
                  </select>`
             } · ${rupiah(x.price)}
           </div>
