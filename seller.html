@@ -665,26 +665,39 @@ async function loadOrders(){
 function renderSellerOrders(){
 
 const term=
-($('sellerOrderSearch').value||'')
+String($('sellerOrderSearch').value||'')
 .toLowerCase()
 .trim();
 
-const st=$('sellerOrderStatus').value;
+const st=
+String($('sellerOrderStatus').value||'')
+.toLowerCase()
+.trim();
 
-const all=window.sellerOrderRows||[];
+const all=
+Array.isArray(window.sellerOrderRows)
+? window.sellerOrderRows
+: [];
 
 const rows=all.filter(x=>{
 
-const o=x.orders||{};
+const o=x?.orders||{};
+
+const status=
+String(o.status??x.seller_status??'')
+.toLowerCase()
+.trim();
 
 const hay=
+String(
 `${o.order_number||''} ${o.customer_name||''} ${o.customer_email||''} ${x.product_name||''}`
+)
 .toLowerCase();
 
 return
 (!term||hay.includes(term))
 &&
-(!st||o.status===st)
+(!st||status===st);
 
 });
 
@@ -712,7 +725,7 @@ rows.length
 
 ${rows.map(x=>{
 
-const o=x.orders||{};
+const o=x?.orders||{};
 
 return `
 
@@ -751,7 +764,7 @@ ${esc(x.product_name)}
 <td>${money(x.line_total)}</td>
 
 <td>
-${pill(o.status)}
+${pill(o.status||x.seller_status)}
 <br>
 ${pill(o.payment_status)}
 </td>
@@ -766,7 +779,7 @@ Detail
 </button>
 
 ${sellerStatusActions(
-o.status,
+o.status||x.seller_status,
 x.order_id
 )}
 
@@ -785,10 +798,11 @@ x.order_id
 </div>
 `
 :
-'Tidak ada pesanan yang cocok.';
+(all.length
+? 'Pesanan tersedia, tetapi tidak cocok dengan filter yang dipilih.'
+: 'Tidak ada pesanan yang cocok.');
 
 }
-
 async function refreshSellerOrders(){
 
 try{
