@@ -665,51 +665,36 @@ async function loadOrders(){
 
 function renderSellerOrders(){
 
-const term=
-String($('sellerOrderSearch').value||'')
-.toLowerCase()
-.trim();
+const term=String($('sellerOrderSearch').value||'').trim().toLowerCase();
+const st=String($('sellerOrderStatus').value||'').trim().toLowerCase();
 
-const st=
-String($('sellerOrderStatus').value||'')
-.toLowerCase()
-.trim();
-
-const all=
-Array.isArray(window.sellerOrderRows)
+const all=Array.isArray(window.sellerOrderRows)
 ? window.sellerOrderRows
 : [];
 
-const rows=all.filter(x=>{
+let rows=all;
 
+// IMPORTANT: when both controls are visually at their default/empty state,
+// show every loaded order directly. This avoids browser autofill/select
+// state causing a false "no matching orders" result.
+if(term || st){
+rows=all.filter(x=>{
 const o=x?.orders||{};
-
-const status=
-String(o.status??x.seller_status??'')
-.toLowerCase()
-.trim();
-
-const hay=
-String(
+const status=String(o.status??x.seller_status??'').trim().toLowerCase();
+const hay=String(
 `${o.order_number||''} ${o.customer_name||''} ${o.customer_email||''} ${x.product_name||''}`
-)
-.toLowerCase();
+).trim().toLowerCase();
 
-return
-(!term||hay.includes(term))
-&&
-(!st||status===st);
+const matchesSearch=!term || hay.includes(term);
+const matchesStatus=!st || status===st;
 
+return matchesSearch && matchesStatus;
 });
+}
 
-$('orderList').innerHTML=
-rows.length
-?
-`
+$('orderList').innerHTML=rows.length?`
 <div class="tablewrap">
-
 <table class="table">
-
 <thead>
 <tr>
 <th>Order</th>
@@ -721,85 +706,46 @@ rows.length
 <th>Aksi</th>
 </tr>
 </thead>
-
 <tbody>
-
 ${rows.map(x=>{
-
 const o=x?.orders||{};
-
+const status=o.status||x.seller_status||'';
 return `
-
 <tr>
-
 <td>
 <strong>${esc(o.order_number||x.order_id)}</strong>
 <br>
-<small>
-${new Date(
-o.created_at||x.created_at
-).toLocaleString('id-ID')}
-</small>
+<small>${new Date(o.created_at||x.created_at).toLocaleString('id-ID')}</small>
 </td>
-
 <td>
 ${esc(o.customer_name||'—')}
 <br>
-<small>
-${esc(
-o.customer_phone||
-o.customer_email||
-''
-)}
-</small>
+<small>${esc(o.customer_phone||o.customer_email||'')}</small>
 </td>
-
 <td>
 ${esc(x.product_name)}
 <br>
 <small>Size ${esc(x.size)}</small>
 </td>
-
 <td>${x.quantity}</td>
-
 <td>${money(x.line_total)}</td>
-
 <td>
-${pill(o.status||x.seller_status)}
+${pill(status)}
 <br>
 ${pill(o.payment_status)}
 </td>
-
 <td>
-
-<button
-class="btn light"
-onclick="openOrderModal('${x.order_id}')"
->
-Detail
-</button>
-
-${sellerStatusActions(
-o.status||x.seller_status,
-x.order_id
-)}
-
+<button class="btn light" onclick="openOrderModal('${x.order_id}')">Detail</button>
+${sellerStatusActions(status,x.order_id)}
 </td>
-
 </tr>
-
-`
-
+`;
 }).join('')}
-
 </tbody>
-
 </table>
-
 </div>
 `
-:
-(all.length
+: (all.length
 ? 'Pesanan tersedia, tetapi tidak cocok dengan filter yang dipilih.'
 : 'Tidak ada pesanan yang cocok.');
 
