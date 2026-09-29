@@ -1129,6 +1129,15 @@ tr:last-child td{
 
     </div>
 
+  <!-- SELLER APPLICATIONS -->
+  <section class="panel" style="margin-top:26px">
+    <div class="panel-head">
+      <div><h2 class="panel-title">Pengajuan Seller</h2><div class="muted">Tinjau pengajuan akun buyer sebelum menjadi seller.</div></div>
+      <div class="panel-tools"><select id="sellerApplicationFilter" class="select"><option value="pending">Menunggu</option><option value="approved">Disetujui</option><option value="rejected">Ditolak</option><option value="all">Semua</option></select><button id="refreshSellerApplicationsBtn" class="btn" type="button">↻ Refresh</button></div>
+    </div>
+    <div id="sellerApplicationsContainer"><div class="loading">Memuat pengajuan seller...</div></div>
+  </section>
+
   </section>
 
 </div>
@@ -1873,6 +1882,64 @@ async function loadOrders(){
 
 }
 
+
+/* =========================================================
+   SELLER APPLICATIONS
+========================================================= */
+
+let sellerApplications = [];
+
+async function loadSellerApplications(){
+  if(!supabaseClient) return;
+  const container=document.getElementById("sellerApplicationsContainer");
+  container.innerHTML='<div class="loading">Memuat pengajuan seller...</div>';
+  try{
+    const {data,error}=await supabaseClient.from("seller_applications").select("*").order("created_at",{ascending:false});
+    if(error) throw error;
+    sellerApplications=data||[];
+    const userIds=[...new Set(sellerApplications.map(x=>x.user_id).filter(Boolean))];
+    let profiles=[];
+    if(userIds.length){
+      const profileResult=await supabaseClient.from("profiles").select("id,full_name,phone,role").in("id",userIds);
+      if(profileResult.error) throw profileResult.error;
+      profiles=profileResult.data||[];
+    }
+    const profileMap=new Map(profiles.map(x=>[x.id,x]));
+    sellerApplications=sellerApplications.map(x=>({...x,profile:profileMap.get(x.user_id)||null}));
+    renderSellerApplications();
+  }catch(error){
+    console.error("Admin seller applications:",error);
+    container.innerHTML='<div class="error">Gagal memuat pengajuan seller.<br>'+escapeHtml(error?.message||"Unknown error")+'</div>';
+    showNotice(error?.message||"Gagal memuat pengajuan seller.","error");
+  }
+}
+
+function renderSellerApplications(){
+  const container=document.getElementById("sellerApplicationsContainer");
+  const filter=document.getElementById("sellerApplicationFilter").value;
+  const rows=sellerApplications.filter(x=>filter==="all"||x.status===filter);
+  if(!rows.length){container.innerHTML='<div class="empty">Tidak ada pengajuan pada status ini.</div>';return;}
+  let html='<div class="table-wrap"><table><thead><tr><th>Pemohon</th><th>Nama Toko</th><th>Slug</th><th>Deskripsi</th><th>Status</th><th>Diajukan</th><th>Aksi</th></tr></thead><tbody>';
+  rows.forEach(app=>{
+    const p=app.profile||{}; const status=String(app.status||"pending");
+    html+='<tr><td><div class="customer">'+escapeHtml(p.full_name||"Tanpa nama")+'</div><div class="muted">'+escapeHtml(p.phone||app.user_id||"—")+'</div><div class="muted">Role: '+escapeHtml(p.role||"—")+'</div></td><td><strong>'+escapeHtml(app.requested_store_name)+'</strong></td><td><span class="muted">'+escapeHtml(app.requested_slug)+'</span></td><td style="max-width:280px">'+escapeHtml(app.description||"—")+'</td><td><span class="status '+statusClass(status)+'">'+escapeHtml(statusLabel(status))+'</span></td><td>'+escapeHtml(formatDate(app.created_at))+'</td><td>'+(status==="pending"?'<div class="actions-cell"><button class="small-btn" type="button" data-approve-seller="'+escapeHtml(app.id)+'">Setujui</button><button class="small-btn" type="button" data-reject-seller="'+escapeHtml(app.id)+'">Tolak</button></div>':'<span class="muted">Sudah diproses</span>')+'</td></tr>';
+  });
+  html+='</tbody></table></div>'; container.innerHTML=html;
+  container.querySelectorAll("[data-approve-seller]").forEach(b=>b.addEventListener("click",()=>reviewSellerApplication(b.dataset.approveSeller,"approved")));
+  container.querySelectorAll("[data-reject-seller]").forEach(b=>b.addEventListener("click",()=>reviewSellerApplication(b.dataset.rejectSeller,"rejected")));
+}
+
+async function reviewSellerApplication(applicationId,decision){
+  const app=sellerApplications.find(x=>String(x.id)===String(applicationId)); if(!app)return;
+  const label=decision==="approved"?"MENYETUJUI":"MENOLAK";
+  if(!window.confirm(label+' pengajuan seller "'+(app.requested_store_name||"")+'"?'))return;
+  try{
+    const {data,error}=await supabaseClient.rpc("admin_review_seller_application",{p_application_id:applicationId,p_decision:decision});
+    if(error)throw error; if(!data?.ok)throw new Error("Pengajuan gagal diproses.");
+    showNotice(decision==="approved"?"Pengajuan disetujui. Akun sekarang menjadi seller.":"Pengajuan ditolak. Role akun tetap buyer.","success");
+    await loadSellerApplications();
+  }catch(error){console.error("Review seller application:",error);showNotice(error?.message||"Gagal memproses pengajuan seller.","error");}
+}
 
 /* =========================================================
    STATS
@@ -2889,6 +2956,7 @@ async function saveOrderStatus(){
     );
 
     await loadOrders();
+    await loadSellerApplications();
 
   }catch(error){
 
@@ -2914,6 +2982,9 @@ async function saveOrderStatus(){
 
 }
 
+
+document.getElementById("sellerApplicationFilter").addEventListener("change",renderSellerApplications);
+document.getElementById("refreshSellerApplicationsBtn").addEventListener("click",loadSellerApplications);
 
 /* =========================================================
    EVENTS
