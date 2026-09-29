@@ -1161,7 +1161,7 @@ function render(){
         ${p.store?.name?`<div style="font-size:11px;color:#77736c;margin-bottom:9px">🏪 ${p.store.name}</div>`:""}
         <div class="swatches">${p.colors.map(c=>`<span class="sw" style="background:${c}"></span>`).join("")}</div>
         <div class="product-card-actions">
-          <button class="smallbtn product-card-btn" type="button" onclick="event.stopPropagation();openProductDetail(${i})">${t("add_cart")}</button>
+          <button class="smallbtn product-card-btn" type="button" onclick="event.stopPropagation();addFromProductCard(${i})">${t("add_cart")}</button>
           <button class="smallbtn product-card-btn product-card-buy" type="button" onclick="event.stopPropagation();openProductDetail(${i})">Beli Sekarang</button>
         </div>
       </div>
@@ -1412,6 +1412,22 @@ function closeSizeChoice(e){
   sizeChoiceSelected="";
 }
 
+function addFromProductCard(i){
+  const p=products[i];
+  if(!p)return;
+
+  cart.push({
+    productIndex:i,
+    name:p.name,
+    price:p.price,
+    size:"",
+    quantity:1
+  });
+
+  updateCart();
+  document.getElementById("drawer")?.classList.add("show");
+}
+
 function add(i){
   const select=document.getElementById(`size-${i}`);
   const size=select?.value;
@@ -1456,7 +1472,14 @@ function updateCart(){
         <div class="item-content">
           <div class="item-name">${x.name}</div>
           <div class="item-meta">
-            ${t("size_label")}: <strong>${x.size}</strong> · ${rupiah(x.price)}
+            ${x.size
+              ? `${t("size_label")}: <strong>${x.size}</strong>`
+              : `<label style="font-size:11px;font-weight:800;display:block;margin-bottom:5px">${t("size_label")}</label>
+                 <select class="cart-size-select" onchange="setCartItemSize(${i},this.value)">
+                   <option value="">Pilih ukuran</option>
+                   ${(products[x.productIndex]?.sizes||[]).map(s=>`<option value="${escDetail(s)}">${escDetail(s)}</option>`).join("")}
+                 </select>`
+            } · ${rupiah(x.price)}
           </div>
           <div class="item-actions">
             <button class="qtybtn" onclick="changeQty(${i},-1)" aria-label="Kurangi jumlah">−</button>
@@ -1470,6 +1493,27 @@ function updateCart(){
     : `<p style="color:#666">${t("cart_empty")}</p>`;
 
   total.textContent=rupiah(cart.reduce((s,x)=>s+x.price*x.quantity,0));
+}
+
+function setCartItemSize(i,size){
+  if(!cart[i])return;
+  const normalized=String(size||"").trim().toUpperCase();
+  if(!normalized)return;
+
+  const duplicate=cart.findIndex((x,index)=>
+    index!==i &&
+    x.productIndex===cart[i].productIndex &&
+    String(x.size||"").toUpperCase()===normalized
+  );
+
+  if(duplicate>=0){
+    cart[duplicate].quantity+=cart[i].quantity;
+    cart.splice(i,1);
+  }else{
+    cart[i].size=normalized;
+  }
+
+  updateCart();
 }
 
 function changeQty(i,d){
