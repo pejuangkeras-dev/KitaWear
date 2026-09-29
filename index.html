@@ -1340,7 +1340,12 @@ function openSizeChoice(i,action="cart"){
   if(!modal||!name||!options||!confirm) return;
 
   name.textContent=p.name;
-  options.innerHTML=(p.sizes||[]).map(size=>
+  const sizeOrder={XS:1,S:2,M:3,L:4,XL:5,XXL:6,XXXL:7};
+  const orderedSizes=[...(p.sizes||[])].sort((a,b)=>{
+    const aa=String(a).trim().toUpperCase(), bb=String(b).trim().toUpperCase();
+    return (sizeOrder[aa]||99)-(sizeOrder[bb]||99);
+  });
+  options.innerHTML=orderedSizes.map(size=>
     `<button class="size-choice-option" type="button" onclick="selectSizeChoice(this,'${escDetail(size)}')">${escDetail(size)}</button>`
   ).join("");
 
