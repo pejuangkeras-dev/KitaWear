@@ -32,7 +32,7 @@
 <h1>Seller Center</h1>
 <p id="welcome">Memuat akun...</p>
 </div>
-<span class="role">PENJUAL</span>
+<span id="roleBadge" class="role">MEMUAT ROLE...</span>
 </section>
 
 <div id="loading" class="notice">Menghubungkan ke KitaWear...</div>
@@ -330,13 +330,21 @@ cfg.supabaseUrl,
 cfg.supabaseAnonKey
 );
 
-const guard=await window.KWAuth.requireRole(['seller','admin']);
+const guard=await window.KWAuth.requireRole(['buyer','seller','admin']);
 sb=guard.client;
 user=guard.user;
 profile=guard.profile;
 
+const currentRole=String(profile?.role||'buyer').toLowerCase();
+const roleLabel={
+  buyer:'BUYER',
+  seller:'SELLER',
+  admin:'ADMIN'
+}[currentRole] || currentRole.toUpperCase();
+
+$('roleBadge').textContent=roleLabel;
 $('welcome').innerHTML=
-`${esc(profile?.full_name||user.email)} · ${pill(profile?.role||'buyer')}`;
+`${esc(profile?.full_name||user.email)} · ${pill(currentRole)}`;
 
 $('loading').style.display='none';
 
