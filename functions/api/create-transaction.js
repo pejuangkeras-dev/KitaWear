@@ -67,6 +67,26 @@ function safeInteger(value, fallback = 0) {
   return Number.isFinite(n) ? Math.trunc(n) : fallback;
 }
 
+async function getAuthenticatedUser(context, supabaseUrl, anonKey) {
+  const authHeader = context.request.headers.get("Authorization") || "";
+  if (!authHeader.toLowerCase().startsWith("bearer ")) return null;
+
+  const accessToken = authHeader.slice(7).trim();
+  if (!accessToken || !anonKey) return null;
+
+  const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    method: "GET",
+    headers: {
+      apikey: anonKey,
+      Authorization: `Bearer ${accessToken}`
+    }
+  });
+
+  if (!response.ok) return null;
+  const user = await response.json().catch(() => null);
+  return user?.id ? user : null;
+}
+
 async function getProduct(supabaseUrl, serviceRoleKey, raw) {
   const productId = String(raw?.product_id || "").trim();
   const productName = String(raw?.name || "").trim();
@@ -226,6 +246,10 @@ export async function onRequestPost(context) {
       env.SUPABASE_SERVICE_ROLE_KEY || ""
     ).trim();
 
+    const anonKey = String(
+      env.SUPABASE_ANON_KEY || ""
+    ).trim();
+
     const clientKey = String(
       env.MIDTRANS_CLIENT_KEY || ""
     ).trim();
@@ -250,6 +274,12 @@ export async function onRequestPost(context) {
         error: "Konfigurasi Midtrans belum lengkap di Cloudflare."
       }, 500);
     }
+
+    const buyerUser = await getAuthenticatedUser(
+      context,
+      supabaseUrl,
+      anonKey
+    );
 
     const body = await context.request.json();
 
@@ -422,6 +452,9 @@ export async function onRequestPost(context) {
           body: JSON.stringify({
             order_number:
               orderNumber,
+
+            buyer_id:
+              buyerUser?.id || null,
 
             customer_name:
               name,
