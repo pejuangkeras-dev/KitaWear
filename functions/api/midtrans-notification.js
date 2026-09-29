@@ -272,6 +272,23 @@ await supabaseRequest(
     })
   }
 );
+
+    // Kurangi stok hanya setelah pembayaran benar-benar paid.
+    // Fungsi database memiliki guard idempotensi agar notification
+    // Midtrans yang sama tidak mengurangi stok dua kali.
+    if (mapped.paymentStatus === "paid") {
+      await supabaseRequest(
+        supabaseUrl,
+        serviceRoleKey,
+        "/rest/v1/rpc/decrement_order_stock",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            p_order_id: order.id
+          })
+        }
+      );
+    }
     return json({
       ok: true,
       order_id: orderId,
