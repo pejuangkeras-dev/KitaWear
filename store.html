@@ -36,7 +36,7 @@ function renderStore(){
   root.innerHTML=products.length?products.map(p=>'<article class="card"><div class="photo"><img src="'+esc(p.image_url||p.img||"")+'" alt="'+esc(p.name)+'"></div><div class="body"><h3>'+esc(p.name)+'</h3><div class="price">'+rupiah(p.price)+'</div><button class="btn" onclick="goProduct(\''+encodeURIComponent(p.id||"")+'\')">Lihat Produk</button></div></article>').join(""):'<div class="empty" style="grid-column:1/-1">Belum ada produk aktif.</div>';
   document.getElementById("productCount").textContent=products.length+" produk";
 }
-function goProduct(id){location.href="/?product="+id+"#produk";}
+function goProduct(id){location.href="/?store="+encodeURIComponent(slug)+"#produk";}
 async function init(){
   try{
     if(!slug)throw new Error("Slug toko tidak ditemukan.");
