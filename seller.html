@@ -249,6 +249,18 @@ Memuat...
 
 <div class="card wide">
 <h2>Payout</h2>
+<div class="field">
+<label>Ajukan pencairan saldo</label>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<input id="payoutAmount" type="number" min="1" placeholder="Nominal payout">
+<input id="payoutNote" maxlength="500" placeholder="Catatan (opsional)">
+</div>
+</div>
+<div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
+<button class="btn green" type="button" id="requestPayoutBtn">Ajukan Payout</button>
+<span id="payoutRequestMsg" class="msg" style="margin:0"></span>
+</div>
+<div id="payoutRequestList"></div>
 <div id="payoutList" class="empty">Memuat...</div>
 </div>
 
@@ -416,6 +428,7 @@ await Promise.all([
 loadProducts(),
 loadOrders(),
 loadPayouts(),
+loadPayoutRequests(),
 loadSellerChats()
 ])
 }
@@ -1139,6 +1152,37 @@ $('orderModal').classList.remove('show');
 
 }
 
+async function loadPayoutRequests(){
+  const root=$('payoutRequestList');
+  if(!root)return;
+  const q=await sb.from('seller_payout_requests')
+    .select('id,amount,status,note,admin_note,requested_at,reviewed_at,paid_at')
+    .eq('seller_id',user.id).order('requested_at',{ascending:false}).limit(20);
+  if(q.error)throw q.error;
+  const rows=q.data||[];
+  root.innerHTML=rows.length
+    ? '<div class="tablewrap"><table class="table"><thead><tr><th>Nominal</th><th>Status</th><th>Diajukan</th><th>Catatan Admin</th></tr></thead><tbody>'+
+      rows.map(x=>'<tr><td><strong>'+money(x.amount)+'</strong></td><td>'+pill(x.status)+'</td><td>'+new Date(x.requested_at).toLocaleString('id-ID')+'</td><td>'+esc(x.admin_note||'—')+'</td></tr>').join('')+
+      '</tbody></table></div>'
+    : '<div class="notice">Belum ada permintaan payout.</div>';
+}
+
+async function requestSellerPayout(){
+  const amount=Number($('payoutAmount').value);
+  const note=String($('payoutNote').value||'').trim();
+  const msg=$('payoutRequestMsg');
+  if(!Number.isInteger(amount)||amount<=0){msg.textContent='Masukkan nominal payout yang valid.';return;}
+  const btn=$('requestPayoutBtn'); btn.disabled=true; btn.textContent='Mengirim...'; msg.textContent='';
+  try{
+    const q=await sb.rpc('seller_request_payout',{p_amount:amount,p_note:note||null});
+    if(q.error)throw q.error;
+    msg.textContent='Permintaan payout berhasil dikirim ke admin.';
+    $('payoutAmount').value=''; $('payoutNote').value='';
+    await loadPayoutRequests();
+  }catch(e){msg.textContent=e.message||'Gagal mengajukan payout.';}
+  finally{btn.disabled=false;btn.textContent='Ajukan Payout';}
+}
+
 async function loadPayouts(){
 
 const q=await sb
@@ -1225,6 +1269,8 @@ $('sellerOrderStatus')
 'change',
 renderSellerOrders
 );
+
+$('requestPayoutBtn').addEventListener('click',requestSellerPayout);
 
 $('storeForm')
 .addEventListener(
