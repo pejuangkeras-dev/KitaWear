@@ -47,6 +47,8 @@ Akun kamu masih buyer. Ajukan nama toko untuk ditinjau admin.
 Setelah disetujui, menu produk dan pesanan akan terbuka.
 </p>
 
+<div id="applicationStatus" class="notice" style="margin-bottom:14px;display:none"></div>
+
 <form id="applicationForm">
 <div class="field">
 <label>Nama toko</label>
@@ -401,6 +403,7 @@ $('loading').style.display='none';
 
 if(!['seller','admin'].includes(profile?.role)){
 $('buyerPanel').style.display='block';
+await loadSellerApplicationStatus();
 return
 }
 
@@ -424,6 +427,52 @@ $('loading').innerHTML=
 
 }
 
+}
+
+async function loadSellerApplicationStatus(){
+  const statusBox=$('applicationStatus');
+  const form=$('applicationForm');
+  if(!statusBox||!form)return;
+
+  const q=await sb
+    .from('seller_applications')
+    .select('id,requested_store_name,requested_slug,status,created_at,reviewed_at')
+    .eq('user_id',user.id)
+    .order('created_at',{ascending:false})
+    .limit(1)
+    .maybeSingle();
+
+  if(q.error)throw q.error;
+
+  const app=q.data;
+  if(!app){
+    statusBox.style.display='none';
+    form.style.display='block';
+    return;
+  }
+
+  const labels={
+    pending:'Menunggu review admin',
+    approved:'Disetujui',
+    rejected:'Ditolak'
+  };
+  const label=labels[app.status]||app.status;
+
+  statusBox.style.display='block';
+  statusBox.innerHTML=
+    '<strong>Status pengajuan: '+esc(label)+'</strong><br>'+
+    esc(app.requested_store_name||'')+
+    (app.reviewed_at
+      ? '<br><small>Diproses '+new Date(app.reviewed_at).toLocaleString('id-ID')+'</small>'
+      : '<br><small>Dikirim '+new Date(app.created_at).toLocaleString('id-ID')+'</small>');
+
+  if(app.status==='pending'){
+    form.style.display='none';
+  }else if(app.status==='rejected'){
+    form.style.display='block';
+  }else{
+    form.style.display='none';
+  }
 }
 
 async function loadStore(){
@@ -1226,6 +1275,20 @@ $('appMsg').textContent=
 'Mengirim...';
 
 try{
+
+const existing=await sb
+.from('seller_applications')
+.select('id,status')
+.eq('user_id',user.id)
+.eq('status','pending')
+.maybeSingle();
+
+if(existing.error)throw existing.error;
+if(existing.data){
+  $('appMsg').textContent='Pengajuan Anda masih menunggu persetujuan admin.';
+  await loadSellerApplicationStatus();
+  return;
+}
 
 const q=await sb
 .from('seller_applications')
