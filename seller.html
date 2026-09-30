@@ -375,20 +375,11 @@ async function init(){
 
 try{
 
-const r=await fetch(
-'/api/public-config',
-{cache:'no-store'}
-);
-
-const cfg=await r.json();
-
-if(!cfg.supabaseUrl||!cfg.supabaseAnonKey)
-throw Error('Konfigurasi Supabase belum tersedia.');
-
-sb=window.supabase.createClient(
-cfg.supabaseUrl,
-cfg.supabaseAnonKey
-);
+// Gunakan client yang sudah dibuat oleh auth-guard agar Seller Center
+// tidak bergantung pada konfigurasi Midtrans/public-config.
+if(!window.KWAuth?.requireRole){
+  throw Error('Modul autentikasi MarketKita belum termuat.');
+}
 
 const guard=await window.KWAuth.requireRole(['buyer','seller','admin']);
 sb=guard.client;
