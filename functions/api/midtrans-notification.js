@@ -293,7 +293,21 @@ await supabaseRequest(
       );
     }
 
-      // Create seller payout records only after payment is confirmed.
+      // If a paid order is fully refunded, restore its stock exactly once.
+    // restore_order_stock is idempotent via orders.stock_restored_at.
+    if (mapped.paymentStatus === "refunded") {
+      await supabaseRequest(
+        supabaseUrl,
+        serviceRoleKey,
+        "/rest/v1/rpc/restore_order_stock",
+        {
+          method: "POST",
+          body: JSON.stringify({ p_order_id: order.id })
+        }
+      );
+    }
+
+    // Create seller payout records only after payment is confirmed.
     // The payout stays pending until the buyer confirms receipt.
     if (mapped.paymentStatus === "paid") {
       await supabaseRequest(
