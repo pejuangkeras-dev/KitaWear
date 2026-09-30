@@ -361,3 +361,24 @@ begin
 end;$function$;
 revoke execute on function public.create_order_payouts(uuid) from public,anon,authenticated;
 grant execute on function public.create_order_payouts(uuid) to service_role;
+
+create or replace function public.admin_resolve_dispute_service(p_dispute_id uuid,p_resolution text)
+returns jsonb language plpgsql security definer set search_path=''
+as $function$
+declare v_dispute public.disputes%rowtype;
+begin
+  if lower(p_resolution) not in ('resolved_buyer','resolved_seller','closed','reviewing') then raise exception 'Resolusi sengketa tidak valid.'; end if;
+  select * into v_dispute from public.disputes where id=p_dispute_id for update;
+  if not found then raise exception 'Sengketa tidak ditemukan.'; end if;
+  update public.disputes set status=lower(p_resolution),resolved_at=case when lower(p_resolution) in ('resolved_buyer','resolved_seller') then now() else resolved_at end where id=p_dispute_id;
+  if lower(p_resolution)='resolved_buyer' then
+    update public.orders set status='refunded'::public.order_status,payment_status='refunded'::public.payment_status,updated_at=now() where id=v_dispute.order_id;
+    update public.seller_payouts set status='refunded'::public.payout_status where order_id=v_dispute.order_id and status in ('pending','eligible');
+  end if;
+  insert into public.notifications(user_id,type,title,message,link)
+  values(v_dispute.buyer_id,'dispute','Sengketa diperbarui',
+    case lower(p_resolution) when 'resolved_buyer' then 'Refund sengketa telah diproses.' when 'resolved_seller' then 'Sengketa diselesaikan untuk seller.' when 'reviewing' then 'Refund sedang diproses.' else 'Sengketa telah ditutup.' end,'/#akun');
+  return jsonb_build_object('ok',true,'dispute_id',p_dispute_id,'status',lower(p_resolution));
+end;$function$;
+revoke execute on function public.admin_resolve_dispute_service(uuid,text) from public,anon,authenticated;
+grant execute on function public.admin_resolve_dispute_service(uuid,text) to service_role;
