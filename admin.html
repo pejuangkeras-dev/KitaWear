@@ -2088,6 +2088,28 @@ async function loadDisputes(){
 async function resolveDispute(id,resolution){
   let note="";
   if(resolution==="resolved_seller")note=window.prompt("Catatan penyelesaian:")||"";
+  if(resolution==="resolved_buyer"){
+    const reason=window.prompt("Alasan refund ke buyer:")||"Refund sengketa MarketKita";
+    try{
+      const sessionResult=await supabaseClient.auth.getSession();
+      const token=sessionResult?.data?.session?.access_token;
+      if(!token)throw new Error("Session admin tidak ditemukan.");
+      const response=await fetch("/api/admin-refund",{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization":"Bearer "+token
+        },
+        body:JSON.stringify({dispute_id:id,reason})
+      });
+      const data=await response.json().catch(()=>null);
+      if(!response.ok)throw new Error(data?.error||"Refund Midtrans gagal.");
+      showNotice("Refund Midtrans berhasil diminta. Status order diperbarui.","success");
+      await loadDisputes();
+      await loadOrders();
+    }catch(e){showNotice(e.message||"Refund gagal diproses.","error");}
+    return;
+  }
   try{
     const {data,error}=await supabaseClient.rpc("admin_resolve_dispute",{p_dispute_id:id,p_resolution:resolution,p_admin_note:note});
     if(error)throw error;
