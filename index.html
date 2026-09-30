@@ -1321,6 +1321,21 @@ function openProductDetail(i){
     <div class="detail-full-section">
       <h3>Detail Produk</h3>
       <div class="detail-description-box">${escDetail(p.desc||"Belum ada deskripsi tambahan.")}</div>
+      <div id="productReviewSection">
+        <h3>Ulasan Produk</h3>
+        <div id="productReviewSummary" class="seller-review-summary">
+          <div class="seller-review-score"><strong id="productReviewScore">—</strong><span id="productReviewStars">☆☆☆☆☆</span><span id="productReviewCount">0 ulasan</span></div>
+          <div class="review-bars" id="productReviewBars"><div class="review-bar"><span>5★</span><i><b style="width:0%"></b></i><span>0%</span></div><div class="review-bar"><span>4★</span><i><b style="width:0%"></b></i><span>0%</span></div><div class="review-bar"><span>3★</span><i><b style="width:0%"></b></i><span>0%</span></div><div class="review-bar"><span>2★</span><i><b style="width:0%"></b></i><span>0%</span></div><div class="review-bar"><span>1★</span><i><b style="width:0%"></b></i><span>0%</span></div></div>
+        </div>
+        <div id="productReviewForm" class="seller-card" style="margin-top:14px;display:none">
+          <h4 style="margin:0 0 10px">Beri Penilaian Produk</h4>
+          <div id="productReviewStarsInput" style="display:flex;gap:6px;margin-bottom:10px">${[1,2,3,4,5].map(n=>`<button type="button" class="product-detail-size" style="min-width:38px" onclick="chooseProductRating(${n})">${n}★</button>`).join("")}</div>
+          <textarea id="productReviewComment" maxlength="1000" placeholder="Bagaimana kualitas produk ini?" style="width:100%;min-height:90px;border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical"></textarea>
+          <button type="button" class="product-detail-btn dark" style="width:100%;margin-top:10px" onclick="submitProductReview()">Kirim Ulasan Produk</button>
+          <div id="productReviewFormMsg" style="font-size:12px;color:#77736c;margin-top:8px"></div>
+        </div>
+        <div id="productReviewList" class="review-list"><div class="review-empty">Memuat ulasan produk...</div></div>
+      </div>
       <div id="sellerReviewSection">
         <h3>Penilaian & Ulasan Toko</h3>
         <div id="sellerReviewSummary" class="seller-review-summary">
@@ -1345,6 +1360,7 @@ function openProductDetail(i){
   document.body.style.overflow="hidden";
   window.productDetailSize=normalizeProductSize(detailSizes[0]||"");
   chooseSellerRating(5);
+  if(p.id&&p.store_id)loadProductReviewsForDetail(p.id,p.store_id,p.name);
   if(p.store_id)loadSellerReviewsForDetail(p.store_id);
 }
 function openProductDetailById(id){
@@ -1374,6 +1390,42 @@ function detailAddToCart(){
 }
 function detailBuyNow(){detailAddToCart(); document.getElementById("drawer")?.classList.add("show");}
 function scrollProductDetailTo(id){document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"});}
+async function loadProductReviewsForDetail(productId,storeId,productName){
+  const list=document.getElementById("productReviewList");
+  try{
+    const session=(await kwSupabase?.auth.getSession())?.data?.session;
+    const qs=new URLSearchParams({type:"product",product_id:String(productId||""),store_id:String(storeId||"")});
+    const r=await fetch("/api/reviews?"+qs.toString(),{cache:"no-store",headers:session?.access_token?{Authorization:`Bearer ${session.access_token}`}:{}});
+    const data=await r.json();
+    const rows=Array.isArray(data.reviews)?data.reviews:[];
+    const summary=data.summary||{rating:0,count:0};
+    const score=document.getElementById("productReviewScore"); if(score)score.textContent=summary.count?Number(summary.rating).toFixed(1):"—";
+    const starsEl=document.getElementById("productReviewStars"); if(starsEl)starsEl.textContent=stars(summary.rating);
+    const count=document.getElementById("productReviewCount"); if(count)count.textContent=`${summary.count} ulasan`;
+    const bar=document.getElementById("productReviewBars");
+    const bars=[5,4,3,2,1].map(n=>rows.filter(x=>Number(x.rating)===n).length); const total=rows.length||1;
+    if(bar)bar.innerHTML=bars.map((n,i)=>{const pct=Math.round(n/total*100);return `<div class="review-bar"><span>${5-i}★</span><i><b style="width:${pct}%"></b></i><span>${pct}%</span></div>`}).join("");
+    if(list)list.innerHTML=rows.length?rows.map(x=>`<div class="review-item"><div class="review-item-head"><strong>${escDetail(x.reviewer_name||"Pembeli")}</strong><span>${new Date(x.created_at).toLocaleDateString("id-ID")}</span></div><div class="review-stars">${stars(x.rating)}</div><p>${escDetail(x.comment)}</p></div>`).join(""):`<div class="review-empty">Belum ada ulasan produk.</div>`;
+    const form=document.getElementById("productReviewForm"); if(form)form.style.display=data.canReview?"block":"none";
+  }catch(e){if(list)list.innerHTML='<div class="review-empty">Ulasan produk belum tersedia.</div>';}
+}
+let selectedProductRating=5;
+function chooseProductRating(n){selectedProductRating=n;document.querySelectorAll("#productReviewStarsInput button").forEach((b,i)=>b.classList.toggle("active",i<n));}
+async function submitProductReview(){
+  const msg=document.getElementById("productReviewFormMsg"),p=products[window.productDetailIndex];
+  if(!p?.id||!p?.store_id){if(msg)msg.textContent="Produk atau toko tidak ditemukan.";return;}
+  try{
+    const session=(await kwSupabase?.auth.getSession())?.data?.session;
+    if(!session){if(msg)msg.textContent="Silakan login terlebih dahulu.";return;}
+    const comment=document.getElementById("productReviewComment")?.value.trim()||"";
+    if(comment.length<3){if(msg)msg.textContent="Tulis ulasan minimal 3 karakter.";return;}
+    if(msg)msg.textContent="Mengirim ulasan...";
+    const r=await fetch("/api/reviews",{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({type:"product",product_id:p.id,product_name:p.name,store_id:p.store_id,rating:selectedProductRating,comment})});
+    const data=await r.json(); if(!r.ok)throw new Error(data.error||"Gagal mengirim ulasan.");
+    document.getElementById("productReviewComment").value=""; if(msg)msg.textContent="Ulasan produk berhasil dikirim."; await loadProductReviewsForDetail(p.id,p.store_id,p.name);
+  }catch(e){if(msg)msg.textContent=e.message||"Gagal mengirim ulasan.";}
+}
+
 async function loadSellerReviewsForDetail(storeId){
   const list=document.getElementById("sellerReviewList");
   try{
