@@ -1082,8 +1082,8 @@ tr:last-child td{
             Semua status
           </option>
 
-          <option value="pending">
-            Pending
+          <option value="pending_payment">
+            Menunggu Pembayaran
           </option>
 
           <option value="paid">
@@ -1106,9 +1106,7 @@ tr:last-child td{
             Cancelled
           </option>
 
-          <option value="failed">
-            Failed
-          </option>
+          
 
           <option value="refunded">
             Refunded
@@ -2749,9 +2747,9 @@ function closeOrderDetail(){
 const ADMIN_STATUS_OPTIONS = [
 
   {
-    value:"pending",
-    title:"Pending",
-    desc:"Pesanan baru menunggu pembayaran atau tindakan."
+    value:"pending_payment",
+    title:"Menunggu Pembayaran",
+    desc:"Pesanan dibuat tetapi pembayaran belum diterima."
   },
 
   {
@@ -2773,6 +2771,12 @@ const ADMIN_STATUS_OPTIONS = [
   },
 
   {
+    value:"delivered",
+    title:"Diterima",
+    desc:"Pesanan sudah sampai dan menunggu konfirmasi selesai."
+  },
+
+  {
     value:"completed",
     title:"Selesai",
     desc:"Pesanan sudah selesai diterima."
@@ -2782,12 +2786,6 @@ const ADMIN_STATUS_OPTIONS = [
     value:"cancelled",
     title:"Dibatalkan",
     desc:"Pesanan dibatalkan."
-  },
-
-  {
-    value:"failed",
-    title:"Gagal",
-    desc:"Pembayaran atau transaksi gagal."
   },
 
   {
