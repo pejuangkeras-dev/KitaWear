@@ -220,3 +220,144 @@ grant execute on function public.is_admin() to authenticated;
 
 revoke execute on function public.is_seller_or_admin() from public,anon;
 grant execute on function public.is_seller_or_admin() to authenticated;
+
+
+-- Financial/dispute/review hardening additions applied on 2026-10-01.
+create table if not exists public.seller_payout_requests (
+  id uuid primary key default gen_random_uuid(),
+  seller_id uuid not null references public.profiles(id),
+  amount integer not null check (amount > 0),
+  status text not null default 'pending' check (status in ('pending','approved','rejected','paid')),
+  note text,
+  admin_note text,
+  requested_at timestamptz not null default now(),
+  reviewed_at timestamptz,
+  paid_at timestamptz
+);
+alter table public.seller_payout_requests enable row level security;
+drop policy if exists payout_requests_seller_select on public.seller_payout_requests;
+create policy payout_requests_seller_select on public.seller_payout_requests for select to authenticated using (seller_id=(select auth.uid()) or public.is_admin());
+drop policy if exists payout_requests_admin_all on public.seller_payout_requests;
+create policy payout_requests_admin_all on public.seller_payout_requests for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+create or replace function public.seller_request_payout(p_amount integer,p_note text default null)
+returns jsonb language plpgsql security definer set search_path=''
+as $function$
+declare v_user uuid := (select auth.uid()); v_available integer; v_request uuid;
+begin
+  if v_user is null then raise exception 'Anda harus login.'; end if;
+  if not exists(select 1 from public.profiles where id=v_user and role='seller') then raise exception 'Akses ditolak. Akun bukan seller.'; end if;
+  if p_amount is null or p_amount<=0 then raise exception 'Nominal payout tidak valid.'; end if;
+  select coalesce(sum(net_amount),0)::integer into v_available from public.seller_payouts where seller_id=v_user and status='eligible';
+  if p_amount>v_available then raise exception 'Saldo tersedia tidak mencukupi. Saldo tersedia: %',v_available; end if;
+  if exists(select 1 from public.seller_payout_requests where seller_id=v_user and status in ('pending','approved')) then raise exception 'Masih ada permintaan payout yang sedang diproses.'; end if;
+  insert into public.seller_payout_requests(seller_id,amount,note) values(v_user,p_amount,left(nullif(trim(coalesce(p_note,'')),''),500)) returning id into v_request;
+  return jsonb_build_object('ok',true,'request_id',v_request,'amount',p_amount,'available',v_available);
+end;$function$;
+
+create or replace function public.admin_review_payout_request(p_request_id uuid,p_decision text,p_admin_note text default null)
+returns jsonb language plpgsql security definer set search_path=''
+as $function$
+declare v_req public.seller_payout_requests%rowtype; v_consumed integer:=0; v_payout record;
+begin
+  if not public.is_admin() then raise exception 'Akses ditolak: hanya admin.'; end if;
+  if lower(p_decision) not in ('approved','rejected','paid') then raise exception 'Keputusan payout tidak valid.'; end if;
+  select * into v_req from public.seller_payout_requests where id=p_request_id for update;
+  if not found then raise exception 'Permintaan payout tidak ditemukan.'; end if;
+  if lower(p_decision)='approved' and v_req.status<>'pending' then raise exception 'Hanya payout pending yang dapat disetujui.'; end if;
+  if lower(p_decision)='rejected' and v_req.status not in ('pending','approved') then raise exception 'Payout sudah selesai diproses.'; end if;
+  if lower(p_decision)='paid' and v_req.status<>'approved' then raise exception 'Payout harus disetujui sebelum ditandai paid.'; end if;
+
+  if lower(p_decision)='paid' then
+    for v_payout in select id,net_amount from public.seller_payouts where seller_id=v_req.seller_id and status='eligible' order by created_at,id for update loop
+      if v_consumed+v_payout.net_amount<=v_req.amount then
+        update public.seller_payouts set status='paid',paid_at=now() where id=v_payout.id;
+        v_consumed:=v_consumed+v_payout.net_amount;
+      end if;
+      exit when v_consumed=v_req.amount;
+    end loop;
+    if v_consumed<>v_req.amount then raise exception 'Saldo eligible tidak dapat dicocokkan tepat dengan nominal payout.'; end if;
+  end if;
+
+  update public.seller_payout_requests set status=lower(p_decision),admin_note=left(nullif(trim(coalesce(p_admin_note,'')),''),1000),reviewed_at=case when lower(p_decision) in ('approved','rejected') then now() else reviewed_at end,paid_at=case when lower(p_decision)='paid' then now() else paid_at end where id=p_request_id;
+  insert into public.notifications(user_id,type,title,message,link) values(v_req.seller_id,'payout',case lower(p_decision) when 'approved' then 'Payout disetujui' when 'paid' then 'Payout dibayar' else 'Payout ditolak' end,case lower(p_decision) when 'approved' then 'Permintaan payout Anda telah disetujui.' when 'paid' then 'Payout Anda telah ditandai sebagai dibayar.' else 'Permintaan payout Anda ditolak.' end,'/seller.html');
+  return jsonb_build_object('ok',true,'request_id',p_request_id,'status',lower(p_decision));
+end;$function$;
+
+create or replace function public.admin_resolve_dispute(p_dispute_id uuid,p_resolution text,p_admin_note text default null)
+returns jsonb language plpgsql security definer set search_path=''
+as $function$
+declare v_dispute public.disputes%rowtype;
+begin
+  if not public.is_admin() then raise exception 'Akses ditolak: hanya admin.'; end if;
+  if lower(p_resolution) not in ('resolved_buyer','resolved_seller','closed') then raise exception 'Resolusi sengketa tidak valid.'; end if;
+  select * into v_dispute from public.disputes where id=p_dispute_id for update;
+  if not found then raise exception 'Sengketa tidak ditemukan.'; end if;
+  update public.disputes set status=lower(p_resolution),resolved_at=case when lower(p_resolution) in ('resolved_buyer','resolved_seller') then now() else resolved_at end where id=p_dispute_id;
+  if lower(p_resolution)='resolved_buyer' then
+    update public.orders set status='refunded'::public.order_status,payment_status='refunded'::public.payment_status,updated_at=now() where id=v_dispute.order_id;
+    update public.seller_payouts set status='refunded'::public.payout_status where order_id=v_dispute.order_id and status in ('pending','eligible');
+  end if;
+  insert into public.notifications(user_id,type,title,message,link) values(v_dispute.buyer_id,'dispute','Sengketa diperbarui',case lower(p_resolution) when 'resolved_buyer' then 'Sengketa Anda diselesaikan untuk pembeli.' when 'resolved_seller' then 'Sengketa Anda diselesaikan untuk seller.' else 'Sengketa Anda telah ditutup.' end,'/#akun');
+  return jsonb_build_object('ok',true,'dispute_id',p_dispute_id,'status',lower(p_resolution));
+end;$function$;
+
+create or replace function public.buyer_create_product_review(p_order_item_id uuid,p_rating integer,p_comment text default null)
+returns jsonb language plpgsql security definer set search_path=''
+as $function$
+declare v_user uuid := (select auth.uid()); v_item record; v_id uuid;
+begin
+  if v_user is null then raise exception 'Anda harus login.'; end if;
+  if p_rating not between 1 and 5 then raise exception 'Rating harus 1 sampai 5.'; end if;
+  select oi.*,o.buyer_id,o.status as order_status into v_item from public.order_items oi join public.orders o on o.id=oi.order_id where oi.id=p_order_item_id and o.buyer_id=v_user;
+  if not found then raise exception 'Item order tidak ditemukan.'; end if;
+  if v_item.order_status<>'completed'::public.order_status then raise exception 'Review hanya dapat diberikan setelah pesanan selesai.'; end if;
+  if exists(select 1 from public.product_reviews where order_id=v_item.order_id and product_id=v_item.product_id and reviewer_id=v_user) then raise exception 'Produk ini sudah Anda review untuk pesanan tersebut.'; end if;
+  insert into public.product_reviews(reviewer_id,reviewer_name,order_id,store_id,product_id,product_name,rating,comment) select v_user,p.full_name,v_item.order_id,v_item.store_id,v_item.product_id,v_item.product_name,p_rating,left(nullif(trim(coalesce(p_comment,'')),''),1000) from public.profiles p where p.id=v_user returning id into v_id;
+  return jsonb_build_object('ok',true,'review_id',v_id);
+end;$function$;
+
+create or replace function public.buyer_create_seller_review(p_order_id uuid,p_store_id uuid,p_rating integer,p_comment text)
+returns jsonb language plpgsql security definer set search_path=''
+as $function$
+declare v_user uuid := (select auth.uid()); v_id uuid; v_name text;
+begin
+  if v_user is null then raise exception 'Anda harus login.'; end if;
+  if p_rating not between 1 and 5 then raise exception 'Rating harus 1 sampai 5.'; end if;
+  if char_length(trim(coalesce(p_comment,''))) not between 3 and 1000 then raise exception 'Komentar harus 3-1000 karakter.'; end if;
+  if not exists(select 1 from public.orders o join public.order_items oi on oi.order_id=o.id where o.id=p_order_id and o.buyer_id=v_user and o.status='completed'::public.order_status and oi.store_id=p_store_id) then raise exception 'Anda belum memiliki transaksi selesai dengan toko ini.'; end if;
+  if exists(select 1 from public.seller_reviews where order_id=p_order_id and store_id=p_store_id and reviewer_id=v_user) then raise exception 'Toko ini sudah Anda review untuk pesanan tersebut.'; end if;
+  select full_name into v_name from public.profiles where id=v_user;
+  insert into public.seller_reviews(reviewer_id,reviewer_name,order_id,store_id,rating,comment) values(v_user,coalesce(v_name,'Pembeli'),p_order_id,p_store_id,p_rating,trim(p_comment)) returning id into v_id;
+  return jsonb_build_object('ok',true,'review_id',v_id);
+end;$function$;
+
+revoke execute on function public.seller_request_payout(integer,text) from public,anon;
+grant execute on function public.seller_request_payout(integer,text) to authenticated;
+revoke execute on function public.admin_review_payout_request(uuid,text,text) from public,anon;
+grant execute on function public.admin_review_payout_request(uuid,text,text) to authenticated;
+revoke execute on function public.admin_resolve_dispute(uuid,text,text) from public,anon;
+grant execute on function public.admin_resolve_dispute(uuid,text,text) to authenticated;
+revoke execute on function public.buyer_create_product_review(uuid,integer,text) from public,anon;
+grant execute on function public.buyer_create_product_review(uuid,integer,text) to authenticated;
+revoke execute on function public.buyer_create_seller_review(uuid,uuid,integer,text) from public,anon;
+grant execute on function public.buyer_create_seller_review(uuid,uuid,integer,text) to authenticated;
+
+create or replace function public.create_order_payouts(p_order_id uuid)
+returns void language plpgsql security definer set search_path=''
+as $function$
+declare v_order record; v_item record; v_store record; v_seller_split record; v_item_fee integer;
+begin
+  select id,payment_status into v_order from public.orders where id=p_order_id for update;
+  if not found then raise exception 'Order tidak ditemukan.'; end if;
+  if v_order.payment_status<>'paid' then raise exception 'Payout hanya dapat dibuat untuk order paid.'; end if;
+  for v_item in select oi.id,oi.order_id,oi.store_id,oi.line_total from public.order_items oi where oi.order_id=p_order_id order by oi.id loop
+    select s.id,s.owner_id into v_store from public.stores s where s.id=v_item.store_id and s.status='active';
+    if not found then raise exception 'Toko untuk item order tidak ditemukan atau tidak aktif.'; end if;
+    select os.subtotal,os.platform_fee into v_seller_split from public.order_sellers os where os.order_id=p_order_id and os.store_id=v_item.store_id limit 1;
+    v_item_fee:=case when coalesce(v_seller_split.subtotal,0)>0 then floor((coalesce(v_seller_split.platform_fee,0)::numeric*v_item.line_total::numeric)/v_seller_split.subtotal::numeric)::integer else 0 end;
+    insert into public.seller_payouts(order_item_id,seller_id,store_id,order_id,gross_amount,platform_fee,net_amount,status) values(v_item.id,v_store.owner_id,v_item.store_id,p_order_id,v_item.line_total,v_item_fee,greatest(0,v_item.line_total-v_item_fee),'pending') on conflict(order_item_id) do update set seller_id=excluded.seller_id,store_id=excluded.store_id,gross_amount=excluded.gross_amount,platform_fee=excluded.platform_fee,net_amount=excluded.net_amount where seller_payouts.status='pending';
+  end loop;
+end;$function$;
+revoke execute on function public.create_order_payouts(uuid) from public,anon,authenticated;
+grant execute on function public.create_order_payouts(uuid) to service_role;
