@@ -2770,26 +2770,84 @@ async function claimVoucher(id){
 }
 let activeChatThread=null,activeChatStore=null;
 async function openSellerChat(){
-  if(!kwCurrentUser){showKwNotice("Silakan masuk untuk chat seller.","Login diperlukan");return;}
+  if(!kwCurrentUser){
+    showKwNotice("Silakan masuk terlebih dahulu untuk membuka chat seller.","Login diperlukan");
+    return;
+  }
+
   const p=products[window.productDetailIndex];
-  if(!p?.store_id){showKwNotice("Data toko produk tidak tersedia.","Chat Seller");return;}
-  activeChatStore=p.store_id;
-  const store=p.store||{};
-  document.getElementById("chatTitle").textContent="Chat "+(store.name||"Seller");
-  const {data:storeRow}=await kwSupabase.from("stores").select("id,owner_id,name").eq("id",p.store_id).maybeSingle();
-  if(!storeRow?.owner_id){showKwNotice("Seller tidak ditemukan.","Chat Seller");return;}
-  const existing=await kwSupabase.from("chat_threads").select("*").eq("buyer_id",kwCurrentUser.id).eq("store_id",p.store_id).maybeSingle();
+  const storeId=p?.store_id || p?.store?.id;
+  if(!storeId){
+    showKwNotice("Data toko produk tidak tersedia.","Chat Seller");
+    return;
+  }
+
+  activeChatStore=storeId;
+  const store=p?.store || {};
+  const chatModal=document.getElementById("chatModal");
+  const chatTitle=document.getElementById("chatTitle");
+
+  if(chatTitle) chatTitle.textContent="Chat "+(store.name||"Seller");
+
+  const {data:storeRow,error:storeError}=await kwSupabase
+    .from("stores")
+    .select("id,owner_id,name")
+    .eq("id",storeId)
+    .maybeSingle();
+
+  if(storeError){
+    showKwNotice(storeError.message||"Gagal mengambil data seller.","Chat Seller");
+    return;
+  }
+  if(!storeRow?.owner_id){
+    showKwNotice("Seller tidak ditemukan.","Chat Seller");
+    return;
+  }
+
+  const existing=await kwSupabase
+    .from("chat_threads")
+    .select("*")
+    .eq("buyer_id",kwCurrentUser.id)
+    .eq("store_id",storeId)
+    .maybeSingle();
+
+  if(existing.error){
+    showKwNotice(existing.error.message||"Gagal membuka chat seller.","Chat Seller");
+    return;
+  }
+
   let thread=existing.data;
   if(!thread){
-    const created=await kwSupabase.from("chat_threads").insert({buyer_id:kwCurrentUser.id,seller_id:storeRow.owner_id,store_id:p.store_id}).select("*").single();
-    if(created.error){showKwNotice(created.error.message,"Chat Seller");return;}
+    const created=await kwSupabase
+      .from("chat_threads")
+      .insert({
+        buyer_id:kwCurrentUser.id,
+        seller_id:storeRow.owner_id,
+        store_id:storeId
+      })
+      .select("*")
+      .single();
+
+    if(created.error){
+      showKwNotice(created.error.message||"Chat seller gagal dibuka.","Chat Seller");
+      return;
+    }
     thread=created.data;
   }
+
   activeChatThread=thread;
-  document.getElementById("chatModal").classList.add("show");
-  document.getElementById("chatModal").setAttribute("aria-hidden","false");
+
+  // Tutup detail produk agar pelanggan langsung berpindah ke tampilan chat.
+  closeProductDetail();
+
+  if(chatModal){
+    chatModal.classList.add("show");
+    chatModal.setAttribute("aria-hidden","false");
+  }
+
   await loadChatMessages();
-  document.getElementById("chatInput")?.focus();
+  const input=document.getElementById("chatInput");
+  input?.focus();
 }
 async function loadChatMessages(){
   const root=document.getElementById("chatMessages");if(!root||!activeChatThread)return;
