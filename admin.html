@@ -1136,6 +1136,22 @@ tr:last-child td{
     <div id="sellerApplicationsContainer"><div class="loading">Memuat pengajuan seller...</div></div>
   </section>
 
+  <section class="panel" style="margin-top:26px">
+    <div class="panel-head">
+      <div><h2 class="panel-title">Payout Seller</h2><div class="muted">Kelola permintaan pencairan saldo seller.</div></div>
+      <button id="refreshPayoutRequestsBtn" class="btn" type="button">↻ Refresh</button>
+    </div>
+    <div id="payoutRequestsContainer"><div class="loading">Memuat payout...</div></div>
+  </section>
+
+  <section class="panel" style="margin-top:26px">
+    <div class="panel-head">
+      <div><h2 class="panel-title">Sengketa Pesanan</h2><div class="muted">Tinjau dan selesaikan sengketa buyer.</div></div>
+      <button id="refreshDisputesBtn" class="btn" type="button">↻ Refresh</button>
+    </div>
+    <div id="disputesContainer"><div class="loading">Memuat sengketa...</div></div>
+  </section>
+
   </section>
 
 </div>
@@ -2002,6 +2018,8 @@ async function reviewSellerApplication(){
     );
 
     await loadSellerApplications();
+    await loadPayoutRequests();
+    await loadDisputes();
   }catch(error){
     console.error("Review seller application:",error);
     showNotice(
@@ -2009,6 +2027,75 @@ async function reviewSellerApplication(){
       "error"
     );
   }
+}
+
+async function loadPayoutRequests(){
+  const root=document.getElementById("payoutRequestsContainer");
+  if(!root)return;
+  root.innerHTML='<div class="loading">Memuat payout...</div>';
+  try{
+    const {data,error}=await supabaseClient
+      .from("seller_payout_requests")
+      .select("id,seller_id,amount,status,note,admin_note,requested_at,reviewed_at,paid_at")
+      .order("requested_at",{ascending:false});
+    if(error)throw error;
+    const rows=data||[];
+    if(!rows.length){root.innerHTML='<div class="empty">Belum ada permintaan payout.</div>';return;}
+    root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Seller</th><th>Nominal</th><th>Status</th><th>Diajukan</th><th>Catatan</th><th>Aksi</th></tr></thead><tbody>'+
+      rows.map(x=>'<tr><td>'+escapeHtml(String(x.seller_id).slice(0,8))+'</td><td><strong>'+formatRupiah(x.amount)+'</strong></td><td><span class="status '+statusClass(x.status)+'">'+escapeHtml(x.status)+'</span></td><td>'+escapeHtml(formatDate(x.requested_at))+'</td><td>'+escapeHtml(x.note||x.admin_note||"—")+'</td><td>'+
+      (x.status==="pending"
+        ? '<button class="small-btn" onclick="reviewPayoutRequest(\''+x.id+'\',\'approved\')">Setujui</button> <button class="small-btn" onclick="reviewPayoutRequest(\''+x.id+'\',\'rejected\')">Tolak</button>'
+        : x.status==="approved"
+          ? '<button class="small-btn" onclick="reviewPayoutRequest(\''+x.id+'\',\'paid\')">Tandai Dibayar</button>'
+          : '<span class="muted">Selesai</span>')+
+      '</td></tr>').join('')+
+      '</tbody></table></div>';
+  }catch(e){root.innerHTML='<div class="error">'+escapeHtml(e.message||"Gagal memuat payout.")+'</div>';}
+}
+
+async function reviewPayoutRequest(id,decision){
+  const note=decision==="rejected"?window.prompt("Alasan penolakan payout:")||"": "";
+  try{
+    const {data,error}=await supabaseClient.rpc("admin_review_payout_request",{p_request_id:id,p_decision:decision,p_admin_note:note});
+    if(error)throw error;
+    if(!data?.ok)throw new Error("Payout gagal diproses.");
+    showNotice("Payout berhasil diperbarui.","success");
+    await loadPayoutRequests();
+  }catch(e){showNotice(e.message||"Gagal memproses payout.","error");}
+}
+
+async function loadDisputes(){
+  const root=document.getElementById("disputesContainer");
+  if(!root)return;
+  root.innerHTML='<div class="loading">Memuat sengketa...</div>';
+  try{
+    const {data,error}=await supabaseClient.from("disputes")
+      .select("id,order_id,buyer_id,reason,description,status,created_at,resolved_at")
+      .order("created_at",{ascending:false});
+    if(error)throw error;
+    const rows=data||[];
+    if(!rows.length){root.innerHTML='<div class="empty">Belum ada sengketa.</div>';return;}
+    root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Order</th><th>Alasan</th><th>Detail</th><th>Status</th><th>Dibuat</th><th>Aksi</th></tr></thead><tbody>'+
+      rows.map(x=>'<tr><td>'+escapeHtml(String(x.order_id).slice(0,8))+'</td><td>'+escapeHtml(x.reason||"—")+'</td><td style="max-width:300px">'+escapeHtml(x.description||"—")+'</td><td><span class="status '+statusClass(x.status)+'">'+escapeHtml(x.status)+'</span></td><td>'+escapeHtml(formatDate(x.created_at))+'</td><td>'+
+      (["open","reviewing"].includes(x.status)
+        ? '<button class="small-btn" onclick="resolveDispute(\''+x.id+'\',\'resolved_buyer\')">Refund Buyer</button> <button class="small-btn" onclick="resolveDispute(\''+x.id+'\',\'resolved_seller\')">Untuk Seller</button> <button class="small-btn" onclick="resolveDispute(\''+x.id+'\',\'closed\')">Tutup</button>'
+        : '<span class="muted">Selesai</span>')+
+      '</td></tr>').join('')+
+      '</tbody></table></div>';
+  }catch(e){root.innerHTML='<div class="error">'+escapeHtml(e.message||"Gagal memuat sengketa.")+'</div>';}
+}
+
+async function resolveDispute(id,resolution){
+  let note="";
+  if(resolution==="resolved_seller")note=window.prompt("Catatan penyelesaian:")||"";
+  try{
+    const {data,error}=await supabaseClient.rpc("admin_resolve_dispute",{p_dispute_id:id,p_resolution:resolution,p_admin_note:note});
+    if(error)throw error;
+    if(!data?.ok)throw new Error("Sengketa gagal diproses.");
+    showNotice("Sengketa berhasil diperbarui.","success");
+    await loadDisputes();
+    await loadOrders();
+  }catch(e){showNotice(e.message||"Gagal menyelesaikan sengketa.","error");}
 }
 
 /* =========================================================
@@ -3054,6 +3141,8 @@ async function saveOrderStatus(){
 
 
 document.getElementById("sellerApplicationFilter").addEventListener("change",renderSellerApplications);
+document.getElementById("refreshPayoutRequestsBtn").addEventListener("click",loadPayoutRequests);
+document.getElementById("refreshDisputesBtn").addEventListener("click",loadDisputes);
 document.getElementById("refreshSellerApplicationsBtn").addEventListener("click",loadSellerApplications);
 
 document.getElementById("closeSellerReviewBtn").addEventListener("click",closeSellerReviewModal);
