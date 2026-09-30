@@ -535,7 +535,9 @@ body{background:var(--bg);color:var(--ink)}
       <input id="buyerAddress" required>
     </div>
 
-    <div class="total-row" style="padding:12px 0 16px">
+    <div class="field" style="margin-top:12px"><label for="checkoutVoucher">Voucher</label><div style="display:flex;gap:8px"><input id="checkoutVoucher" placeholder="Masukkan voucher yang sudah diklaim" style="flex:1"><button type="button" class="smallbtn" style="width:110px" onclick="validateCheckoutVoucher()">Terapkan</button></div><div id="checkoutVoucherMessage" style="font-size:11px;color:#777;margin-top:6px"></div></div>
+
+<div class="total-row" style="padding:12px 0 16px">
       <strong data-i18n="total">Total</strong>
       <strong id="checkoutTotal">Rp0</strong>
     </div>
@@ -1759,6 +1761,19 @@ async function prefillBuyerCheckout(){
   }
 }
 
+async function validateCheckoutVoucher(){
+  const code=String(document.getElementById("checkoutVoucher")?.value||"").trim().toUpperCase();
+  const msg=document.getElementById("checkoutVoucherMessage");
+  if(!code){window.marketCheckoutVoucherId=null;if(msg)msg.textContent="Masukkan kode voucher.";return;}
+  if(!kwSupabase||!kwCurrentUser){if(msg)msg.textContent="Login diperlukan untuk menggunakan voucher.";return;}
+  const {data,error}=await kwSupabase.from("vouchers").select("id,code,title,discount_type,discount_value,min_order_amount,max_discount,usage_limit,used_count,starts_at,expires_at,active").eq("code",code).eq("active",true).maybeSingle();
+  if(error||!data){window.marketCheckoutVoucherId=null;if(msg)msg.textContent="Voucher tidak ditemukan.";return;}
+  const claim=await kwSupabase.from("user_vouchers").select("id,used_at").eq("voucher_id",data.id).eq("user_id",kwCurrentUser.id).maybeSingle();
+  if(claim.error||!claim.data){window.marketCheckoutVoucherId=null;if(msg)msg.textContent="Klaim voucher ini dari Voucher Saya terlebih dahulu.";return;}
+  if(claim.data.used_at){window.marketCheckoutVoucherId=null;if(msg)msg.textContent="Voucher sudah digunakan.";return;}
+  window.marketCheckoutVoucherId=data.id;
+  if(msg)msg.textContent="Voucher "+data.code+" siap digunakan. Nilai akhir akan dihitung server.";
+}
 function openCheckout(){
   if(!cart.length){
     showKwNotice(t("notice_empty"),t("notice_empty_title"));
@@ -1774,6 +1789,10 @@ function openCheckout(){
       <span>${rupiah(x.price*x.quantity)}</span>
     </div>
   `).join("");
+
+  window.marketCheckoutVoucherId=null;
+  const voucherInput=document.getElementById("checkoutVoucher");if(voucherInput)voucherInput.value="";
+  const voucherMsg=document.getElementById("checkoutVoucherMessage");if(voucherMsg)voucherMsg.textContent="";
 
   document.getElementById("checkoutTotal").textContent=
     rupiah(cart.reduce((s,x)=>s+x.price*x.quantity,0));
@@ -1866,7 +1885,8 @@ async function startPayment(e){
         name:x.name,
         size:x.size,
         quantity:x.quantity
-      }))
+      })),
+      voucher_id:window.marketCheckoutVoucherId || null
     };
 
     const res=await fetch("/api/create-transaction",{
