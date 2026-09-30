@@ -342,7 +342,27 @@ body{background:var(--bg);color:var(--ink)}
 .buyer-order-detail-grid span,.buyer-seller-shipment span{font-size:10px;color:#77736c}
 .buyer-order-detail-grid strong{font-size:12px}
 .buyer-seller-shipment{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;padding:10px;background:#f7f5f0;border-radius:10px;font-size:11px}
-@media(max-width:600px){.orders-refresh{margin-left:0}.buyer-order-head,.buyer-order-foot{align-items:flex-start;flex-direction:column}.buyer-order-detail-grid{grid-template-columns:1fr}}
+.buyer-tracking{margin-top:14px;padding:15px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.buyer-tracking-title{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:13px}
+.buyer-tracking-title strong{font-size:12px}.buyer-tracking-title span{font-size:10px;color:#77736c}
+.buyer-tracking-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.buyer-tracking-step{position:relative;text-align:center;padding:0 5px}
+.buyer-tracking-step:not(:last-child)::after{content:"";position:absolute;top:11px;left:50%;width:100%;height:2px;background:#ded9cf;z-index:0}
+.buyer-tracking-step.done:not(:last-child)::after{background:#2f6b4f}
+.buyer-tracking-dot{position:relative;z-index:1;width:24px;height:24px;border-radius:50%;margin:0 auto 7px;background:#eeeae3;color:#77736c;display:grid;place-items:center;font-size:10px;font-weight:900;border:2px solid #eeeae3}
+.buyer-tracking-step.done .buyer-tracking-dot{background:#2f6b4f;color:#fff;border-color:#2f6b4f}
+.buyer-tracking-step.current .buyer-tracking-dot{box-shadow:0 0 0 4px #e5eee8}
+.buyer-tracking-step strong{display:block;font-size:10px;line-height:1.25}.buyer-tracking-step span{display:block;font-size:9px;color:#77736c;margin-top:3px;line-height:1.3}
+.buyer-tracking-info{display:flex;gap:10px;flex-wrap:wrap;margin-top:13px}
+.buyer-tracking-chip{padding:8px 10px;border-radius:9px;background:#f7f5f0;font-size:11px}.buyer-tracking-chip strong{margin-left:4px}
+.buyer-order-confirm{width:100%;height:42px;margin-top:12px;border:0;border-radius:10px;background:#171817;color:#fff;font-size:12px;font-weight:900}.buyer-order-confirm:disabled{opacity:.55}
+@media(max-width:600px){
+  .orders-refresh{margin-left:0}.buyer-order-head,.buyer-order-foot{align-items:flex-start;flex-direction:column}.buyer-order-detail-grid{grid-template-columns:1fr}
+  .buyer-tracking-steps{grid-template-columns:1fr}
+  .buyer-tracking-step{text-align:left;display:grid;grid-template-columns:30px 1fr;column-gap:8px;align-items:start;padding:4px 0}
+  .buyer-tracking-step:not(:last-child)::after{left:11px;top:28px;width:2px;height:calc(100% - 8px)}
+  .buyer-tracking-dot{margin:0}
+}
 </style>
 </style>
 </head>
@@ -2304,45 +2324,59 @@ function filterBuyerOrders(filter){
   renderBuyerOrders();
 }
 
+function buyerTrackingSteps(order){
+  const status=String(order?.status||"pending_payment");
+  const steps=[
+    {key:"paid",label:"Pembayaran",time:order?.paid_at},
+    {key:"processing",label:"Diproses",time:order?.processing_at},
+    {key:"shipped",label:"Dikirim",time:order?.shipped_at},
+    {key:"completed",label:"Selesai",time:order?.completed_at||order?.delivered_at}
+  ];
+  const rank={pending_payment:0,paid:1,processing:2,shipped:3,delivered:4,completed:4,cancelled:-1,refunded:-1,disputed:-1};
+  const current=rank[status] ?? 0;
+  return steps.map((step,index)=>{
+    const done=current>=index+1;
+    const active=current===index+1 && status!=="completed";
+    const time=step.time ? new Date(step.time).toLocaleString("id-ID",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "";
+    return `<div class="buyer-tracking-step ${done?"done":""} ${active?"current":""}"><div class="buyer-tracking-dot">${done?"✓":index+1}</div><div><strong>${step.label}</strong><span>${time||"Menunggu"}</span></div></div>`;
+  }).join("");
+}
+
+async function confirmBuyerOrder(orderId){
+  if(!kwSupabase || !kwCurrentUser)return;
+  if(!window.confirm("Konfirmasi bahwa pesanan sudah diterima?"))return;
+  try{
+    const {data,error}=await kwSupabase.rpc("buyer_confirm_order_received",{p_order_id:orderId});
+    if(error)throw error;
+    if(!data?.ok)throw new Error("Pesanan tidak dapat dikonfirmasi.");
+    showKwNotice("Pesanan berhasil dikonfirmasi dan ditandai selesai.","Pesanan Diterima");
+    await loadBuyerOrders();
+  }catch(error){
+    showKwNotice(error.message||"Gagal mengonfirmasi pesanan.","Pesanan Diterima");
+  }
+}
+
 function renderBuyerOrders(){
   const root=document.getElementById("buyerOrdersList");
   if(!root)return;
-  const rows=buyerOrderFilter==="all"
-    ? buyerOrdersCache
-    : buyerOrdersCache.filter(x=>x.status===buyerOrderFilter);
-  if(!rows.length){
-    root.innerHTML='<div class="account-empty">Belum ada pesanan pada status ini.</div>';
-    return;
-  }
+  const rows=buyerOrderFilter==="all" ? buyerOrdersCache : buyerOrdersCache.filter(x=>x.status===buyerOrderFilter);
+  if(!rows.length){root.innerHTML='<div class="account-empty">Belum ada pesanan pada status ini.</div>';return;}
   root.innerHTML=rows.map(order=>{
     const items=Array.isArray(order.items)?order.items:[];
     const sellers=Array.isArray(order.sellers)?order.sellers:[];
     const sellerNames=sellers.map(s=>s.store_id).filter(Boolean).length;
+    const trackingNumbers=[...new Set(sellers.map(s=>String(s.tracking_number||"").trim()).filter(Boolean))];
+    const canConfirm=order.status==="shipped";
+    const trackingInfo=trackingNumbers.length ? trackingNumbers.map(x=>escDetail(x)).join(" · ") : "Belum tersedia";
     return `<article class="buyer-order-card">
-      <div class="buyer-order-head">
-        <div><strong>${escDetail(order.order_number)}</strong><span>${new Date(order.created_at).toLocaleString("id-ID")}</span></div>
-        <span class="buyer-order-status ${buyerOrderStatusClass(order.status)}">${buyerOrderStatusLabel(order.status)}</span>
-      </div>
-      <div class="buyer-order-items">
-        ${items.map(item=>`<div class="buyer-order-item"><div><strong>${escDetail(item.product_name)}</strong><span>Ukuran ${escDetail(item.size)} · Qty ${item.quantity}</span></div><strong>${rupiah(item.line_total)}</strong></div>`).join("")}
-      </div>
-      <div class="buyer-order-foot">
-        <span>${sellerNames} toko · ${items.length} item</span>
-        <strong>Total ${rupiah(order.total)}</strong>
-      </div>
-      <details class="buyer-order-detail"><summary>Lihat detail pesanan</summary>
-        <div class="buyer-order-detail-grid">
-          <div><span>Pembayaran</span><strong>${escDetail(order.payment_status||"-")}</strong></div>
-          <div><span>Alamat</span><strong>${escDetail(order.shipping_address||"-")}</strong></div>
-          <div><span>Nomor WhatsApp</span><strong>${escDetail(order.customer_phone||"-")}</strong></div>
-          <div><span>Dibuat</span><strong>${new Date(order.created_at).toLocaleString("id-ID")}</strong></div>
-        </div>
-        ${sellers.map(s=>`<div class="buyer-seller-shipment"><strong>Pengiriman Seller</strong><span>Status: ${escDetail(s.shipping_status||"-")}</span><span>Resi: ${escDetail(s.tracking_number||"Belum tersedia")}</span></div>`).join("")}
-      </details>
+      <div class="buyer-order-head"><div><strong>${escDetail(order.order_number)}</strong><span>${new Date(order.created_at).toLocaleString("id-ID")}</span></div><span class="buyer-order-status ${buyerOrderStatusClass(order.status)}">${buyerOrderStatusLabel(order.status)}</span></div>
+      <div class="buyer-order-items">${items.map(item=>`<div class="buyer-order-item"><div><strong>${escDetail(item.product_name)}</strong><span>Ukuran ${escDetail(item.size)} · Qty ${item.quantity}</span></div><strong>${rupiah(item.line_total)}</strong></div>`).join("")}</div>
+      <div class="buyer-order-foot"><span>${sellerNames} toko · ${items.length} item</span><strong>Total ${rupiah(order.total)}</strong></div>
+      <div class="buyer-tracking"><div class="buyer-tracking-title"><strong>Lacak Pesanan</strong><span>${trackingNumbers.length?`${trackingNumbers.length} resi`:"Resi belum tersedia"}</span></div><div class="buyer-tracking-steps">${buyerTrackingSteps(order)}</div><div class="buyer-tracking-info"><div class="buyer-tracking-chip">Status Pengiriman<strong>${escDetail(order.shipping_status||sellers[0]?.shipping_status||"Menunggu")}</strong></div><div class="buyer-tracking-chip">Resi<strong>${trackingInfo}</strong></div></div>${canConfirm?`<button class="buyer-order-confirm" type="button" onclick="confirmBuyerOrder('${escDetail(order.id)}')">✓ Pesanan Diterima</button>`:""}</div>
+      <details class="buyer-order-detail"><summary>Lihat detail pesanan</summary><div class="buyer-order-detail-grid"><div><span>Pembayaran</span><strong>${escDetail(order.payment_status||"-")}</strong></div><div><span>Alamat</span><strong>${escDetail(order.shipping_address||"-")}</strong></div><div><span>Nomor WhatsApp</span><strong>${escDetail(order.customer_phone||"-")}</strong></div><div><span>Dibuat</span><strong>${new Date(order.created_at).toLocaleString("id-ID")}</strong></div></div>${sellers.map(s=>`<div class="buyer-seller-shipment"><strong>Pengiriman Seller</strong><span>Status: ${escDetail(s.shipping_status||"-")}</span><span>Resi: ${escDetail(s.tracking_number||"Belum tersedia")}</span></div>`).join("")}</details>
     </article>`;
   }).join("");
 }
-
 async function loadBuyerOrders(){
   const root=document.getElementById("buyerOrdersList");
   if(!root)return;
