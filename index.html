@@ -1224,6 +1224,9 @@ function stars(rating){
   const n=Math.max(0,Math.min(5,Number(rating||0)));
   return "★".repeat(Math.round(n))+"☆".repeat(5-Math.round(n));
 }
+function normalizeProductSize(size){
+  return String(size ?? "").trim().toUpperCase();
+}
 function productStoreProducts(storeId){
   return products.filter(x=>x.store_id && x.store_id===storeId);
 }
@@ -1238,13 +1241,11 @@ function openProductDetail(i){
   const detailCategory=String(p.category||"").trim().toLowerCase();
   const clothingCategories=["t-shirt","tshirt","tee","shirt","kaos","kemeja","jacket","jaket","hoodie","sweater","cardigan","dress","celana","pants","jeans","rok","skirt","pakaian","clothing","apparel","outerwear"];
   const isClothing=clothingCategories.some(x=>detailCategory===x||detailCategory.includes(x));
-  const detailSizes=[...(p.sizes||[])];
+  let detailSizes=[...(p.sizes||[])].map(normalizeProductSize).filter(Boolean);
+  detailSizes=[...new Set(detailSizes)];
   if(isClothing){
     const sizeOrder={M:1,L:2,XL:3,XXL:4};
-    detailSizes.sort((a,b)=>{
-      const aa=String(a).trim().toUpperCase(),bb=String(b).trim().toUpperCase();
-      return (sizeOrder[aa]||99)-(sizeOrder[bb]||99);
-    });
+    detailSizes.sort((a,b)=>(sizeOrder[a]||99)-(sizeOrder[b]||99));
   }
   const html=`
     <div class="product-detail-grid">
@@ -1291,7 +1292,7 @@ function openProductDetail(i){
   const modal=document.getElementById("productDetailModal");
   modal.classList.add("show"); modal.setAttribute("aria-hidden","false");
   document.body.style.overflow="hidden";
-  window.productDetailSize=p.sizes?.[0]||"";
+  window.productDetailSize=normalizeProductSize(detailSizes[0]||"");
   chooseSellerRating(5);
   if(p.store_id)loadSellerReviewsForDetail(p.store_id);
 }
@@ -1307,13 +1308,16 @@ function setProductDetailImage(j,e){
   document.querySelectorAll(".product-detail-thumb").forEach((el,k)=>el.classList.toggle("active",k===j));
 }
 function selectDetailSize(button,size){
-  document.querySelectorAll(".product-detail-size").forEach(x=>x.classList.remove("active"));
-  button.classList.add("active"); window.productDetailSize=size;
+  document.querySelectorAll("#detailSizes .product-detail-size").forEach(x=>x.classList.remove("active"));
+  button.classList.add("active");
+  window.productDetailSize=normalizeProductSize(size);
 }
 function detailAddToCart(){
-  const i=window.productDetailIndex; const p=products[i]; const size=window.productDetailSize || p.sizes?.[0];
+  const i=window.productDetailIndex;
+  const p=products[i];
+  const size=normalizeProductSize(window.productDetailSize || p.sizes?.[0]);
   if(!p||!size)return;
-  const existing=cart.find(x=>x.productIndex===i&&x.size===size);
+  const existing=cart.find(x=>x.productIndex===i&&normalizeProductSize(x.size)===size);
   if(existing)existing.quantity++;else cart.push({productIndex:i,product_id:p.id,store_id:p.store_id,name:p.name,price:p.price,size,quantity:1});
   updateCart(); closeProductDetail(); document.getElementById("drawer")?.classList.add("show");
 }
@@ -1437,7 +1441,8 @@ function confirmSizeChoice(){
   const p=products[i];
   if(!p)return;
 
-  const existing=cart.find(x=>x.productIndex===i&&x.size===sizeChoiceSelected);
+  sizeChoiceSelected=normalizeProductSize(sizeChoiceSelected);
+  const existing=cart.find(x=>x.productIndex===i&&normalizeProductSize(x.size)===sizeChoiceSelected);
   if(existing)existing.quantity++;
   else cart.push({
     productIndex:i,
@@ -1490,7 +1495,7 @@ function addFromProductCard(i){
 
 function add(i){
   const select=document.getElementById(`size-${i}`);
-  const size=select?.value;
+  const size=normalizeProductSize(select?.value);
 
   if(!size){
     showKwNotice(t("notice_size",{name:products[i].name}),t("notice_required"));
@@ -1498,7 +1503,7 @@ function add(i){
     return;
   }
 
-  const existing=cart.find(x=>x.productIndex===i && x.size===size);
+  const existing=cart.find(x=>x.productIndex===i && normalizeProductSize(x.size)===size);
   if(existing){
     existing.quantity++;
   }else{
