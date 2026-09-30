@@ -159,79 +159,30 @@ export async function onRequestGet({request,env}){
 
     let canReview=false
 
-    if(
-      type==="seller" &&
-      storeId &&
-      anon &&
-      token
-    ){
-
-      const user=await getUser(
-        url,
-        anon,
-        token
-      )
-
+    if(storeId && anon && token){
+      const user=await getUser(url,anon,token)
       if(user?.email){
-
-        const orders=await sbFetch(
-          url,
-          key,
-          `/rest/v1/orders`+
-          `?select=id,status,customer_email`+
-          `&customer_email=eq.${encodeURIComponent(user.email)}`+
-          `&status=in.(delivered,completed)`+
-          `&limit=100`
-        )
-
-        const orderIds=
-          (Array.isArray(orders)?orders:[])
-          .map(x=>x.id)
-          .filter(Boolean)
-
+        const orders=await sbFetch(url,key,
+          `/rest/v1/orders?select=id,status,customer_email&customer_email=eq.${encodeURIComponent(user.email)}&status=in.(delivered,completed)&limit=100`)
+        const orderIds=(Array.isArray(orders)?orders:[]).map(x=>x.id).filter(Boolean)
         if(orderIds.length){
-
-          const items=await sbFetch(
-            url,
-            key,
-            `/rest/v1/order_items`+
-            `?select=id,order_id,store_id`+
-            `&store_id=eq.${encodeURIComponent(storeId)}`+
-            `&order_id=in.(${orderIds.join(",")})`+
-            `&limit=500`
-          )
-
-          const matches=
-            (Array.isArray(items)?items:[])
-            .filter(x=>orderIds.includes(x.order_id))
-
+          const itemPath=
+            `/rest/v1/order_items?select=id,order_id,store_id,product_id,product_name&store_id=eq.${encodeURIComponent(storeId)}`+
+            (type==="product" ? `&product_id=eq.${encodeURIComponent(productId)}` : "")+
+            `&order_id=in.(${orderIds.join(",")})&limit=500`
+          const items=await sbFetch(url,key,itemPath)
+          const matches=(Array.isArray(items)?items:[]).filter(x=>type==="seller" || (productId && x.product_id===productId))
           if(matches.length){
-
-            const existing=await sbFetch(
-              url,
-              key,
-              `/rest/v1/seller_reviews`+
-              `?select=id,order_id`+
-              `&reviewer_id=eq.${encodeURIComponent(user.id)}`+
-              `&store_id=eq.${encodeURIComponent(storeId)}`+
-              `&order_id=in.(${orderIds.join(",")})`+
-              `&limit=100`
-            )
-
-            const reviewedOrderIds=new Set(
-              (Array.isArray(existing)?existing:[])
-              .map(x=>x.order_id)
-              .filter(Boolean)
-            )
-
-            canReview=matches.some(
-              x=>!reviewedOrderIds.has(x.order_id)
-            )
+            const existingPath=type==="product"
+              ? `/rest/v1/product_reviews?select=id,order_id&reviewer_id=eq.${encodeURIComponent(user.id)}&product_id=eq.${encodeURIComponent(productId)}&order_id=in.(${orderIds.join(",")})&limit=100`
+              : `/rest/v1/seller_reviews?select=id,order_id&reviewer_id=eq.${encodeURIComponent(user.id)}&store_id=eq.${encodeURIComponent(storeId)}&order_id=in.(${orderIds.join(",")})&limit=100`
+            const existing=await sbFetch(url,key,existingPath)
+            const reviewed=new Set((Array.isArray(existing)?existing:[]).map(x=>x.order_id).filter(Boolean))
+            canReview=matches.some(x=>!reviewed.has(x.order_id))
           }
         }
       }
     }
-
     return json({
       reviews:rows,
       summary:{
