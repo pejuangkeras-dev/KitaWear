@@ -2725,6 +2725,9 @@ document.addEventListener("keydown",e=>{
   }
 });
 
+document.addEventListener("input",function(e){if(e.target.id==="marketplaceSearch"){marketFilters.query=e.target.value;render();}if(e.target.id==="marketplaceMin"||e.target.id==="marketplaceMax"){marketFilters[e.target.id==="marketplaceMin"?"min":"max"]=e.target.value;render();}});
+document.addEventListener("change",function(e){if(e.target.id==="marketplaceCategory"||e.target.id==="marketplaceStore"||e.target.id==="marketplaceSort"){marketFilters[e.target.id==="marketplaceCategory"?"category":e.target.id==="marketplaceStore"?"store":"sort"]=e.target.value;render();}});
+document.addEventListener("click",function(e){if(e.target.id==="clearMarketplaceFilters"){marketFilters={query:"",category:"",store:"",min:"",max:"",sort:"default"};render();}});
 document.addEventListener("DOMContentLoaded",async()=>{
   const langSelect=document.getElementById("LanguageSelect");
   if(langSelect) langSelect.value=currentLang;
