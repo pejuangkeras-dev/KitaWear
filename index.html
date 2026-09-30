@@ -2735,6 +2735,8 @@ document.addEventListener("DOMContentLoaded",async()=>{
   if(langSelect) langSelect.value=currentLang;
 
   await loadMarketKitaProductsFromDatabase();
+  const storeParam=new URLSearchParams(location.search).get("store");
+  if(storeParam)marketFilters.store=storeParam;
   populateMarketplaceFilters();
   applyLanguage(currentLang);
   updateCart();
