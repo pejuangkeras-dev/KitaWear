@@ -321,7 +321,7 @@ body{background:var(--bg);color:var(--ink)}
 .order-filter,.orders-refresh{border:1px solid var(--line);background:#fffdf9;border-radius:999px;padding:9px 13px;font-size:12px;font-weight:800}
 .order-filter.active{background:#171817;color:#fff;border-color:#171817}
 .orders-refresh{margin-left:auto}
-.buyer-orders-list{display:grid;gap:12px}
+.buyer-orders-list{display:grid;gap:12px}.buyer-address-list{display:grid;gap:12px}.buyer-address-card{background:#fffdf9;border:1px solid #e4ded5;border-radius:16px;padding:16px}.buyer-address-card.is-default{border-color:#171817;box-shadow:0 8px 22px rgba(23,24,23,.06)}.buyer-address-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.buyer-address-head strong{font-size:14px}.buyer-address-badge{font-size:10px;font-weight:900;border-radius:999px;padding:6px 9px;background:#171817;color:#fff}.buyer-address-card p{margin:8px 0 0;color:#5f5b54;font-size:12px;line-height:1.6}.buyer-address-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.buyer-address-actions button{border:1px solid #d8d1c6;background:#fff;border-radius:9px;padding:8px 11px;font-size:11px;font-weight:800;cursor:pointer}.buyer-address-actions button.primary{background:#171817;color:#fff;border-color:#171817}.buyer-address-form{background:#fffdf9;border:1px solid #e4ded5;border-radius:20px;padding:20px;margin-bottom:16px}.buyer-address-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.buyer-address-grid .full{grid-column:1/-1}.buyer-address-form label{display:block;font-size:11px;font-weight:800;margin-bottom:6px}.buyer-address-form input{width:100%;box-sizing:border-box;border:1px solid #d8d1c6;border-radius:10px;padding:11px 12px;background:#fff;font-size:13px}.buyer-address-check{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px}.buyer-address-check input{width:auto}.buyer-address-form-actions{display:flex;gap:8px;margin-top:15px}.buyer-address-form-actions button{border:0;border-radius:10px;padding:10px 14px;font-size:11px;font-weight:900;cursor:pointer}.buyer-address-form-actions .save{background:#171817;color:#fff}.buyer-address-form-actions .cancel{background:#eeeae3;color:#444}@media(max-width:600px){.buyer-address-grid{grid-template-columns:1fr}.buyer-address-grid .full{grid-column:auto}}
 .buyer-order-card{border:1px solid var(--line);border-radius:16px;background:#fffdf9;padding:16px}
 .buyer-order-head,.buyer-order-foot{display:flex;justify-content:space-between;gap:12px;align-items:center}
 .buyer-order-head>div{display:flex;flex-direction:column;gap:4px}
@@ -679,7 +679,7 @@ body{background:var(--bg);color:var(--ink)}
               </div>
               <div class="profile-row">
                 <label>Nomor Telepon</label>
-                <div class="profile-readonly" id="profilePhone">Belum ditambahkan</div>
+                <div><input id="profilePhone" type="tel" autocomplete="tel" placeholder="08xxxxxxxxxx"><small>Nomor ini dapat digunakan untuk kontak dan pengiriman.</small></div>
               </div>
               <div class="profile-row">
                 <label>Role Akun</label>
@@ -744,7 +744,24 @@ body{background:var(--bg);color:var(--ink)}
           <div id="accountSection-orders" class="account-section"><div class="account-page-head"><div><h3>Pesanan Saya</h3><p>Riwayat pesanan dan status pengiriman Anda.</p></div><button type="button" class="orders-refresh" onclick="loadBuyerOrders()">↻ Muat Ulang</button></div><div class="order-filter-row"><button class="order-filter active" data-order-filter="all" onclick="filterBuyerOrders('all')">Semua</button><button class="order-filter" data-order-filter="pending_payment" onclick="filterBuyerOrders('pending_payment')">Belum Bayar</button><button class="order-filter" data-order-filter="processing" onclick="filterBuyerOrders('processing')">Diproses</button><button class="order-filter" data-order-filter="shipped" onclick="filterBuyerOrders('shipped')">Dikirim</button><button class="order-filter" data-order-filter="completed" onclick="filterBuyerOrders('completed')">Selesai</button></div><div id="buyerOrdersList" class="buyer-orders-list"><div class="account-empty">Memuat pesanan...</div></div></div>
           <div id="accountSection-alerts" class="account-section"><div class="account-page-head"><h3>Notifikasi</h3><p>Informasi penting mengenai akun dan pesanan Anda.</p></div><div class="account-empty">Belum ada notifikasi baru.</div></div>
           <div id="accountSection-bank" class="account-section"><div class="account-page-head"><h3>Bank &amp; Kartu</h3><p>Simpan metode pembayaran untuk penggunaan berikutnya.</p></div><div class="account-empty">Belum ada kartu atau rekening yang ditambahkan.</div></div>
-          <div id="accountSection-address" class="account-section"><div class="account-page-head"><h3>Alamat</h3><p>Alamat pengiriman Anda.</p></div><div class="account-empty">Belum ada alamat yang ditambahkan.</div></div>
+          <div id="accountSection-address" class="account-section">
+            <div class="account-page-head"><div><h3>Alamat</h3><p>Simpan beberapa alamat pengiriman dan tentukan alamat utama untuk checkout.</p></div><button type="button" class="orders-refresh" onclick="openBuyerAddressForm()">＋ Tambah Alamat</button></div>
+            <div id="buyerAddressForm" class="buyer-address-form" style="display:none">
+              <div class="buyer-address-grid">
+                <div><label for="addressLabel">Label</label><input id="addressLabel" value="Rumah" maxlength="40"></div>
+                <div><label for="addressRecipient">Nama Penerima</label><input id="addressRecipient" maxlength="100" autocomplete="name"></div>
+                <div><label for="addressPhone">Nomor WhatsApp</label><input id="addressPhone" type="tel" maxlength="30" autocomplete="tel"></div>
+                <div><label for="addressPostal">Kode Pos</label><input id="addressPostal" maxlength="10" inputmode="numeric"></div>
+                <div class="full"><label for="addressLine">Alamat Lengkap</label><input id="addressLine" maxlength="300" placeholder="Jalan, nomor rumah, RT/RW, kelurahan"></div>
+                <div><label for="addressCity">Kota / Kabupaten</label><input id="addressCity" maxlength="100"></div>
+                <div><label for="addressProvince">Provinsi</label><input id="addressProvince" maxlength="100"></div>
+              </div>
+              <label class="buyer-address-check"><input id="addressDefault" type="checkbox"> Jadikan alamat utama</label>
+              <div class="buyer-address-form-actions"><button class="save" type="button" onclick="saveBuyerAddress()">Simpan Alamat</button><button class="cancel" type="button" onclick="closeBuyerAddressForm()">Batal</button></div>
+              <div id="buyerAddressMessage" style="margin-top:10px;font-size:11px;color:#77736c"></div>
+            </div>
+            <div id="buyerAddressesList" class="buyer-address-list"><div class="account-empty">Memuat alamat...</div></div>
+          </div>
           <div id="accountSection-notifications" class="account-section"><div class="account-page-head"><h3>Pengaturan Notifikasi</h3><p>Atur jenis informasi yang ingin Anda terima.</p></div><div class="account-empty">Pengaturan notifikasi akan tersedia di sini.</div></div>
           <div id="accountSection-privacy" class="account-section"><div class="account-page-head"><h3>Pengaturan Privasi</h3><p>Kelola preferensi privasi akun MarketKita.</p></div><div class="account-empty">Pengaturan privasi akan tersedia di sini.</div></div>
           <div id="accountSection-voucher" class="account-section"><div class="account-page-head"><h3>Voucher Saya</h3><p>Voucher yang tersedia untuk akun Anda.</p></div><div class="account-empty">Belum ada voucher.</div></div>
@@ -1647,6 +1664,30 @@ function checkout(){
 /* =========================
    CHECKOUT
 ========================= */
+async function prefillBuyerCheckout(){
+  if(!kwSupabase || !kwCurrentUser)return;
+  try{
+    const profile=kwCurrentProfile||{};
+    const user=kwCurrentUser;
+    const name=document.getElementById("buyerName");
+    const email=document.getElementById("buyerEmail");
+    const phone=document.getElementById("buyerPhone");
+    if(name && !name.value.trim()) name.value=getMarketKitaDisplayName(user,profile);
+    if(email && !email.value.trim()) email.value=user.email||"";
+    if(phone && !phone.value.trim()) phone.value=profile.phone||user.user_metadata?.phone||"";
+    const {data,error}=await kwSupabase.from("buyer_addresses").select("*").eq("user_id",user.id).eq("is_default",true).limit(1).maybeSingle();
+    if(error)throw error;
+    const address=document.getElementById("buyerAddress");
+    if(address && data) address.value=[data.address_line,data.city,data.province,data.postal_code].filter(Boolean).join(", ");
+    const checkoutName=document.getElementById("buyerName");
+    if(checkoutName && data?.recipient_name) checkoutName.value=data.recipient_name;
+    const checkoutPhone=document.getElementById("buyerPhone");
+    if(checkoutPhone && data?.phone) checkoutPhone.value=data.phone;
+  }catch(error){
+    console.warn("MarketKita checkout address prefill:",error);
+  }
+}
+
 function openCheckout(){
   if(!cart.length){
     showKwNotice(t("notice_empty"),t("notice_empty_title"));
@@ -1668,6 +1709,7 @@ function openCheckout(){
 
   document.getElementById("checkoutModal").classList.add("show");
   document.getElementById("checkoutModal").setAttribute("aria-hidden","false");
+  prefillBuyerCheckout();
 }
 
 function closeCheckout(e){
@@ -2049,7 +2091,7 @@ function populateAccountProfile(){
   set("profileUsername",username);
   set("profileFullName",String(profile?.full_name || user.user_metadata?.full_name || ""));
   setText("profileEmail",user.email || "-");
-  setText("profilePhone",String(profile?.phone || user.user_metadata?.phone || "Belum ditambahkan"));
+  set("profilePhone",String(profile?.phone || user.user_metadata?.phone || ""));
   setText("profileRole",String(profile?.role || "buyer").toUpperCase());
   setText("profileStore",profile?.role==="seller" || profile?.role==="admin" ? "MarketKita" : "-");
 }
@@ -2064,6 +2106,7 @@ function showAccountSection(section){
   const nav=document.querySelector('.account-nav-item[data-account-section="'+section+'"]');
   if(nav) nav.classList.add("active");
   if(section==="orders") loadBuyerOrders();
+  if(section==="address") loadBuyerAddresses();
 }
 
 async function saveMarketKitaProfile(){
@@ -2073,6 +2116,7 @@ async function saveMarketKitaProfile(){
   const message=document.getElementById("profileMessage");
   const button=document.querySelector(".profile-save");
   const fullName=String(input?.value || "").trim();
+  const phone=String(document.getElementById("profilePhone")?.value || "").trim();
 
   if(!fullName){
     if(message) message.textContent="Nama wajib diisi.";
@@ -2084,7 +2128,7 @@ async function saveMarketKitaProfile(){
   try{
     const result=await kwSupabase
       .from("profiles")
-      .update({full_name:fullName})
+      .update({full_name:fullName,phone:phone||null})
       .eq("id",kwCurrentUser.id);
 
     if(result.error) throw result.error;
@@ -2098,6 +2142,131 @@ async function saveMarketKitaProfile(){
   }finally{
     if(button){button.disabled=false;button.textContent="Simpan";}
   }
+}
+
+
+let buyerAddressCache=[];
+let buyerAddressEditingId=null;
+
+function resetBuyerAddressForm(){
+  const ids=["addressLabel","addressRecipient","addressPhone","addressPostal","addressLine","addressCity","addressProvince"];
+  ids.forEach(id=>{const el=document.getElementById(id);if(el)el.value=id==="addressLabel"?"Rumah":"";});
+  const def=document.getElementById("addressDefault");
+  if(def) def.checked=buyerAddressCache.length===0;
+  const msg=document.getElementById("buyerAddressMessage");
+  if(msg) msg.textContent="";
+  buyerAddressEditingId=null;
+}
+
+function openBuyerAddressForm(address=null){
+  if(!kwCurrentUser) return;
+  const form=document.getElementById("buyerAddressForm");
+  if(!form)return;
+  form.style.display="block";
+  buyerAddressEditingId=address?.id || null;
+  const values={
+    addressLabel:address?.label || "Rumah",
+    addressRecipient:address?.recipient_name || getMarketKitaDisplayName(kwCurrentUser,kwCurrentProfile),
+    addressPhone:address?.phone || kwCurrentProfile?.phone || "",
+    addressPostal:address?.postal_code || "",
+    addressLine:address?.address_line || "",
+    addressCity:address?.city || "",
+    addressProvince:address?.province || ""
+  };
+  Object.entries(values).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.value=value;});
+  const def=document.getElementById("addressDefault");
+  if(def) def.checked=address ? !!address.is_default : buyerAddressCache.length===0;
+  const msg=document.getElementById("buyerAddressMessage");
+  if(msg) msg.textContent=address?"Edit alamat pengiriman.":"Tambah alamat pengiriman baru.";
+}
+
+function closeBuyerAddressForm(){
+  const form=document.getElementById("buyerAddressForm");
+  if(form) form.style.display="none";
+  resetBuyerAddressForm();
+}
+
+function renderBuyerAddresses(){
+  const root=document.getElementById("buyerAddressesList");
+  if(!root)return;
+  if(!buyerAddressCache.length){
+    root.innerHTML='<div class="account-empty">Belum ada alamat. Tambahkan alamat pertama Anda.</div>';
+    return;
+  }
+  root.innerHTML=buyerAddressCache.map(a=>{
+    const id=String(a.id||"").replace(/'/g,"");
+    const actionDefault=a.is_default?'':'<button class="primary" type="button" onclick="setDefaultBuyerAddress(\''+id+'\')">Jadikan Utama</button>';
+    return '<article class="buyer-address-card '+(a.is_default?'is-default':'')+'"><div class="buyer-address-head"><strong>'+escDetail(a.label||"Alamat")+'</strong>'+(a.is_default?'<span class="buyer-address-badge">UTAMA</span>':'')+'</div><p><strong>'+escDetail(a.recipient_name)+'</strong> · '+escDetail(a.phone)+'<br>'+escDetail(a.address_line)+'<br>'+escDetail(a.city)+', '+escDetail(a.province)+' '+escDetail(a.postal_code)+'</p><div class="buyer-address-actions">'+actionDefault+'<button type="button" onclick="openBuyerAddressForm(buyerAddressCache.find(x=>x.id===\''+id+'\'))">Edit</button><button type="button" onclick="deleteBuyerAddress(\''+id+'\')">Hapus</button></div></article>';
+  }).join("");
+}
+
+async function loadBuyerAddresses(){
+  const root=document.getElementById("buyerAddressesList");
+  if(!root)return;
+  if(!kwSupabase || !kwCurrentUser){root.innerHTML='<div class="account-empty">Silakan masuk untuk mengelola alamat.</div>';return;}
+  root.innerHTML='<div class="account-empty">Memuat alamat...</div>';
+  try{
+    const {data,error}=await kwSupabase.from("buyer_addresses").select("*").eq("user_id",kwCurrentUser.id).order("is_default",{ascending:false}).order("created_at",{ascending:false});
+    if(error)throw error;
+    buyerAddressCache=Array.isArray(data)?data:[];
+    renderBuyerAddresses();
+  }catch(error){
+    root.innerHTML='<div class="account-empty">Gagal memuat alamat: '+escDetail(error.message||"Terjadi kesalahan.")+'</div>';
+  }
+}
+
+async function saveBuyerAddress(){
+  if(!kwSupabase || !kwCurrentUser)return;
+  const get=id=>String(document.getElementById(id)?.value||"").trim();
+  const payload={label:get("addressLabel")||"Rumah",recipient_name:get("addressRecipient"),phone:get("addressPhone"),address_line:get("addressLine"),city:get("addressCity"),province:get("addressProvince"),postal_code:get("addressPostal"),is_default:!!document.getElementById("addressDefault")?.checked};
+  const required=[payload.recipient_name,payload.phone,payload.address_line,payload.city,payload.province,payload.postal_code];
+  const msg=document.getElementById("buyerAddressMessage");
+  if(required.some(x=>!x)){if(msg)msg.textContent="Lengkapi nama penerima, nomor WhatsApp, alamat, kota, provinsi, dan kode pos.";return;}
+  const button=document.querySelector("#buyerAddressForm .save");
+  if(button){button.disabled=true;button.textContent="Menyimpan...";}
+  try{
+    if(payload.is_default){
+      const {error}=await kwSupabase.from("buyer_addresses").update({is_default:false}).eq("user_id",kwCurrentUser.id);
+      if(error)throw error;
+    }
+    let result;
+    if(buyerAddressEditingId){
+      result=await kwSupabase.from("buyer_addresses").update(payload).eq("id",buyerAddressEditingId).eq("user_id",kwCurrentUser.id).select().single();
+    }else{
+      result=await kwSupabase.from("buyer_addresses").insert({user_id:kwCurrentUser.id,...payload}).select().single();
+    }
+    if(result.error)throw result.error;
+    await loadBuyerAddresses();
+    closeBuyerAddressForm();
+  }catch(error){
+    if(msg)msg.textContent=error.message||"Gagal menyimpan alamat.";
+  }finally{
+    if(button){button.disabled=false;button.textContent="Simpan Alamat";}
+  }
+}
+
+async function setDefaultBuyerAddress(id){
+  if(!kwSupabase || !kwCurrentUser)return;
+  try{
+    let result=await kwSupabase.from("buyer_addresses").update({is_default:false}).eq("user_id",kwCurrentUser.id);
+    if(result.error)throw result.error;
+    result=await kwSupabase.from("buyer_addresses").update({is_default:true}).eq("id",id).eq("user_id",kwCurrentUser.id);
+    if(result.error)throw result.error;
+    await loadBuyerAddresses();
+  }catch(error){showKwNotice(error.message||"Gagal mengubah alamat utama.","Alamat");}
+}
+
+async function deleteBuyerAddress(id){
+  if(!kwSupabase || !kwCurrentUser)return;
+  const target=buyerAddressCache.find(x=>x.id===id);
+  if(!target)return;
+  if(!window.confirm("Hapus alamat ini?"))return;
+  try{
+    const {error}=await kwSupabase.from("buyer_addresses").delete().eq("id",id).eq("user_id",kwCurrentUser.id);
+    if(error)throw error;
+    await loadBuyerAddresses();
+    if(target.is_default && buyerAddressCache.length){await setDefaultBuyerAddress(buyerAddressCache[0].id);}
+  }catch(error){showKwNotice(error.message||"Gagal menghapus alamat.","Alamat");}
 }
 
 let buyerOrdersCache=[];
