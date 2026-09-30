@@ -34,6 +34,18 @@ grant execute on function public.buyer_confirm_order_received(uuid) to authentic
 revoke execute on function public.create_order_payouts(uuid) from public, anon, authenticated;
 grant execute on function public.create_order_payouts(uuid) to service_role;
 
+revoke execute on function public.admin_update_order_status(uuid,text) from public, anon;
+grant execute on function public.admin_update_order_status(uuid,text) to authenticated;
+
+revoke execute on function public.seller_update_order_status(uuid,text) from public, anon;
+grant execute on function public.seller_update_order_status(uuid,text) to authenticated;
+
+revoke execute on function public.seller_set_tracking_number(uuid,text) from public, anon;
+grant execute on function public.seller_set_tracking_number(uuid,text) to authenticated;
+
+revoke execute on function public.get_seller_order_items(uuid) from public, anon;
+grant execute on function public.get_seller_order_items(uuid) to authenticated;
+
 create or replace function public.create_order_payouts(p_order_id uuid)
 returns void language plpgsql security definer set search_path = ''
 as $function$
