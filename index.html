@@ -491,6 +491,9 @@ body{background:var(--bg);color:var(--ink)}
 <!-- WISHLIST -->
 <div id="wishlistModal" class="modal" aria-hidden="true" onclick="closeWishlist(event)"><div class="modal-box" onclick="event.stopPropagation()"><div class="modal-head"><h3>Wishlist Saya</h3><button class="close-btn" type="button" onclick="closeWishlist()">×</button></div><div id="wishlistContent"></div></div></div>
 
+<!-- CHAT SELLER -->
+<div id="chatModal" class="modal" aria-hidden="true" onclick="closeChat(event)"><div class="modal-box" onclick="event.stopPropagation()"><div class="modal-head"><h3 id="chatTitle">Chat Seller</h3><button class="close-btn" type="button" onclick="closeChat()">×</button></div><div id="chatMessages" style="height:320px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:12px;background:#faf8f3"></div><div style="display:flex;gap:8px;margin-top:10px"><input id="chatInput" type="text" maxlength="2000" placeholder="Tulis pesan..." style="flex:1;height:44px;border:1px solid var(--line);border-radius:10px;padding:0 12px"><button type="button" class="smallbtn" style="width:120px" onclick="sendChatMessage()">Kirim</button></div><div id="chatMessageStatus" style="font-size:11px;color:#777;margin-top:7px"></div></div></div>
+
 <!-- SEARCH -->
 <div id="searchModal" class="modal search-modal" aria-hidden="true" onclick="closeSearch(event)">
   <div class="modal-box" onclick="event.stopPropagation()">
@@ -806,7 +809,7 @@ body{background:var(--bg);color:var(--ink)}
           </div>
 
           <div id="accountSection-orders" class="account-section"><div class="account-page-head"><div><h3>Pesanan Saya</h3><p>Riwayat pesanan dan status pengiriman Anda.</p></div><button type="button" class="orders-refresh" onclick="loadBuyerOrders()">↻ Muat Ulang</button></div><div class="order-filter-row"><button class="order-filter active" data-order-filter="all" onclick="filterBuyerOrders('all')">Semua</button><button class="order-filter" data-order-filter="pending_payment" onclick="filterBuyerOrders('pending_payment')">Belum Bayar</button><button class="order-filter" data-order-filter="processing" onclick="filterBuyerOrders('processing')">Diproses</button><button class="order-filter" data-order-filter="shipped" onclick="filterBuyerOrders('shipped')">Dikirim</button><button class="order-filter" data-order-filter="completed" onclick="filterBuyerOrders('completed')">Selesai</button></div><div id="buyerOrdersList" class="buyer-orders-list"><div class="account-empty">Memuat pesanan...</div></div></div>
-          <div id="accountSection-alerts" class="account-section"><div class="account-page-head"><h3>Notifikasi</h3><p>Informasi penting mengenai akun dan pesanan Anda.</p></div><div class="account-empty">Belum ada notifikasi baru.</div></div>
+          <div id="accountSection-alerts" class="account-section"><div class="account-page-head"><h3>Notifikasi</h3><p>Informasi penting mengenai akun dan pesanan Anda.</p></div><div id="notificationList" class="account-empty">Memuat notifikasi...</div></div>
           <div id="accountSection-bank" class="account-section"><div class="account-page-head"><h3>Bank &amp; Kartu</h3><p>Simpan metode pembayaran untuk penggunaan berikutnya.</p></div><div class="account-empty">Belum ada kartu atau rekening yang ditambahkan.</div></div>
           <div id="accountSection-address" class="account-section">
             <div class="account-page-head"><div><h3>Alamat</h3><p>Simpan beberapa alamat pengiriman dan tentukan alamat utama untuk checkout.</p></div><button type="button" class="orders-refresh" onclick="openBuyerAddressForm()">＋ Tambah Alamat</button></div>
@@ -828,7 +831,7 @@ body{background:var(--bg);color:var(--ink)}
           </div>
           <div id="accountSection-notifications" class="account-section"><div class="account-page-head"><h3>Pengaturan Notifikasi</h3><p>Atur jenis informasi yang ingin Anda terima.</p></div><div class="account-empty">Pengaturan notifikasi akan tersedia di sini.</div></div>
           <div id="accountSection-privacy" class="account-section"><div class="account-page-head"><h3>Pengaturan Privasi</h3><p>Kelola preferensi privasi akun MarketKita.</p></div><div class="account-empty">Pengaturan privasi akan tersedia di sini.</div></div>
-          <div id="accountSection-voucher" class="account-section"><div class="account-page-head"><h3>Voucher Saya</h3><p>Voucher yang tersedia untuk akun Anda.</p></div><div class="account-empty">Belum ada voucher.</div></div>
+          <div id="accountSection-voucher" class="account-section"><div class="account-page-head"><h3>Voucher Saya</h3><p>Klaim voucher yang tersedia untuk akun Anda.</p></div><div id="voucherList" class="account-empty">Memuat voucher...</div></div>
           <div id="accountSection-coins" class="account-section"><div class="account-page-head"><h3>Koin MarketKita</h3><p>Saldo dan aktivitas koin Anda.</p></div><div class="account-empty"><strong>0 Koin</strong><br>Belum ada aktivitas koin.</div></div>
         </section>
       </div>
@@ -1286,7 +1289,7 @@ function openProductDetail(i){
         <div class="product-detail-actions"><button class="product-detail-btn light" type="button" onclick="detailAddToCart()">🛒 Tambah ke Keranjang</button><button class="product-detail-btn dark" type="button" onclick="detailBuyNow()">Beli Sekarang</button></div>
         <div class="seller-card">
           <div class="seller-card-top"><div class="seller-avatar">${escDetail(initial)}</div><div class="seller-meta"><strong>${escDetail(storeName)}</strong><span>${escDetail(store.slug?"@"+store.slug:"Toko MarketKita")} · ${store.description?escDetail(store.description):"Seller MarketKita"}</span></div><div class="seller-rating"><strong id="detailSellerRating">—</strong><span id="detailSellerReviewCount">0 ulasan</span></div></div>
-          <div class="seller-actions"><button type="button" onclick="alert('Fitur chat seller akan dihubungkan setelah sistem pesan MarketKita aktif.')">Chat Seller</button><button type="button" onclick="scrollProductDetailTo('sellerReviewSection')">Ulasan Toko</button></div>
+          <div class="seller-actions"><button type="button" onclick="openSellerChat()">Chat Seller</button><button type="button" onclick="scrollProductDetailTo('sellerReviewSection')">Ulasan Toko</button></div>
         </div>
       </div>
     </div>
@@ -2175,6 +2178,8 @@ function showAccountSection(section){
   if(nav) nav.classList.add("active");
   if(section==="orders") loadBuyerOrders();
   if(section==="address") loadBuyerAddresses();
+  if(section==="alerts") loadNotifications();
+  if(section==="voucher") loadVouchers();
 }
 
 async function saveMarketKitaProfile(){
@@ -2709,6 +2714,79 @@ async function logoutAccount(){
   }
 }
 
+
+async function loadNotifications(){
+  const root=document.getElementById("notificationList");
+  if(!root||!kwSupabase||!kwCurrentUser)return;
+  const {data,error}=await kwSupabase.from("notifications").select("*").eq("user_id",kwCurrentUser.id).order("created_at",{ascending:false}).limit(30);
+  if(error){root.textContent=error.message;return;}
+  if(!data?.length){root.innerHTML="Belum ada notifikasi baru.";return;}
+  root.className="";
+  root.innerHTML=data.map(n=>'<div class="account-notification '+(n.read_at?"":"unread")+'"><strong>'+escDetail(n.title)+'</strong><p>'+escDetail(n.message)+'</p><time>'+new Date(n.created_at).toLocaleString("id-ID")+'</time></div>').join("");
+  const unread=data.filter(n=>!n.read_at).map(n=>n.id);
+  if(unread.length) await kwSupabase.from("notifications").update({read_at:new Date().toISOString()}).in("id",unread);
+}
+async function loadVouchers(){
+  const root=document.getElementById("voucherList");
+  if(!root||!kwSupabase)return;
+  const {data,error}=await kwSupabase.from("vouchers").select("*").eq("active",true).order("created_at",{ascending:false});
+  if(error){root.textContent=error.message;return;}
+  const claimed=kwCurrentUser ? (await kwSupabase.from("user_vouchers").select("voucher_id").eq("user_id",kwCurrentUser.id)).data||[] : [];
+  const claimedSet=new Set(claimed.map(x=>String(x.voucher_id)));
+  if(!data?.length){root.innerHTML="Belum ada voucher aktif.";return;}
+  root.className="";
+  root.innerHTML=data.map(v=>{
+    const desc=(v.discount_type==="percent"?v.discount_value+"%":"Rp"+Number(v.discount_value||0).toLocaleString("id-ID"))+" OFF";
+    const claimed=claimedSet.has(String(v.id));
+    return '<div class="voucher-item"><strong>'+escDetail(v.code)+' · '+escDetail(v.title)+'</strong><p>'+desc+' · Min. transaksi '+rupiah(v.min_order_amount)+'</p><p>Berlaku sampai '+(v.expires_at?new Date(v.expires_at).toLocaleDateString("id-ID"):"tanpa batas")+'</p><button '+(claimed?"disabled":"")+' onclick="claimVoucher(\''+v.id+'\')">'+(claimed?"Sudah Diklaim":"Klaim Voucher")+'</button></div>';
+  }).join("");
+}
+async function claimVoucher(id){
+  if(!kwCurrentUser){showKwNotice("Silakan masuk terlebih dahulu.","Login diperlukan");return;}
+  const {error}=await kwSupabase.rpc("claim_voucher",{p_voucher_id:id});
+  if(error){showKwNotice(error.message||"Voucher gagal diklaim.","Voucher");return;}
+  showKwNotice("Voucher berhasil masuk ke akun Anda.","Voucher berhasil");
+  loadVouchers();
+}
+let activeChatThread=null,activeChatStore=null;
+async function openSellerChat(){
+  if(!kwCurrentUser){showKwNotice("Silakan masuk untuk chat seller.","Login diperlukan");return;}
+  const p=products[window.productDetailIndex];
+  if(!p?.store_id){showKwNotice("Data toko produk tidak tersedia.","Chat Seller");return;}
+  activeChatStore=p.store_id;
+  const store=p.store||{};
+  document.getElementById("chatTitle").textContent="Chat "+(store.name||"Seller");
+  const {data:storeRow}=await kwSupabase.from("stores").select("id,owner_id,name").eq("id",p.store_id).maybeSingle();
+  if(!storeRow?.owner_id){showKwNotice("Seller tidak ditemukan.","Chat Seller");return;}
+  const existing=await kwSupabase.from("chat_threads").select("*").eq("buyer_id",kwCurrentUser.id).eq("store_id",p.store_id).maybeSingle();
+  let thread=existing.data;
+  if(!thread){
+    const created=await kwSupabase.from("chat_threads").insert({buyer_id:kwCurrentUser.id,seller_id:storeRow.owner_id,store_id:p.store_id}).select("*").single();
+    if(created.error){showKwNotice(created.error.message,"Chat Seller");return;}
+    thread=created.data;
+  }
+  activeChatThread=thread;
+  document.getElementById("chatModal").classList.add("show");
+  document.getElementById("chatModal").setAttribute("aria-hidden","false");
+  await loadChatMessages();
+  document.getElementById("chatInput")?.focus();
+}
+async function loadChatMessages(){
+  const root=document.getElementById("chatMessages");if(!root||!activeChatThread)return;
+  const {data,error}=await kwSupabase.from("chat_messages").select("id,sender_id,body,created_at").eq("thread_id",activeChatThread.id).order("created_at",{ascending:true}).limit(100);
+  if(error){root.textContent=error.message;return;}
+  root.innerHTML=(data||[]).map(m=>'<div class="chat-bubble '+(m.sender_id===kwCurrentUser.id?"me":"them")+'">'+escDetail(m.body)+'</div>').join("")||'<div style="text-align:center;color:#999;font-size:12px;padding:30px">Belum ada pesan.</div>';
+  root.scrollTop=root.scrollHeight;
+}
+async function sendChatMessage(){
+  const input=document.getElementById("chatInput"),body=String(input?.value||"").trim(),status=document.getElementById("chatMessageStatus");
+  if(!body||!activeChatThread||!kwCurrentUser)return;
+  const {error}=await kwSupabase.from("chat_messages").insert({thread_id:activeChatThread.id,sender_id:kwCurrentUser.id,body});
+  if(error){if(status)status.textContent=error.message;return;}
+  input.value="";if(status)status.textContent="";await loadChatMessages();
+}
+function closeChat(e){const m=document.getElementById("chatModal");if(!m)return;if(e&&e.target!==m)return;m.classList.remove("show");m.setAttribute("aria-hidden","true");activeChatThread=null;}
+
 /* =========================
    INITIALIZE
 ========================= */
@@ -2779,6 +2857,8 @@ document.addEventListener("DOMContentLoaded",async()=>{
 .product-store-link{display:inline-flex;align-items:center;gap:5px;color:#5f625d;font-size:11px;font-weight:750;margin-bottom:9px}.product-store-link:hover{text-decoration:underline;color:#171817}
 .wishlist-empty{padding:35px 15px;text-align:center;color:#77736c;border:1px dashed var(--line);border-radius:14px}.wishlist-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.wishlist-mini{border:1px solid var(--line);border-radius:13px;overflow:hidden;background:#fff}.wishlist-mini img{width:100%;aspect-ratio:1/1.15;object-fit:cover}.wishlist-mini-body{padding:11px}.wishlist-mini-body strong{display:block;font-size:13px}.wishlist-mini-body span{display:block;color:#666;font-size:12px;margin-top:4px}
 @media(max-width:760px){.marketplace-toolbar{align-items:stretch}.marketplace-toolbar input,.marketplace-toolbar select,.marketplace-toolbar button{width:100%;min-width:0}.marketplace-toolbar .filter-search{min-width:0}.product-card-actions{grid-template-columns:1fr}.wishlist-grid{grid-template-columns:1fr 1fr}}
+
+.account-notification{padding:14px;border-bottom:1px solid var(--line);background:#fff}.account-notification:last-child{border-bottom:0}.account-notification.unread{background:#f4f8f5}.account-notification strong{display:block;font-size:13px}.account-notification p{margin:5px 0;color:#666;font-size:12px;line-height:1.5}.account-notification time{font-size:10px;color:#999}.voucher-item{padding:15px;border:1px solid var(--line);border-radius:14px;background:#fff;margin-bottom:10px}.voucher-item strong{font-size:15px}.voucher-item p{margin:5px 0;color:#666;font-size:12px}.voucher-item button{margin-top:8px;height:36px;border:0;border-radius:9px;background:#171817;color:#fff;padding:0 13px;font-weight:800}.voucher-item button:disabled{opacity:.55}.chat-bubble{max-width:78%;padding:9px 11px;border-radius:12px;margin:7px 0;font-size:12px;line-height:1.45}.chat-bubble.me{margin-left:auto;background:#171817;color:#fff}.chat-bubble.them{margin-right:auto;background:#fff;border:1px solid var(--line)}
 </style>
 </body>
 </html>
