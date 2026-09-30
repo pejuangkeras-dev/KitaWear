@@ -202,3 +202,21 @@ revoke execute on all functions in schema private from public, anon, authenticat
 grant execute on function private.notify_seller_application_change() to postgres;
 grant execute on function private.notify_order_status_change() to postgres;
 grant execute on function private.notify_seller_order_status_change() to postgres;
+
+revoke execute on function public.buyer_create_dispute(uuid,text,text) from public,anon;
+grant execute on function public.buyer_create_dispute(uuid,text,text) to authenticated;
+
+revoke execute on function public.claim_voucher(uuid) from public,anon;
+grant execute on function public.claim_voucher(uuid) to authenticated;
+
+revoke execute on function public.consume_user_voucher(uuid,uuid) from public,anon,authenticated;
+grant execute on function public.consume_user_voucher(uuid,uuid) to service_role;
+
+revoke execute on function public.notify_chat_message() from public,anon,authenticated;
+revoke execute on function public.notify_order_status_change() from public,anon,authenticated;
+
+revoke execute on function public.is_admin() from public,anon;
+grant execute on function public.is_admin() to authenticated;
+
+revoke execute on function public.is_seller_or_admin() from public,anon;
+grant execute on function public.is_seller_or_admin() to authenticated;
