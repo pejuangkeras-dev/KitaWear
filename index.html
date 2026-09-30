@@ -389,7 +389,7 @@ body{background:var(--bg);color:var(--ink)}
 <header class="nav"><div class="container nav-inner">
 <a href="#" class="logo" aria-label="MarketKita"><svg class="logo-mark" viewBox="0 0 48 48" fill="none"><path d="M24 7c-5 0-8 3-8 7 0 3 2 5 5 6" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M21 20 7 31c-3 2-2 7 2 8h30c4-1 5-6 2-8L27 20" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><path d="m18 39 6-7 6 7" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>MarketKita</a>
 <nav class="nav-links"><a href="#" data-i18n="nav_home">Beranda</a><a href="#produk" data-i18n="nav_products">Produk</a><a href="#tentang" data-i18n="nav_about">Tentang Kami</a><a href="#kontak" data-i18n="nav_contact">Kontak</a></nav>
-<div class="actions"><button class="icon-btn" type="button" onclick="openSearch()" aria-label="Cari produk">⌕</button><select id="LanguageSelect" class="lang" aria-label="Bahasa"><option value="id">ID</option><option value="en">EN</option><option value="vi">VI</option><option value="th">TH</option><option value="ch">CH</option></select><button id="accountButton" class="account-btn" type="button" onclick="openAccount()">Masuk</button><button class="cart" type="button" onclick="toggleCart()">🛒 <span id="count">0</span></button></div>
+<div class="actions"><button class="icon-btn" type="button" onclick="openSearch()" aria-label="Cari produk">⌕</button><select id="LanguageSelect" class="lang" aria-label="Bahasa"><option value="id">ID</option><option value="en">EN</option><option value="vi">VI</option><option value="th">TH</option><option value="ch">CH</option></select><button class="icon-btn" id="wishlistButton" type="button" onclick="openWishlist()" aria-label="Wishlist">♡<span id="wishlistCount" style="font-size:9px;vertical-align:top;margin-left:2px">0</span></button><button id="accountButton" class="account-btn" type="button" onclick="openAccount()">Masuk</button><button class="cart" type="button" onclick="toggleCart()">🛒 <span id="count">0</span></button></div>
 </div></header>
 
 <main>
@@ -412,7 +412,18 @@ body{background:var(--bg);color:var(--ink)}
         </div>
         <p data-i18n="products_hint">Klik foto untuk melihat detail.</p>
       </div>
-      <div id="products" class="products"></div>
+      <div class="marketplace-toolbar" aria-label="Filter produk">
+<input id="marketplaceSearch" class="filter-search" type="search" placeholder="Cari nama produk atau toko..." autocomplete="off">
+<select id="marketplaceCategory" aria-label="Kategori"><option value="">Semua kategori</option></select>
+<select id="marketplaceStore" aria-label="Toko"><option value="">Semua toko</option></select>
+<select id="marketplaceSort" aria-label="Urutkan"><option value="default">Urutan default</option><option value="price_asc">Harga terendah</option><option value="price_desc">Harga tertinggi</option><option value="name_asc">Nama A–Z</option></select>
+<input id="marketplaceMin" type="number" min="0" placeholder="Min Rp" aria-label="Harga minimum">
+<input id="marketplaceMax" type="number" min="0" placeholder="Max Rp" aria-label="Harga maksimum">
+<button type="button" id="wishlistToolbarButton" onclick="openWishlist()">♡ Wishlist <span id="wishlistToolbarCount">0</span></button>
+<button type="button" id="clearMarketplaceFilters">Reset</button>
+</div>
+<div id="marketplaceResultInfo" class="search-info" style="margin:-10px 0 18px"></div>
+<div id="products" class="products"></div>
     </div>
   </section>
 
@@ -476,6 +487,9 @@ body{background:var(--bg);color:var(--ink)}
     <button class="checkout-btn" type="button" onclick="openCheckout()" data-i18n="checkout_button">Lanjut Checkout</button>
   </aside>
 </div>
+
+<!-- WISHLIST -->
+<div id="wishlistModal" class="modal" aria-hidden="true" onclick="closeWishlist(event)"><div class="modal-box" onclick="event.stopPropagation()"><div class="modal-head"><h3>Wishlist Saya</h3><button class="close-btn" type="button" onclick="closeWishlist()">×</button></div><div id="wishlistContent"></div></div></div>
 
 <!-- SEARCH -->
 <div id="searchModal" class="modal search-modal" aria-hidden="true" onclick="closeSearch(event)">
@@ -2789,6 +2803,15 @@ document.addEventListener("DOMContentLoaded",async()=>{
 .product-detail-rating{
   display:flex !important;
 }
+
+/* MARKETPLACE PHASE 1 */
+.marketplace-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin:0 0 22px;padding:12px;border:1px solid var(--line);border-radius:15px;background:var(--paper)}
+.marketplace-toolbar input,.marketplace-toolbar select{height:42px;border:1px solid var(--line);border-radius:10px;background:#fffdf9;padding:0 11px;color:var(--ink);min-width:145px}.marketplace-toolbar input{width:130px}.marketplace-toolbar .filter-search{flex:1;min-width:220px}.marketplace-toolbar button{height:42px;border:1px solid var(--line);border-radius:10px;background:#fffdf9;padding:0 13px;font-weight:800}
+.product-card-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.product-card-btn{height:40px}.product-card-buy{background:#f0ede7!important;color:#171817!important;border:1px solid var(--line)!important}
+.product-wishlist{position:absolute;right:11px;top:11px;width:38px;height:38px;border:1px solid rgba(255,255,255,.7);border-radius:50%;background:rgba(255,255,255,.94);z-index:3;font-size:18px;display:grid;place-items:center}.product-wishlist.active{color:#b3261e;background:#fff}
+.product-store-link{display:inline-flex;align-items:center;gap:5px;color:#5f625d;font-size:11px;font-weight:750;margin-bottom:9px}.product-store-link:hover{text-decoration:underline;color:#171817}
+.wishlist-empty{padding:35px 15px;text-align:center;color:#77736c;border:1px dashed var(--line);border-radius:14px}.wishlist-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.wishlist-mini{border:1px solid var(--line);border-radius:13px;overflow:hidden;background:#fff}.wishlist-mini img{width:100%;aspect-ratio:1/1.15;object-fit:cover}.wishlist-mini-body{padding:11px}.wishlist-mini-body strong{display:block;font-size:13px}.wishlist-mini-body span{display:block;color:#666;font-size:12px;margin-top:4px}
+@media(max-width:760px){.marketplace-toolbar{align-items:stretch}.marketplace-toolbar input,.marketplace-toolbar select,.marketplace-toolbar button{width:100%;min-width:0}.marketplace-toolbar .filter-search{min-width:0}.product-card-actions{grid-template-columns:1fr}.wishlist-grid{grid-template-columns:1fr 1fr}}
 </style>
 </body>
 </html>
