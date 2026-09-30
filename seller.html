@@ -721,6 +721,7 @@ $('orderList').innerHTML=rows.length?`
 <th>Qty</th>
 <th>Total</th>
 <th>Status</th>
+<th>Resi</th>
 <th>Aksi</th>
 </tr>
 </thead>
@@ -752,6 +753,7 @@ ${pill(status)}
 <br>
 ${pill(o.payment_status)}
 </td>
+<td>${esc(x.tracking_number||'—')}</td>
 <td>
 <button class="btn light" onclick="openOrderModal('${x.order_id}')">Detail</button>
 ${sellerStatusActions(status,x.order_id)}
@@ -809,7 +811,8 @@ const head=[
 'quantity',
 'line_total',
 'status',
-'payment_status'
+'payment_status',
+'tracking_number'
 ];
 
 const csv=[
@@ -857,67 +860,28 @@ URL.revokeObjectURL(a.href);
 
 }
 
-function sellerStatusActions(
-status,
-orderId
-){
-
-if(status==='paid')
-
-return `
-<div class="order-actions">
-
-<button
-class="btn green"
-onclick="updateSellerOrder(
-'${orderId}',
-'processing'
-)"
->
-Proses
-</button>
-
-</div>
-`;
-
-if(status==='processing')
-
-return `
-<div class="order-actions">
-
-<button
-class="btn green"
-onclick="updateSellerOrder(
-'${orderId}',
-'shipped'
-)"
->
-Kirim
-</button>
-
-</div>
-`;
-
-if(status==='shipped')
-
-return `
-<div class="order-actions">
-
-<button
-class="btn green"
-onclick="updateSellerOrder(
-'${orderId}',
-'delivered'
-)"
->
-Tandai diterima
-</button>
-
-</div>
-`;
-
+function sellerStatusActions(status,orderId){
+if(status==='paid') return `<div class="order-actions"><button class="btn green" onclick="updateSellerOrder('${orderId}','processing')">Proses</button></div>`;
+if(status==='processing') return `<div class="order-actions"><button class="btn green" onclick="shipSellerOrder('${orderId}')">Kirim + Resi</button></div>`;
+if(status==='shipped') return `<div class="order-actions"><span class="pill green">Menunggu konfirmasi pembeli</span></div>`;
 return '';
+}
 
+async function shipSellerOrder(orderId){
+  const current=(window.sellerOrderRows||[]).find(x=>x.order_id===orderId);
+  const existing=String(current?.tracking_number||'').trim();
+  const tracking=window.prompt(existing ? 'Nomor resi pengiriman (kosongkan untuk mempertahankan resi lama):' : 'Masukkan nomor resi pengiriman:',existing);
+  if(tracking===null)return;
+  const value=String(tracking||existing).trim();
+  if(!value){toast('Nomor resi wajib diisi.');return;}
+  try{
+    const trackingResult=await sb.rpc('seller_set_tracking_number',{p_order_id:orderId,p_tracking_number:value});
+    if(trackingResult.error)throw trackingResult.error;
+    const q=await sb.rpc('seller_update_order_status',{p_order_id:orderId,p_status:'shipped'});
+    if(q.error)throw q.error;
+    toast('Pesanan dikirim dan nomor resi tersimpan.');
+    await loadOrders();
+  }catch(e){toast(e.message||'Gagal menyimpan pengiriman.');}
 }
 
 async function updateSellerOrder(
@@ -995,6 +959,16 @@ ${esc(o.customer_phone||'—')}
 
 <strong>
 ${esc(o.shipping_address||'—')}
+</strong>
+
+</div>
+
+<div class="detailitem">
+
+<small>Nomor resi</small>
+
+<strong>
+${esc(rows[0]?.tracking_number||'Belum tersedia')}
 </strong>
 
 </div>
