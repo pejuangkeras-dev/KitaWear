@@ -82,9 +82,12 @@ function mapMidtransStatus(transactionStatus, fraudStatus) {
   const status = String(transactionStatus || "").toLowerCase();
   const fraud = String(fraudStatus || "").toLowerCase();
 
-  if (fraud === "deny") {
+  // Midtrans statuses are mapped to the MarketKita enums.
+  // order_status has no "failed"/"pending", while payment_status
+  // distinguishes failed vs expired.
+  if (fraud === "deny" || status === "deny" || status === "failure") {
     return {
-      orderStatus: "failed",
+      orderStatus: "cancelled",
       paymentStatus: "failed"
     };
   }
@@ -102,26 +105,26 @@ function mapMidtransStatus(transactionStatus, fraudStatus) {
 
   if (status === "pending") {
     return {
-      orderStatus: "pending",
+      orderStatus: "pending_payment",
       paymentStatus: "pending"
     };
   }
 
-  if (status === "cancel" || status === "expire") {
+  if (status === "expire") {
     return {
       orderStatus: "cancelled",
-      paymentStatus: "cancelled"
+      paymentStatus: "expired"
     };
   }
 
-  if (status === "deny") {
+  if (status === "cancel") {
     return {
-      orderStatus: "failed",
+      orderStatus: "cancelled",
       paymentStatus: "failed"
     };
   }
 
-  if (status === "refund" || status === "partial_refund") {
+  if (status === "refund" || status === "partial_refund" || status === "chargeback" || status === "partial_chargeback") {
     return {
       orderStatus: "refunded",
       paymentStatus: "refunded"
@@ -129,8 +132,8 @@ function mapMidtransStatus(transactionStatus, fraudStatus) {
   }
 
   return {
-    orderStatus: "pending",
-    paymentStatus: status || "pending"
+    orderStatus: "pending_payment",
+    paymentStatus: "pending"
   };
 }
 
@@ -290,7 +293,9 @@ await supabaseRequest(
       );
     }
 
-      // Buat payout seller secara idempotent setelah pembayaran paid.
+      // Create seller payout records only after payment is confirmed.
+    // The payout stays pending until the buyer confirms receipt.
+    if (mapped.paymentStatus === "paid") {
       await supabaseRequest(
         supabaseUrl,
         serviceRoleKey,
@@ -302,6 +307,7 @@ await supabaseRequest(
           })
         }
       );
+    }
     return json({
       ok: true,
       order_id: orderId,
