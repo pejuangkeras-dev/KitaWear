@@ -950,6 +950,7 @@ async function loadMarketKitaProductsFromDatabase(){
 
     if(dynamicProducts.length){
       products.splice(0,products.length,...dynamicProducts);
+      populateMarketplaceFilters();
       console.log("MarketKita: produk database berhasil dimuat",dynamicProducts.length);
       return true;
     }
@@ -1212,72 +1213,30 @@ function applyLanguage(lang){
    SEARCH
 ========================= */
 function openSearch(){
-  const modal=document.getElementById("searchModal");
-  const input=document.getElementById("siteSearch");
-  if(!modal || !input) return;
-  modal.classList.add("show");
-  modal.setAttribute("aria-hidden","false");
-  input.value="";
-  filterProducts("");
-  setTimeout(()=>input.focus(),50);
+  const modal=document.getElementById("searchModal"),input=document.getElementById("siteSearch");
+  if(!modal||!input)return;
+  modal.classList.add("show");modal.setAttribute("aria-hidden","false");
+  input.value=marketFilters.query||"";filterProducts(input.value);setTimeout(()=>input.focus(),50);
 }
-
 function closeSearch(e){
-  const modal=document.getElementById("searchModal");
-  if(!modal) return;
-  if(e && e.target!==modal) return;
-  modal.classList.remove("show");
-  modal.setAttribute("aria-hidden","true");
+  const modal=document.getElementById("searchModal");if(!modal)return;
+  if(e&&e.target!==modal)return;modal.classList.remove("show");modal.setAttribute("aria-hidden","true");
 }
-
-function filterProducts(query){
-  const q=(query||"").trim().toLowerCase();
-  const cards=document.querySelectorAll("#products .card");
-  let shown=0;
-
-  cards.forEach(card=>{
-    const text=card.textContent.toLowerCase();
-    const match=!q || text.includes(q);
-    card.style.display=match?"":"none";
-    card.classList.remove("search-highlight");
-    if(match) shown++;
-  });
-
-  const info=document.getElementById("searchResultInfo");
-  if(info){
-    info.textContent=q
-      ? (shown?t("search_found",{n:shown}):t("search_none"))
-      : t("search_type");
-  }
-}
-
-/* =========================
-   PRODUCTS
-========================= */
-function render(){
-  const root=document.getElementById("products");
-  if(!root) return;
-
-  root.innerHTML=products.map((p,i)=>`
-    <article class="card" onclick="openProductDetail(${i})" style="cursor:pointer">
-      <div class="photo" data-product-index="${i}" role="button" tabindex="0" aria-label="Lihat detail ${p.name}">
-        <img src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">
-        ${p.badge?`<span class="badge">${currentLang==="id"?p.badge:t("best_seller")}</span>`:""}
-      </div>
-      <div class="body">
-        <h3>${p.name}</h3>
-        <div class="price">${rupiah(p.price)}</div>
-        ${p.store?.name?`<div style="font-size:11px;color:#77736c;margin-bottom:9px">🏪 ${p.store.name}</div>`:""}
-        <div class="swatches">${p.colors.map(c=>`<span class="sw" style="background:${c}"></span>`).join("")}</div>
-        <div class="product-card-actions">
-          <button class="smallbtn product-card-btn" type="button" onclick="event.stopPropagation();addFromProductCard(${i})">${t("add_cart")}</button>
-          <button class="smallbtn product-card-btn product-card-buy" type="button" onclick="event.stopPropagation();openProductDetail(${i})">Beli Sekarang</button>
-        </div>
-      </div>
-    </article>
-  `).join("");
-}
-
+const MARKET_WISHLIST_KEY="marketkita_wishlist_v1";
+let marketFilters={query:"",category:"",store:"",min:"",max:"",sort:"default"};
+let wishlistIds=new Set();
+function loadWishlist(){try{const v=JSON.parse(localStorage.getItem(MARKET_WISHLIST_KEY)||"[]");wishlistIds=new Set(Array.isArray(v)?v.map(String):[]);}catch(e){wishlistIds=new Set();}}
+function saveWishlist(){localStorage.setItem(MARKET_WISHLIST_KEY,JSON.stringify(Array.from(wishlistIds)));updateWishlistCount();}
+function updateWishlistCount(){const n=wishlistIds.size,a=document.getElementById("wishlistCount"),b=document.getElementById("wishlistToolbarCount");if(a)a.textContent=n;if(b)b.textContent=n;}
+function isWishlisted(p){return !!p&&!!p.id&&wishlistIds.has(String(p.id));}
+function toggleWishlist(i,e){if(e)e.stopPropagation();const p=products[i];if(!p)return;const k=String(p.id||p.name+"|"+p.price);if(wishlistIds.has(k))wishlistIds.delete(k);else wishlistIds.add(k);saveWishlist();render();}
+function openWishlist(){renderWishlist();const m=document.getElementById("wishlistModal");if(m){m.classList.add("show");m.setAttribute("aria-hidden","false");}}
+function closeWishlist(e){const m=document.getElementById("wishlistModal");if(!m)return;if(e&&e.target!==m)return;m.classList.remove("show");m.setAttribute("aria-hidden","true");}
+function renderWishlist(){const root=document.getElementById("wishlistContent");if(!root)return;const rows=products.filter(isWishlisted);if(!rows.length){root.innerHTML="<div class=\"wishlist-empty\">Belum ada produk di wishlist. Tekan ♡ pada produk yang Anda sukai.</div>";return;}root.innerHTML="<div class=\"wishlist-grid\">"+rows.map(function(p){const i=products.indexOf(p);return "<div class=\"wishlist-mini\" onclick=\"openProductDetail("+i+")\"><img src=\""+escDetail(p.img)+"\" alt=\""+escDetail(p.name)+"\"><div class=\"wishlist-mini-body\"><strong>"+escDetail(p.name)+"</strong><span>"+rupiah(p.price)+"</span></div></div>";}).join("")+"</div>";}
+function populateMarketplaceFilters(){const cat=document.getElementById("marketplaceCategory"),store=document.getElementById("marketplaceStore");if(!cat||!store)return;const cats=Array.from(new Set(products.map(p=>String(p.category||"").trim()).filter(Boolean))).sort();const stores=Array.from(new Map(products.filter(p=>p.store&&p.store.slug).map(p=>[String(p.store.slug),p.store])).values()).sort(function(a,b){return String(a.name||"").localeCompare(String(b.name||""));});cat.innerHTML="<option value=\"\">Semua kategori</option>"+cats.map(x=>"<option value=\""+escDetail(x)+"\">"+escDetail(x)+"</option>").join("");store.innerHTML="<option value=\"\">Semua toko</option>"+stores.map(x=>"<option value=\""+escDetail(x.slug)+"\">"+escDetail(x.name||x.slug)+"</option>").join("");cat.value=marketFilters.category||"";store.value=marketFilters.store||"";}
+function getFilteredProducts(){const q=String(marketFilters.query||"").trim().toLowerCase(),cat=String(marketFilters.category||"").trim().toLowerCase(),store=String(marketFilters.store||"").trim().toLowerCase(),min=Number(marketFilters.min||0),max=Number(marketFilters.max||0);let rows=products.filter(function(p){const hay=(p.name+" "+(p.store&&p.store.name||"")+" "+(p.category||"")).toLowerCase(),price=Number(p.price||0);return(!q||hay.includes(q))&&(!cat||String(p.category||"").toLowerCase()===cat)&&(!store||String(p.store&&p.store.slug||"").toLowerCase()===store)&&(!min||price>=min)&&(!max||price<=max);});if(marketFilters.sort==="price_asc")rows.sort((a,b)=>Number(a.price)-Number(b.price));if(marketFilters.sort==="price_desc")rows.sort((a,b)=>Number(b.price)-Number(a.price));if(marketFilters.sort==="name_asc")rows.sort((a,b)=>String(a.name).localeCompare(String(b.name)));return rows;}
+function filterProducts(query){marketFilters.query=String(query||"");const input=document.getElementById("marketplaceSearch");if(input)input.value=marketFilters.query;render();const info=document.getElementById("searchResultInfo");if(info){const n=getFilteredProducts().length;info.textContent=marketFilters.query?(n?t("search_found",{n:n}):t("search_none")):t("search_type");}}
+function render(){const root=document.getElementById("products");if(!root)return;const rows=getFilteredProducts(),info=document.getElementById("marketplaceResultInfo");if(info)info.textContent=rows.length+" produk ditampilkan dari "+products.length+" produk";root.innerHTML=rows.length?rows.map(function(p){const i=products.indexOf(p),w=isWishlisted(p),sn=p.store&&p.store.name||"MarketKita Store",ss=p.store&&p.store.slug||"";return "<article class=\"card\" onclick=\"openProductDetail("+i+")\" style=\"cursor:pointer\"><div class=\"photo\" data-product-index=\""+i+"\" role=\"button\" tabindex=\"0\"><img src=\""+escDetail(p.img)+"\" alt=\""+escDetail(p.name)+"\" loading=\"lazy\"><button class=\"product-wishlist "+(w?"active":"")+"\" type=\"button\" onclick=\"toggleWishlist("+i+",event)\" aria-label=\"Wishlist\">"+(w?"♥":"♡")+"</button>"+(p.badge?"<span class=\"badge\">"+escDetail(p.badge)+"</span>":"")+"</div><div class=\"body\"><h3>"+escDetail(p.name)+"</h3><div class=\"price\">"+rupiah(p.price)+"</div>"+(ss?"<a class=\"product-store-link\" href=\"/store.html?slug="+encodeURIComponent(ss)+"\" onclick=\"event.stopPropagation()\">🏪 "+escDetail(sn)+"</a>":"<div class=\"product-store-link\">🏪 "+escDetail(sn)+"</div>")+"<div class=\"swatches\">"+(p.colors||[]).map(col=>"<span class=\"sw\" style=\"background:"+escDetail(col)+"\"></span>").join("")+"</div><div class=\"product-card-actions\"><button class=\"smallbtn product-card-btn\" type=\"button\" onclick=\"event.stopPropagation();addFromProductCard("+i+")\">"+t("add_cart")+"</button><button class=\"smallbtn product-card-btn product-card-buy\" type=\"button\" onclick=\"event.stopPropagation();openProductDetail("+i+")\">Beli Sekarang</button></div></div></article>";}).join(""):"<div class=\"wishlist-empty\" style=\"grid-column:1/-1\">Produk tidak ditemukan. Coba ubah kata kunci atau filter.</div>";}
 /* =========================
    PRODUCT DETAIL / SELLER
 ========================= */
