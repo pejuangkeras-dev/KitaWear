@@ -382,3 +382,51 @@ begin
 end;$function$;
 revoke execute on function public.admin_resolve_dispute_service(uuid,text) from public,anon,authenticated;
 grant execute on function public.admin_resolve_dispute_service(uuid,text) to service_role;
+
+
+-- Stock restoration for paid orders that are fully refunded/cancelled.
+alter table public.orders add column if not exists stock_restored_at timestamptz;
+
+create or replace function public.restore_order_stock(p_order_id uuid)
+returns void language plpgsql security definer set search_path=public
+as $function$
+declare v_order record; v_item record;
+begin
+  select id,payment_status,stock_decremented_at,stock_restored_at into v_order
+  from public.orders where id=p_order_id for update;
+  if not found then raise exception 'Order tidak ditemukan.'; end if;
+  if v_order.stock_decremented_at is null or v_order.stock_restored_at is not null then return; end if;
+  if v_order.payment_status not in ('refunded','cancelled','failed','expired') then
+    raise exception 'Stok hanya dapat dikembalikan untuk order yang dibatalkan/refund.';
+  end if;
+  for v_item in select product_id,size,quantity from public.order_items where order_id=p_order_id order by id for update loop
+    update public.product_sizes set stock=stock+v_item.quantity
+    where product_id=v_item.product_id and upper(size)=upper(v_item.size);
+    if not found then raise exception 'Ukuran % tidak ditemukan untuk produk %.',v_item.size,v_item.product_id; end if;
+  end loop;
+  update public.orders set stock_restored_at=now(),updated_at=now() where id=p_order_id;
+end;$function$;
+revoke all on function public.restore_order_stock(uuid) from public,anon,authenticated;
+grant execute on function public.restore_order_stock(uuid) to service_role;
+
+create or replace function public.admin_resolve_dispute_service(p_dispute_id uuid,p_resolution text)
+returns jsonb language plpgsql security definer set search_path=''
+as $function$
+declare v_dispute public.disputes%rowtype;
+begin
+  if lower(p_resolution) not in ('resolved_buyer','resolved_seller','closed','reviewing') then raise exception 'Resolusi sengketa tidak valid.'; end if;
+  select * into v_dispute from public.disputes where id=p_dispute_id for update;
+  if not found then raise exception 'Sengketa tidak ditemukan.'; end if;
+  update public.disputes set status=lower(p_resolution),resolved_at=case when lower(p_resolution) in ('resolved_buyer','resolved_seller') then now() else resolved_at end where id=p_dispute_id;
+  if lower(p_resolution)='resolved_buyer' then
+    update public.orders set status='refunded'::public.order_status,payment_status='refunded'::public.payment_status,updated_at=now() where id=v_dispute.order_id;
+    perform public.restore_order_stock(v_dispute.order_id);
+    update public.seller_payouts set status='refunded'::public.payout_status where order_id=v_dispute.order_id and status in ('pending','eligible');
+  end if;
+  insert into public.notifications(user_id,type,title,message,link)
+  values(v_dispute.buyer_id,'dispute','Sengketa diperbarui',
+    case lower(p_resolution) when 'resolved_buyer' then 'Refund sengketa telah diproses.' when 'resolved_seller' then 'Sengketa diselesaikan untuk seller.' when 'reviewing' then 'Refund sedang diproses.' else 'Sengketa telah ditutup.' end,'/#akun');
+  return jsonb_build_object('ok',true,'dispute_id',p_dispute_id,'status',lower(p_resolution));
+end;$function$;
+revoke all on function public.admin_resolve_dispute_service(uuid,text) from public,anon,authenticated;
+grant execute on function public.admin_resolve_dispute_service(uuid,text) to service_role;
