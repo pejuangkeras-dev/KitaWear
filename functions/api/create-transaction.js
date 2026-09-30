@@ -302,6 +302,8 @@ export async function onRequestPost(context) {
     const address =
       String(customer.address || "").trim();
 
+    const voucherId = String(body?.voucher_id || "").trim();
+
     if (!name || !email || !phone || !address) {
       return json({
         error: "Data pelanggan belum lengkap."
@@ -429,8 +431,65 @@ export async function onRequestPost(context) {
 
     const shippingFee = 0;
     const platformFee = 0;
-    const total =
-      subtotal + shippingFee;
+
+    let discountAmount = 0;
+    let voucherRow = null;
+
+    if (voucherId) {
+      if (!buyerUser?.id) {
+        return json({ error: "Voucher hanya dapat digunakan setelah login." }, 401);
+      }
+
+      const voucherRows = await supabaseRequest(
+        supabaseUrl,
+        serviceRoleKey,
+        "/rest/v1/vouchers?select=id,code,title,discount_type,discount_value,min_order_amount,max_discount,usage_limit,used_count,starts_at,expires_at,active" +
+          "&id=eq." + encodeURIComponent(voucherId) + "&active=eq.true&limit=1",
+        { method: "GET" }
+      );
+
+      voucherRow = Array.isArray(voucherRows) ? voucherRows[0] : null;
+      if (!voucherRow) return json({ error: "Voucher tidak tersedia." }, 400);
+
+      const now = Date.now();
+      if (voucherRow.starts_at && new Date(voucherRow.starts_at).getTime() > now) {
+        return json({ error: "Voucher belum dapat digunakan." }, 400);
+      }
+      if (voucherRow.expires_at && new Date(voucherRow.expires_at).getTime() <= now) {
+        return json({ error: "Voucher sudah kedaluwarsa." }, 400);
+      }
+      if (voucherRow.usage_limit != null && Number(voucherRow.used_count || 0) >= Number(voucherRow.usage_limit)) {
+        return json({ error: "Kuota voucher sudah habis." }, 400);
+      }
+
+      const claimedRows = await supabaseRequest(
+        supabaseUrl,
+        serviceRoleKey,
+        "/rest/v1/user_vouchers?select=id,used_at&voucher_id=eq." + encodeURIComponent(voucherId) +
+          "&user_id=eq." + encodeURIComponent(buyerUser.id) + "&limit=1",
+        { method: "GET" }
+      );
+      const claim = Array.isArray(claimedRows) ? claimedRows[0] : null;
+      if (!claim) return json({ error: "Klaim voucher terlebih dahulu dari Voucher Saya." }, 400);
+      if (claim.used_at) return json({ error: "Voucher ini sudah digunakan." }, 400);
+
+      if (subtotal < Number(voucherRow.min_order_amount || 0)) {
+        return json({ error: "Minimum transaksi voucher belum terpenuhi." }, 400);
+      }
+
+      if (voucherRow.discount_type === "percent") {
+        discountAmount = Math.floor(subtotal * Number(voucherRow.discount_value || 0) / 100);
+      } else {
+        discountAmount = Number(voucherRow.discount_value || 0);
+      }
+
+      if (voucherRow.max_discount != null) {
+        discountAmount = Math.min(discountAmount, Number(voucherRow.max_discount));
+      }
+      discountAmount = Math.max(0, Math.min(discountAmount, subtotal));
+    }
+
+    const total = subtotal - discountAmount + shippingFee;
 
     const orderNumber =
       makeOrderNumber();
@@ -484,7 +543,13 @@ export async function onRequestPost(context) {
               shippingFee,
 
             total:
-              total
+              total,
+
+            voucher_id:
+              voucherId || null,
+
+            discount_amount:
+              discountAmount
           })
         }
       );
@@ -665,6 +730,15 @@ export async function onRequestPost(context) {
           `${item.product_name} - ${item.store_name} - Size ${item.size}`
       }));
 
+    if (discountAmount > 0) {
+      itemDetails.push({
+        id: "VOUCHER-" + (voucherRow?.code || "DISCOUNT"),
+        price: -discountAmount,
+        quantity: 1,
+        name: "Voucher " + (voucherRow?.code || "MarketKita")
+      });
+    }
+
     const midtransResponse =
       await fetch(
         endpoint,
@@ -781,6 +855,21 @@ export async function onRequestPost(context) {
           midtransResult?.error_messages?.join(", ") ||
           "Gagal membuat transaksi Midtrans."
       }, midtransResponse.status || 502);
+    }
+
+    if (voucherId && buyerUser?.id && discountAmount > 0) {
+      await supabaseRequest(
+        supabaseUrl,
+        serviceRoleKey,
+        "/rest/v1/rpc/consume_user_voucher",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            p_voucher_id: voucherId,
+            p_user_id: buyerUser.id
+          })
+        }
+      );
     }
 
     return json({
