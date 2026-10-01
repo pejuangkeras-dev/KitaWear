@@ -766,3 +766,35 @@ begin
   perform cron.schedule('marketkita-release-expired-stock','*/10 * * * *',$select public.release_expired_stock_reservations();$);
 end
 $cron$;
+
+
+-- Phase 1 buyer transaction hardening applied on 2026-10-01.
+create or replace function public.buyer_cancel_order(p_order_id uuid)
+returns jsonb language plpgsql security definer set search_path=''
+as $function$
+declare v_user uuid := (select auth.uid()); v_status public.order_status; v_payment public.payment_status;
+begin
+  if v_user is null then raise exception 'Anda harus login.'; end if;
+  select status,payment_status into v_status,v_payment from public.orders where id=p_order_id and buyer_id=v_user for update;
+  if not found then raise exception 'Pesanan tidak ditemukan.'; end if;
+  if v_status<>'pending_payment'::public.order_status or v_payment<>'pending'::public.payment_status then
+    raise exception 'Pesanan hanya dapat dibatalkan sebelum pembayaran berhasil.';
+  end if;
+  update public.orders set status='cancelled'::public.order_status,payment_status='failed'::public.payment_status,shipping_status='cancelled',updated_at=now() where id=p_order_id and buyer_id=v_user;
+  update public.order_sellers set seller_status='cancelled',shipping_status='cancelled',updated_at=now() where order_id=p_order_id;
+  insert into public.notifications(user_id,type,title,message,link) values(v_user,'order','Pesanan dibatalkan','Pesanan '||coalesce((select order_number from public.orders where id=p_order_id),'')||' berhasil dibatalkan sebelum pembayaran.','?account=orders');
+  return jsonb_build_object('ok',true,'order_id',p_order_id,'status','cancelled');
+end;$function$;
+revoke all on function public.buyer_cancel_order(uuid) from public,anon;
+grant execute on function public.buyer_cancel_order(uuid) to authenticated;
+
+create unique index if not exists buyer_addresses_one_default_idx on public.buyer_addresses(user_id) where is_default=true;
+alter table public.buyer_addresses enable row level security;
+drop policy if exists buyer_addresses_select_own on public.buyer_addresses;
+drop policy if exists buyer_addresses_insert_own on public.buyer_addresses;
+drop policy if exists buyer_addresses_update_own on public.buyer_addresses;
+drop policy if exists buyer_addresses_delete_own on public.buyer_addresses;
+create policy buyer_addresses_select_own on public.buyer_addresses for select to authenticated using (user_id=(select auth.uid()));
+create policy buyer_addresses_insert_own on public.buyer_addresses for insert to authenticated with check (user_id=(select auth.uid()));
+create policy buyer_addresses_update_own on public.buyer_addresses for update to authenticated using (user_id=(select auth.uid())) with check (user_id=(select auth.uid()));
+create policy buyer_addresses_delete_own on public.buyer_addresses for delete to authenticated using (user_id=(select auth.uid()));
