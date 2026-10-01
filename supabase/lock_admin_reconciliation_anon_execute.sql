@@ -1,0 +1,1 @@
+-- Prevent anonymous callers from invoking the admin-only reconciliation RPC.\nrevoke execute on function public.admin_seller_reconciliation() from anon;\n
