@@ -531,8 +531,18 @@ body{background:var(--bg);color:var(--ink)}
       <input id="buyerPhone" required>
     </div>
     <div class="field">
-      <label for="buyerAddress" data-i18n="field_address">Alamat</label>
-      <input id="buyerAddress" required>
+      <label for="buyerAddressSelect">Alamat Tersimpan</label>
+      <select id="buyerAddressSelect" onchange="applyCheckoutAddress(this.value)" style="width:100%;height:44px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:#fff">
+        <option value="">Pilih alamat utama atau alamat tersimpan</option>
+      </select>
+      <small style="display:block;margin-top:6px;color:#77736c">Kelola alamat di Akun Saya → Alamat.</small>
+    </div>
+    <div class="field">
+      <label for="buyerAddress" data-i18n="field_address">Alamat Pengiriman</label>
+      <textarea id="buyerAddress" required style="width:100%;min-height:84px;border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical"></textarea>
+    </div>
+    <div class="checkout-summary-row" style="margin-top:8px">
+      <span>Ongkir</span><strong>Rp0 <small style="font-weight:500;color:#77736c">(sementara)</small></strong>
     </div>
 
     <div class="field" style="margin-top:12px"><label for="checkoutVoucher">Voucher</label><div style="display:flex;gap:8px"><input id="checkoutVoucher" placeholder="Masukkan voucher yang sudah diklaim" style="flex:1"><button type="button" class="smallbtn" style="width:110px" onclick="validateCheckoutVoucher()">Terapkan</button></div><div id="checkoutVoucherMessage" style="font-size:11px;color:#777;margin-top:6px"></div></div>
@@ -1817,25 +1827,33 @@ async function prefillBuyerCheckout(){
   try{
     const profile=kwCurrentProfile||{};
     const user=kwCurrentUser;
-    const name=document.getElementById("buyerName");
-    const email=document.getElementById("buyerEmail");
-    const phone=document.getElementById("buyerPhone");
+    const name=document.getElementById('buyerName');
+    const email=document.getElementById('buyerEmail');
+    const phone=document.getElementById('buyerPhone');
     if(name && !name.value.trim()) name.value=getMarketKitaDisplayName(user,profile);
-    if(email && !email.value.trim()) email.value=user.email||"";
-    if(phone && !phone.value.trim()) phone.value=profile.phone||user.user_metadata?.phone||"";
-    const {data,error}=await kwSupabase.from("buyer_addresses").select("*").eq("user_id",user.id).eq("is_default",true).limit(1).maybeSingle();
+    if(email && !email.value.trim()) email.value=user.email||'';
+    if(phone && !phone.value.trim()) phone.value=profile.phone||user.user_metadata?.phone||'';
+    const {data,error}=await kwSupabase.from('buyer_addresses').select('*').eq('user_id',user.id).order('is_default',{ascending:false}).order('created_at',{ascending:false});
     if(error)throw error;
-    const address=document.getElementById("buyerAddress");
-    if(address && data) address.value=[data.address_line,data.city,data.province,data.postal_code].filter(Boolean).join(", ");
-    const checkoutName=document.getElementById("buyerName");
-    if(checkoutName && data?.recipient_name) checkoutName.value=data.recipient_name;
-    const checkoutPhone=document.getElementById("buyerPhone");
-    if(checkoutPhone && data?.phone) checkoutPhone.value=data.phone;
-  }catch(error){
-    console.warn("MarketKita checkout address prefill:",error);
-  }
+    const rows=Array.isArray(data)?data:[];
+    buyerAddressCache=rows;
+    const select=document.getElementById('buyerAddressSelect');
+    if(select){
+      select.innerHTML='<option value="">Pilih alamat utama atau alamat tersimpan</option>'+rows.map(a=>'<option value="'+escDetail(a.id)+'">'+escDetail((a.is_default?'★ ':'')+a.label+' — '+a.recipient_name+' — '+a.city)+'</option>').join('');
+      const selected=rows.find(a=>a.is_default)||rows[0];
+      if(selected){ select.value=selected.id; applyCheckoutAddress(selected.id); }
+    }
+  }catch(error){ console.warn('MarketKita checkout address prefill:',error); }
 }
-
+function applyCheckoutAddress(id){
+  if(!id || !Array.isArray(buyerAddressCache))return;
+  const a=buyerAddressCache.find(x=>String(x.id)===String(id));
+  if(!a)return;
+  const address=document.getElementById('buyerAddress');
+  if(address) address.value=[a.address_line,a.city,a.province,a.postal_code].filter(Boolean).join(', ');
+  const name=document.getElementById('buyerName'); if(name&&a.recipient_name)name.value=a.recipient_name;
+  const phone=document.getElementById('buyerPhone'); if(phone&&a.phone)phone.value=a.phone;
+}
 async function validateCheckoutVoucher(){
   const code=String(document.getElementById("checkoutVoucher")?.value||"").trim().toUpperCase();
   const msg=document.getElementById("checkoutVoucherMessage");
@@ -2521,6 +2539,21 @@ function renderBuyerOrders(){
       <details class="buyer-order-detail"><summary>Lihat detail pesanan</summary><div class="buyer-order-detail-grid"><div><span>Pembayaran</span><strong>${escDetail(order.payment_status||"-")}</strong></div><div><span>Alamat</span><strong>${escDetail(order.shipping_address||"-")}</strong></div><div><span>Nomor WhatsApp</span><strong>${escDetail(order.customer_phone||"-")}</strong></div><div><span>Dibuat</span><strong>${new Date(order.created_at).toLocaleString("id-ID")}</strong></div></div>${sellers.map(s=>`<div class="buyer-seller-shipment"><strong>Pengiriman Seller</strong><span>Status: ${escDetail(s.shipping_status||"-")}</span><span>Resi: ${escDetail(s.tracking_number||"Belum tersedia")}</span></div>`).join("")}</details>
     </article>`;
   }).join("");
+  const cards=root.querySelectorAll(".buyer-order-card");
+  rows.forEach((order,index)=>{
+    const card=cards[index]; if(!card)return;
+    const tracking=card.querySelector(".buyer-tracking"); if(!tracking)return;
+    if(order.status==="pending_payment"){
+      const b=document.createElement("button");
+      b.className="buyer-order-confirm"; b.style.cssText="margin-top:8px;background:#eeeae3;color:#222";
+      b.textContent="Batalkan Pesanan"; b.onclick=()=>cancelBuyerOrder(order.id); tracking.appendChild(b);
+    }
+    if(["shipped","delivered","completed"].includes(order.status)){
+      const b=document.createElement("button");
+      b.className="buyer-order-confirm"; b.style.cssText="margin-top:8px;background:#fff;border:1px solid var(--line);color:#222";
+      b.textContent="Ajukan Komplain / Refund"; b.onclick=()=>openDisputeForOrder(order.id); tracking.appendChild(b);
+    }
+  });
 }
 async function loadBuyerOrders(){
   const root=document.getElementById("buyerOrdersList");
@@ -2543,6 +2576,23 @@ async function loadBuyerOrders(){
   }
 }
 
+async function cancelBuyerOrder(orderId){
+  if(!kwSupabase||!kwCurrentUser)return;
+  if(!await showKwConfirm("Batalkan pesanan yang belum dibayar ini? Stok yang sedang ditahan akan dilepas.","Batalkan Pesanan","Ya, batalkan","Kembali"))return;
+  try{
+    const {data,error}=await kwSupabase.rpc("buyer_cancel_order",{p_order_id:orderId});
+    if(error)throw error;
+    if(!data?.ok)throw new Error("Pesanan tidak dapat dibatalkan.");
+    showKwNotice("Pesanan berhasil dibatalkan.","Pesanan Dibatalkan");
+    await loadBuyerOrders();
+  }catch(error){showKwNotice(error.message||"Gagal membatalkan pesanan.","Pembatalan");}
+}
+function openDisputeForOrder(orderId){
+  showAccountSection("disputes");
+  const select=document.getElementById("disputeOrder");
+  if(select)select.value=orderId;
+  setTimeout(()=>document.getElementById("disputeDescription")?.focus(),80);
+}
 async function changeAccountPassword(){
   if(!kwSupabase || !kwCurrentUser) return;
 
