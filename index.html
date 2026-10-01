@@ -2594,12 +2594,25 @@ async function loadBuyerOrders(){
 
 async function cancelBuyerOrder(orderId){
   if(!kwSupabase||!kwCurrentUser)return;
-  if(!await showKwConfirm("Batalkan pesanan yang belum dibayar ini? Stok yang sedang ditahan akan dilepas.","Batalkan Pesanan","Ya, batalkan","Kembali"))return;
+  if(!await showKwConfirm("Batalkan pesanan yang belum dibayar ini? Pembayaran yang masih pending juga akan dibatalkan.","Batalkan Pesanan","Ya, batalkan","Kembali"))return;
   try{
-    const {data,error}=await kwSupabase.rpc("buyer_cancel_order",{p_order_id:orderId});
-    if(error)throw error;
+    const {data:sessionData,error:sessionError}=await kwSupabase.auth.getSession();
+    if(sessionError)throw sessionError;
+    const accessToken=sessionData?.session?.access_token||"";
+    if(!accessToken)throw new Error("Sesi login sudah berakhir. Silakan masuk kembali.");
+    const response=await fetch("/api/buyer-cancel-order",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        Authorization:"Bearer "+accessToken
+      },
+      body:JSON.stringify({order_id:orderId}),
+      cache:"no-store"
+    });
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(data.error||"Pesanan tidak dapat dibatalkan.");
     if(!data?.ok)throw new Error("Pesanan tidak dapat dibatalkan.");
-    showKwNotice("Pesanan berhasil dibatalkan.","Pesanan Dibatalkan");
+    showKwNotice("Pesanan berhasil dibatalkan dan pembayaran pending dihentikan.","Pesanan Dibatalkan");
     await loadBuyerOrders();
   }catch(error){showKwNotice(error.message||"Gagal membatalkan pesanan.","Pembatalan");}
 }
