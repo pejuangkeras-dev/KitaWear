@@ -1,5 +1,8 @@
 {
-  "name": "kitawear-marketplace",
+  "name": "marketkita-marketplace",
   "private": true,
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "scripts": {
+    "build": "node -e \"console.log('MarketKita Cloudflare Pages build: static root + Functions')\""
+  }
 }
