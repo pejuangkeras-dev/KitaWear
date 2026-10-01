@@ -414,21 +414,39 @@ tr:last-child td{
 
 .notice{
   position:fixed;
-  right:20px;
-  bottom:20px;
-  z-index:100;
-  min-width:280px;
-  max-width:420px;
-  padding:15px 17px;
-  border-radius:13px;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%) scale(.96);
+  z-index:120;
+  width:min(460px,calc(100% - 32px));
+  min-width:0;
+  max-width:460px;
+  padding:22px 24px;
+  border-radius:18px;
   background:#171817;
   color:#fff;
-  box-shadow:0 18px 45px rgba(0,0,0,.25);
+  box-shadow:0 30px 90px rgba(0,0,0,.38);
   display:none;
+  text-align:center;
+  font-weight:750;
+  line-height:1.55;
+  border:1px solid rgba(255,255,255,.12);
+  opacity:0;
+  transition:opacity .18s ease,transform .18s ease;
 }
-
 .notice.show{
   display:block;
+  opacity:1;
+  transform:translate(-50%,-50%) scale(1);
+}
+.notice.success{
+  border-left:0;
+  border-top:4px solid #48b979;
+}
+.notice.error{
+  border-left:0;
+  border-top:4px solid #ef6262;
+  text-align:center;
 }
 
 .notice.success{
@@ -1344,6 +1362,28 @@ tr:last-child td{
   </div>
 </div>
 
+<!-- REFUND REASON MODAL -->
+<div id="refundReasonModal" class="modal">
+  <div class="modal-card status-modal-card">
+    <div class="modal-head">
+      <div>
+        <h2>Refund ke Buyer</h2>
+        <div id="refundReasonSubtitle" class="muted">Masukkan alasan refund yang akan dikirim ke Midtrans.</div>
+      </div>
+      <button id="closeRefundReasonBtn" class="close" type="button">×</button>
+    </div>
+    <div class="modal-body">
+      <label class="detail-label" for="refundReasonInput">Alasan refund</label>
+      <textarea id="refundReasonInput" class="search" style="width:100%;min-height:110px;padding:12px;resize:vertical;margin-top:8px" maxlength="500" placeholder="Contoh: Barang rusak dan sengketa disetujui untuk refund buyer."></textarea>
+      <div class="muted" style="margin-top:7px">Alasan ini dicatat pada permintaan refund.</div>
+      <div class="modal-actions">
+        <button id="cancelRefundReasonBtn" class="btn" type="button">Batal</button>
+        <button id="confirmRefundReasonBtn" class="btn btn-dark" type="button">Kirim Refund</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- =========================================================
      NOTICE
 ========================================================= -->
@@ -2131,29 +2171,60 @@ async function loadDisputes(){
   }catch(e){root.innerHTML='<div class="error">'+escapeHtml(e.message||"Gagal memuat sengketa.")+'</div>';}
 }
 
+let pendingRefundDisputeId = null;
+
+function openRefundReasonModal(id){
+  pendingRefundDisputeId = id;
+  const input = document.getElementById("refundReasonInput");
+  input.value = "";
+  document.getElementById("refundReasonModal").classList.add("show");
+  setTimeout(()=>input.focus(),50);
+}
+
+function closeRefundReasonModal(){
+  pendingRefundDisputeId = null;
+  document.getElementById("refundReasonModal").classList.remove("show");
+}
+
+async function submitRefundReason(){
+  const id = pendingRefundDisputeId;
+  if(!id) return;
+  const input = document.getElementById("refundReasonInput");
+  const reason = input.value.trim() || "Refund sengketa MarketKita";
+  const button = document.getElementById("confirmRefundReasonBtn");
+  button.disabled = true;
+  button.textContent = "Mengirim...";
+  try{
+    const sessionResult=await supabaseClient.auth.getSession();
+    const token=sessionResult?.data?.session?.access_token;
+    if(!token)throw new Error("Session admin tidak ditemukan.");
+    const response=await fetch("/api/admin-refund",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+token
+      },
+      body:JSON.stringify({dispute_id:id,reason})
+    });
+    const data=await response.json().catch(()=>null);
+    if(!response.ok)throw new Error(data?.error||"Refund Midtrans gagal.");
+    closeRefundReasonModal();
+    showNotice("Refund dikirim ke Midtrans. Menunggu konfirmasi bank/payment provider.","success");
+    await loadDisputes();
+    await loadOrders();
+  }catch(e){
+    showNotice(e.message||"Refund gagal diproses.","error");
+  }finally{
+    button.disabled=false;
+    button.textContent="Kirim Refund";
+  }
+}
+
 async function resolveDispute(id,resolution){
   let note="";
   if(resolution==="resolved_seller")note=window.prompt("Catatan penyelesaian:")||"";
   if(resolution==="resolved_buyer"){
-    const reason=window.prompt("Alasan refund ke buyer:")||"Refund sengketa MarketKita";
-    try{
-      const sessionResult=await supabaseClient.auth.getSession();
-      const token=sessionResult?.data?.session?.access_token;
-      if(!token)throw new Error("Session admin tidak ditemukan.");
-      const response=await fetch("/api/admin-refund",{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "Authorization":"Bearer "+token
-        },
-        body:JSON.stringify({dispute_id:id,reason})
-      });
-      const data=await response.json().catch(()=>null);
-      if(!response.ok)throw new Error(data?.error||"Refund Midtrans gagal.");
-      showNotice("Refund dikirim ke Midtrans. Menunggu konfirmasi bank/payment provider.","success");
-      await loadDisputes();
-      await loadOrders();
-    }catch(e){showNotice(e.message||"Refund gagal diproses.","error");}
+    openRefundReasonModal(id);
     return;
   }
   try{
@@ -3212,6 +3283,12 @@ document.getElementById("sellerApplicationFilter").addEventListener("change",ren
 document.getElementById("refreshPayoutRequestsBtn").addEventListener("click",loadPayoutRequests);
 document.getElementById("refreshDisputesBtn").addEventListener("click",loadDisputes);
 document.getElementById("refreshSellerApplicationsBtn").addEventListener("click",loadSellerApplications);
+document.getElementById("closeRefundReasonBtn").addEventListener("click",closeRefundReasonModal);
+document.getElementById("cancelRefundReasonBtn").addEventListener("click",closeRefundReasonModal);
+document.getElementById("confirmRefundReasonBtn").addEventListener("click",submitRefundReason);
+document.getElementById("refundReasonModal").addEventListener("click",event=>{
+  if(event.target.id==="refundReasonModal") closeRefundReasonModal();
+});
 
 document.getElementById("closeSellerReviewBtn").addEventListener("click",closeSellerReviewModal);
 document.getElementById("cancelSellerReviewBtn").addEventListener("click",closeSellerReviewModal);
