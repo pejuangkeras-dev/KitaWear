@@ -614,6 +614,19 @@ export async function onRequestPost(context) {
       await supabaseRequest(
         supabaseUrl,
         serviceRoleKey,
+        "/rest/v1/rpc/release_order_stock_reservation",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            p_order_id: createdOrderId,
+            p_reason: "released"
+          })
+        }
+      ).catch(() => {});
+
+      await supabaseRequest(
+        supabaseUrl,
+        serviceRoleKey,
         `/rest/v1/orders?id=eq.${encodeURIComponent(
           createdOrderId
         )}`,
@@ -701,6 +714,21 @@ export async function onRequestPost(context) {
 
       throw sellerError;
     }
+
+    // Reserve stock atomically before creating the Midtrans payment session.
+    // The reservation lasts 24 hours, aligned with the default Snap token lifetime.
+    await supabaseRequest(
+      supabaseUrl,
+      serviceRoleKey,
+      "/rest/v1/rpc/reserve_order_stock",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          p_order_id: createdOrderId,
+          p_minutes: 1440
+        })
+      }
+    );
 
     const endpoint =
       production
@@ -814,7 +842,14 @@ export async function onRequestPost(context) {
                   .join(" | "),
 
               custom_field2:
-                String(createdOrderId)
+                String(createdOrderId),
+
+              // Keep the stock reservation aligned with the Snap payment lifetime.
+              expiry: {
+                start_time: new Date().toLocaleString("sv-SE", { timeZone: "Asia/Jakarta" }).replace("T", " ") + " +0700",
+                unit: "hour",
+                duration: 24
+              }
             })
         }
       );
@@ -917,6 +952,19 @@ export async function onRequestPost(context) {
         supabaseUrl &&
         serviceRoleKey
       ) {
+        await supabaseRequest(
+          supabaseUrl,
+          serviceRoleKey,
+          "/rest/v1/rpc/release_order_stock_reservation",
+          {
+            method: "POST",
+            body: JSON.stringify({
+              p_order_id: createdOrderId,
+              p_reason: "released"
+            })
+          }
+        ).catch(() => {});
+
         await supabaseRequest(
           supabaseUrl,
           serviceRoleKey,
