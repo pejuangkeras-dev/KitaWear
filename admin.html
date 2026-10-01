@@ -1144,7 +1144,48 @@ tr:last-child td{
     <div id="payoutRequestsContainer"><div class="loading">Memuat payout...</div></div>
   </section>
 
-  <section class="panel" style="margin-top:26px">
+  
+<section class="panel" style="margin-top:26px" id="phase3BusinessPanel">
+  <div class="panel-head">
+    <div><h2 class="panel-title">Business Dashboard</h2><div class="muted">Ringkasan bisnis marketplace berdasarkan periode.</div></div>
+    <div class="panel-tools"><input id="p3AdminFrom" class="search" type="date"><input id="p3AdminTo" class="search" type="date"><button id="p3AdminRefresh" class="btn" type="button">↻ Refresh</button></div>
+  </div>
+  <div class="stats" style="padding:18px;margin:0">
+    <div class="stat"><div class="stat-label">Gross Sales</div><div id="p3Gross" class="stat-value">Rp0</div></div>
+    <div class="stat"><div class="stat-label">Paid Orders</div><div id="p3PaidOrders" class="stat-value">0</div></div>
+    <div class="stat"><div class="stat-label">Platform Fee</div><div id="p3PlatformFee" class="stat-value">Rp0</div></div>
+    <div class="stat"><div class="stat-label">Seller Net</div><div id="p3SellerNet" class="stat-value">Rp0</div></div>
+  </div>
+  <div style="padding:18px">
+    <div id="p3AdminMore" class="muted">Memuat...</div>
+  </div>
+</section>
+
+<section class="panel" style="margin-top:26px" id="phase3VoucherPanel">
+  <div class="panel-head">
+    <div><h2 class="panel-title">Voucher & Promo</h2><div class="muted">Buat dan aktif/nonaktifkan voucher marketplace.</div></div>
+    <button id="p3VoucherRefresh" class="btn" type="button">↻ Refresh</button>
+  </div>
+  <div style="padding:18px">
+    <form id="p3VoucherForm" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+      <input id="p3Code" class="search" placeholder="Kode voucher" required>
+      <input id="p3Title" class="search" placeholder="Judul voucher" required>
+      <input id="p3Description" class="search" placeholder="Deskripsi">
+      <select id="p3Type" class="select"><option value="percent">Persen (%)</option><option value="fixed">Nominal (Rp)</option></select>
+      <input id="p3Value" class="search" type="number" min="1" placeholder="Nilai diskon" required>
+      <input id="p3Min" class="search" type="number" min="0" placeholder="Minimum transaksi">
+      <input id="p3Max" class="search" type="number" min="0" placeholder="Maksimum diskon (opsional)">
+      <input id="p3Limit" class="search" type="number" min="1" placeholder="Kuota (opsional)">
+      <input id="p3Starts" class="search" type="datetime-local">
+      <input id="p3Expires" class="search" type="datetime-local">
+      <button class="btn btn-dark" type="submit">Buat Voucher</button>
+    </form>
+    <div id="p3VoucherMsg" class="muted" style="margin-top:10px"></div>
+    <div id="p3VoucherList" style="margin-top:16px">Memuat voucher...</div>
+  </div>
+</section>
+
+<section class="panel" style="margin-top:26px">
     <div class="panel-head">
       <div><h2 class="panel-title">Sengketa Pesanan</h2><div class="muted">Tinjau dan selesaikan sengketa buyer.</div></div>
       <button id="refreshDisputesBtn" class="btn" type="button">↻ Refresh</button>
@@ -1761,6 +1802,8 @@ async function checkAdminAccess(){
   showAdminApp(data);
 
   await loadOrders();
+  await loadPhase3Dashboard();
+  await loadPhase3Vouchers();
 
 }
 
@@ -3392,6 +3435,57 @@ document.addEventListener(
   await checkSession();
 
 })();
+
+
+async function loadPhase3Dashboard(){
+  try{
+    const now=new Date();
+    const end=$('p3AdminTo').value || now.toISOString().slice(0,10);
+    const start=$('p3AdminFrom').value || new Date(now.getTime()-29*86400000).toISOString().slice(0,10);
+    $('p3AdminFrom').value=start; $('p3AdminTo').value=end;
+    const q=await supabaseClient.rpc('admin_business_dashboard',{p_from:start,p_to:end});
+    if(q.error) throw q.error;
+    const x=q.data||{};
+    $('p3Gross').textContent=formatRupiah(x.gross_sales);
+    $('p3PaidOrders').textContent=String(x.paid_orders||0);
+    $('p3PlatformFee').textContent=formatRupiah(x.platform_fee);
+    $('p3SellerNet').textContent=formatRupiah(x.seller_net);
+    $('p3AdminMore').innerHTML='Total order: <strong>'+escapeHtml(x.orders||0)+'</strong> · Selesai: <strong>'+escapeHtml(x.completed_orders||0)+'</strong> · Ongkir: <strong>'+formatRupiah(x.shipping)+'</strong> · Refund: <strong>'+formatRupiah(x.refunded)+'</strong> · Order voucher: <strong>'+escapeHtml(x.voucher_orders||0)+'</strong> · Payout eligible: <strong>'+formatRupiah(x.payout_eligible)+'</strong> · Payout paid: <strong>'+formatRupiah(x.payout_paid)+'</strong>';
+  }catch(e){ $('p3AdminMore').textContent=e.message||'Gagal memuat dashboard bisnis.'; }
+}
+async function loadPhase3Vouchers(){
+  const root=$('p3VoucherList'); if(!root)return;
+  try{
+    const q=await supabaseClient.from('vouchers').select('id,code,title,discount_type,discount_value,min_order_amount,max_discount,usage_limit,used_count,starts_at,expires_at,active').order('created_at',{ascending:false}).limit(100);
+    if(q.error)throw q.error;
+    const rows=q.data||[];
+    root.innerHTML=rows.length
+      ? '<div class="table-wrap"><table><thead><tr><th>Kode</th><th>Diskon</th><th>Kuota</th><th>Periode</th><th>Status</th><th>Aksi</th></tr></thead><tbody>'+
+        rows.map(x=>'<tr><td><strong>'+escapeHtml(x.code)+'</strong><br><span class="muted">'+escapeHtml(x.title||'')+'</span></td><td>'+escapeHtml(x.discount_type==='percent'?x.discount_value+'%':formatRupiah(x.discount_value))+'<br><span class="muted">Min '+formatRupiah(x.min_order_amount)+'</span></td><td>'+escapeHtml(x.used_count||0)+' / '+escapeHtml(x.usage_limit==null?'∞':x.usage_limit)+'</td><td>'+escapeHtml(formatDate(x.starts_at))+'<br>'+escapeHtml(formatDate(x.expires_at))+'</td><td>'+escapeHtml(x.active?'Aktif':'Nonaktif')+'</td><td><button class="small-btn" onclick="togglePhase3Voucher(\''+x.id+'\','+(x.active?'false':'true')+')">'+(x.active?'Nonaktifkan':'Aktifkan')+'</button></td></tr>').join('')+
+        '</tbody></table></div>'
+      : '<div class="empty">Belum ada voucher.</div>';
+  }catch(e){root.innerHTML='<div class="error">'+escapeHtml(e.message||'Gagal memuat voucher.')+'</div>';}
+}
+async function togglePhase3Voucher(id,active){
+  try{const q=await supabaseClient.rpc('admin_set_voucher_active',{p_voucher_id:id,p_active:active});if(q.error)throw q.error;showNotice(active?'Voucher diaktifkan.':'Voucher dinonaktifkan.','success');await loadPhase3Vouchers();}catch(e){showNotice(e.message||'Gagal mengubah voucher.','error');}
+}
+async function createPhase3Voucher(e){
+  e.preventDefault();
+  const msg=$('p3VoucherMsg'); msg.textContent='Membuat voucher...';
+  try{
+    const val=Number($('p3Value').value), min=Number($('p3Min').value||0), max=Number($('p3Max').value||0)||null, limit=Number($('p3Limit').value||0)||null;
+    const starts=$('p3Starts').value?new Date($('p3Starts').value).toISOString():new Date().toISOString();
+    const expires=$('p3Expires').value?new Date($('p3Expires').value).toISOString():null;
+    const q=await supabaseClient.rpc('admin_create_voucher',{p_code:$('p3Code').value.trim(),p_title:$('p3Title').value.trim(),p_description:$('p3Description').value.trim()||null,p_discount_type:$('p3Type').value,p_discount_value:val,p_min_order_amount:min,p_max_discount:max,p_usage_limit:limit,p_starts_at:starts,p_expires_at:expires});
+    if(q.error)throw q.error;
+    msg.textContent='Voucher berhasil dibuat.';
+    e.target.reset();
+    await loadPhase3Vouchers();
+  }catch(err){msg.textContent=err.message||'Gagal membuat voucher.';}
+}
+$('p3AdminRefresh').addEventListener('click',loadPhase3Dashboard);
+$('p3VoucherRefresh').addEventListener('click',loadPhase3Vouchers);
+$('p3VoucherForm').addEventListener('submit',createPhase3Voucher);
 
 </script>
 
