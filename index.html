@@ -716,8 +716,8 @@ body{background:var(--bg);color:var(--ink)}
       <label for="buyerAddress" data-i18n="field_address">Alamat Pengiriman</label>
       <textarea id="buyerAddress" required style="width:100%;min-height:84px;border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical"></textarea>
     </div>
-    <div class="checkout-summary-row" style="margin-top:8px">
-      <span>Ongkir</span><strong>Rp0 <small style="font-weight:500;color:#77736c">(sementara)</small></strong>
+    <div id="checkoutShippingSummary" class="checkout-summary-row" style="margin-top:8px">
+      <span>Ongkir</span><strong>Rp0 <small style="font-weight:500;color:#77736c">(menunggu perhitungan)</small></strong>
     </div>
 
     <div class="field" style="margin-top:12px"><label for="checkoutVoucher">Voucher</label><div style="display:flex;gap:8px"><input id="checkoutVoucher" placeholder="Masukkan voucher yang sudah diklaim" style="flex:1"><button type="button" class="smallbtn" style="width:110px" onclick="validateCheckoutVoucher()">Terapkan</button></div><div id="checkoutVoucherMessage" style="font-size:11px;color:#777;margin-top:6px"></div></div>
