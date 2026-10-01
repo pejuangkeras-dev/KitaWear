@@ -998,7 +998,6 @@ tr:last-child td{
 
 
   <!-- STATS -->  <section class="stats">
-
     <div class="stat">
 
       <div class="stat-label">
@@ -1177,6 +1176,30 @@ tr:last-child td{
   </section>
 
   
+<section class="panel" style="margin-top:26px" id="sellerReconciliationPanel">
+  <div class="panel-head">
+    <div>
+      <h2 class="panel-title">Seller Reconciliation Center</h2>
+      <div class="muted">Pemeriksaan saldo ledger, payout request, dan payout yang sudah dibayar.</div>
+    </div>
+    <div class="panel-tools">
+      <select id="sellerReconFilter" class="select">
+        <option value="all">Semua seller</option>
+        <option value="issue">Perlu diperiksa</option>
+        <option value="ok">Terverifikasi</option>
+      </select>
+      <button id="refreshSellerReconBtn" class="btn" type="button">↻ Refresh</button>
+    </div>
+  </div>
+  <div class="stats" style="padding:18px;margin:0">
+    <div class="stat"><div class="stat-label">Total Seller</div><div id="reconTotalSellers" class="stat-value">0</div></div>
+    <div class="stat"><div class="stat-label">Perlu Diperiksa</div><div id="reconIssueSellers" class="stat-value">0</div></div>
+    <div class="stat"><div class="stat-label">Terverifikasi</div><div id="reconOkSellers" class="stat-value">0</div></div>
+    <div class="stat"><div class="stat-label">Status</div><div id="reconOverallStatus" class="stat-value" style="font-size:20px">Memuat...</div></div>
+  </div>
+  <div id="sellerReconciliationContainer"><div class="loading">Memuat rekonsiliasi seller...</div></div>
+</section>
+
 <section class="panel" style="margin-top:26px" id="phase3BusinessPanel">
   <div class="panel-head">
     <div><h2 class="panel-title">Business Dashboard</h2><div class="muted">Ringkasan bisnis marketplace berdasarkan periode.</div></div>
@@ -1815,6 +1838,7 @@ async function checkAdminAccess(){
   await loadSellerApplications();
   await loadPayoutRequests();
   await loadPayoutAudit();
+  await loadSellerReconciliation();
   await loadDisputes();
   await loadPhase3Dashboard();
   await loadPhase3Vouchers();
@@ -1998,7 +2022,6 @@ async function loadOrders(){
 /* =========================================================
    SELLER APPLICATIONS
 ========================================================= */
-
 let sellerApplications = [];
 
 async function loadSellerApplications(){
@@ -2997,7 +3020,6 @@ async function openOrderDetail(id){
 
     </div>
 
-
     <h3 style="margin:0 0 10px">
       Item Pesanan
     </h3>
@@ -3383,6 +3405,8 @@ async function saveOrderStatus(){
 document.getElementById("sellerApplicationFilter").addEventListener("change",renderSellerApplications);
 document.getElementById("refreshPayoutRequestsBtn").addEventListener("click",async()=>{await loadPayoutRequests();await loadPayoutAudit();});
 document.getElementById("refreshPayoutAuditBtn").addEventListener("click",()=>loadPayoutAudit());
+document.getElementById("refreshSellerReconBtn").addEventListener("click",loadSellerReconciliation);
+document.getElementById("sellerReconFilter").addEventListener("change",loadSellerReconciliation);
 document.getElementById("refreshDisputesBtn").addEventListener("click",loadDisputes);
 document.getElementById("refreshSellerApplicationsBtn").addEventListener("click",loadSellerApplications);
 document.getElementById("closeRefundReasonBtn").addEventListener("click",closeRefundReasonModal);
@@ -3451,6 +3475,7 @@ document
     async ()=>{
       await loadOrders();
       await loadPayoutRequests();
+      await loadSellerReconciliation();
       await loadPhase3Dashboard();
     }
   );
@@ -3624,6 +3649,48 @@ document.addEventListener(
 
 })();
 
+
+async function loadSellerReconciliation(){
+  const root=$('sellerReconciliationContainer');
+  if(!root)return;
+  root.innerHTML='<div class="loading">Memeriksa seluruh seller...</div>';
+  try{
+    const q=await supabaseClient.rpc('admin_seller_reconciliation');
+    if(q.error)throw q.error;
+    const x=q.data||{};
+    const rows=x.rows||[];
+    $('reconTotalSellers').textContent=String(x.total_sellers||0);
+    $('reconIssueSellers').textContent=String(x.issue_sellers||0);
+    $('reconOkSellers').textContent=String(x.reconciled_sellers||0);
+    $('reconOverallStatus').textContent=Number(x.issue_sellers||0)===0?'✓ Semua OK':'⚠ Perlu Pemeriksaan';
+
+    const filter=$('sellerReconFilter').value;
+    const filtered=rows.filter(r=>filter==='all'||(filter==='issue'?r.has_issue:!r.has_issue));
+    if(!filtered.length){
+      root.innerHTML='<div class="empty">'+(filter==='issue'?'Tidak ada seller yang memiliki selisih.':filter==='ok'?'Belum ada seller terverifikasi.':'Belum ada data seller.')+'</div>';
+      return;
+    }
+    root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Seller</th><th>Eligible</th><th>Request Aktif</th><th>Tersedia Setelah Request</th><th>Paid Ledger</th><th>Paid Request</th><th>Selisih Paid</th><th>Status</th></tr></thead><tbody>'+
+      filtered.map(r=>{
+        const issue=!!r.has_issue;
+        const discrepancy=Number(r.paid_discrepancy||0);
+        return '<tr>'+
+          '<td><strong>'+escapeHtml(r.seller_name||'Seller')+'</strong><div class="muted">'+escapeHtml(String(r.seller_id).slice(0,8))+'</div></td>'+
+          '<td>'+formatRupiah(r.eligible)+'</td>'+
+          '<td>'+formatRupiah(Number(r.pending_requests||0)+Number(r.approved_requests||0))+'<div class="muted">Pending '+formatRupiah(r.pending_requests)+' · Approved '+formatRupiah(r.approved_requests)+'</div></td>'+
+          '<td>'+formatRupiah(r.available_after_requests)+'</td>'+
+          '<td>'+formatRupiah(r.paid_ledger)+'</td>'+
+          '<td>'+formatRupiah(r.paid_requests)+'</td>'+
+          '<td>'+formatRupiah(Math.abs(discrepancy))+(discrepancy?' <span class="status failed">SELISIH</span>':'')+'</td>'+
+          '<td><span class="status '+(issue?'failed':'paid')+'">'+(issue?'Perlu diperiksa':'Terverifikasi')+'</span></td>'+
+        '</tr>';
+      }).join('')+
+      '</tbody></table></div>';
+  }catch(e){
+    root.innerHTML='<div class="error">'+escapeHtml(e.message||'Gagal memuat rekonsiliasi seller.')+'</div>';
+    $('reconOverallStatus').textContent='Gagal';
+  }
+}
 
 async function loadPhase3Dashboard(){
   try{
