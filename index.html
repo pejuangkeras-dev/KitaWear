@@ -2587,8 +2587,9 @@ async function cancelBuyerOrder(orderId){
     await loadBuyerOrders();
   }catch(error){showKwNotice(error.message||"Gagal membatalkan pesanan.","Pembatalan");}
 }
-function openDisputeForOrder(orderId){
+async function openDisputeForOrder(orderId){
   showAccountSection("disputes");
+  await loadBuyerDisputes();
   const select=document.getElementById("disputeOrder");
   if(select)select.value=orderId;
   setTimeout(()=>document.getElementById("disputeDescription")?.focus(),80);
