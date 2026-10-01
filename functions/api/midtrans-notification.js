@@ -127,10 +127,19 @@ function mapMidtransStatus(transactionStatus, fraudStatus) {
     };
   }
 
-  if (status === "refund" || status === "partial_refund" || status === "chargeback" || status === "partial_chargeback") {
+  if (status === "refund" || status === "chargeback") {
     return {
       orderStatus: "refunded",
       paymentStatus: "refunded"
+    };
+  }
+
+  // A partial refund does not mean the marketplace order is fully refunded.
+  // Keep the order paid and let the dispute/refund workflow track the partial amount.
+  if (status === "partial_refund" || status === "partial_chargeback") {
+    return {
+      orderStatus: "paid",
+      paymentStatus: "paid"
     };
   }
 
