@@ -8,12 +8,11 @@ export async function onRequestPost(context){
   if(!u||!k||!secret)return json({error:"Konfigurasi shipping server belum lengkap."},500);
   if((context.request.headers.get("X-Shipping-Internal-Secret")||"")!==secret)return json({error:"Unauthorized"},401);
   const {order_id}=await context.request.json().catch(()=>({})); if(!order_id)return json({error:"order_id wajib."},400);
-  const orders=await sb(u,k,`/rest/v1/orders?select=id,order_number,buyer_id,customer_name,customer_email,customer_phone,shipping_address,shipping_quote_id,status,payment_status&id=eq.${encodeURIComponent(order_id)}&limit=1`);
+  const orders=await sb(u,k,`/rest/v1/orders?select=id,order_number,buyer_id,customer_name,customer_email,customer_phone,shipping_address,shipping_quote_id,shipping_selections,status,payment_status&id=eq.${encodeURIComponent(order_id)}&limit=1`);
   const order=orders?.[0];if(!order)return json({error:"Order tidak ditemukan."},404);
   if(order.payment_status!=="paid")return json({error:"Shipment hanya dibuat setelah pembayaran paid."},409);
   const os=await sb(u,k,`/rest/v1/order_sellers?select=id,order_id,store_id,seller_id,shipping_fee,subtotal&order_id=eq.${encodeURIComponent(order.id)}`);
-  const selectedRows=order.shipping_quote_id?await sb(u,k,`/rest/v1/shipping_quotes?select=selected_selections&id=eq.${encodeURIComponent(order.shipping_quote_id)}&limit=1`):[];
-  const selected=selectedRows?.[0]?.selected_selections||[];
+  const selected=Array.isArray(order.shipping_selections)?order.shipping_selections:[];
   const items=await sb(u,k,`/rest/v1/order_items?select=product_id,store_id,product_name,size,quantity,unit_price,line_total&order_id=eq.${encodeURIComponent(order.id)}`);
   const results=[];
   for(const seller of (os||[])){
