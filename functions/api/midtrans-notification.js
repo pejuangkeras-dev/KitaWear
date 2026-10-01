@@ -92,14 +92,17 @@ function mapMidtransStatus(transactionStatus, fraudStatus) {
     };
   }
 
-  if (
-    status === "settlement" ||
-    status === "capture" ||
-    status === "authorize"
-  ) {
+  if (status === "settlement" || status === "capture") {
     return {
       orderStatus: "paid",
       paymentStatus: "paid"
+    };
+  }
+
+  if (status === "authorize") {
+    return {
+      orderStatus: "pending_payment",
+      paymentStatus: "pending"
     };
   }
 
@@ -205,7 +208,7 @@ export async function onRequestPost(context) {
     const orders = await supabaseRequest(
       supabaseUrl,
       serviceRoleKey,
-      `/rest/v1/orders?select=id,order_number,total,status,payment_status&order_number=eq.${encodeURIComponent(orderId)}&limit=1`,
+      `/rest/v1/orders?select=id,order_number,total,status,payment_status,midtrans_order_id,midtrans_transaction_id,paid_at&order_number=eq.${encodeURIComponent(orderId)}&limit=1`,
       {
         method: "GET"
       }
@@ -238,29 +241,72 @@ export async function onRequestPost(context) {
       );
     }
 
-   const mapped = mapMidtransStatus(
-  body?.transaction_status,
-  body?.fraud_status
-);
+    const mapped = mapMidtransStatus(
+      body?.transaction_status,
+      body?.fraud_status
+    );
 
-await supabaseRequest(
-  supabaseUrl,
-  serviceRoleKey,
-  `/rest/v1/orders?id=eq.${encodeURIComponent(order.id)}`,
-  {
-    method: "PATCH",
-    headers: {
-      Prefer: "return=minimal"
-    },
-    body: JSON.stringify({
+    // Midtrans may deliver notifications out of order. Never let a
+    // stale pending/failed/expired notification downgrade a paid/refunded
+    // order, and never let a late payment resurrect a cancelled order.
+    const currentPayment = String(order.payment_status || "").toLowerCase();
+    const incomingPayment = String(mapped.paymentStatus || "").toLowerCase();
+    const shouldIgnore =
+      currentPayment === "refunded" ||
+      (currentPayment === "paid" && ["pending", "failed", "expired"].includes(incomingPayment)) ||
+      (["failed", "expired"].includes(currentPayment) && ["pending", "paid"].includes(incomingPayment));
+
+    if (shouldIgnore) {
+      await supabaseRequest(
+        supabaseUrl,
+        serviceRoleKey,
+        `/rest/v1/orders?id=eq.${encodeURIComponent(order.id)}`,
+        {
+          method: "PATCH",
+          headers: { Prefer: "return=minimal" },
+          body: JSON.stringify({
+            midtrans_order_id: orderId,
+            midtrans_transaction_id: body?.transaction_id || order.midtrans_transaction_id || null
+          })
+        }
+      );
+
+      return json({
+        ok: true,
+        order_id: orderId,
+        ignored: true,
+        reason: "stale_midtrans_notification",
+        current_payment_status: currentPayment,
+        incoming_payment_status: incomingPayment
+      });
+    }
+
+    const orderPatch = {
       status: mapped.orderStatus,
-      payment_status: mapped.paymentStatus
-    })
-  }
-);
+      payment_status: mapped.paymentStatus,
+      midtrans_order_id: orderId,
+      midtrans_transaction_id: body?.transaction_id || order.midtrans_transaction_id || null
+    };
 
-// Sinkronkan status pembayaran ke semua seller
-// yang berada di dalam order yang sama.
+    if (mapped.paymentStatus === "paid" && !order.paid_at) {
+      orderPatch.paid_at = new Date().toISOString();
+    }
+
+    await supabaseRequest(
+      supabaseUrl,
+      serviceRoleKey,
+      `/rest/v1/orders?id=eq.${encodeURIComponent(order.id)}`,
+      {
+        method: "PATCH",
+        headers: {
+          Prefer: "return=minimal"
+        },
+        body: JSON.stringify(orderPatch)
+      }
+    );
+
+    // Sinkronkan status pembayaran ke semua seller
+    // yang berada di dalam order yang sama.
 await supabaseRequest(
   supabaseUrl,
   serviceRoleKey,
@@ -295,7 +341,7 @@ await supabaseRequest(
 
       // If a paid order is fully refunded, restore its stock exactly once.
     // restore_order_stock is idempotent via orders.stock_restored_at.
-    if (mapped.paymentStatus === "refunded") {
+    if (mapped.paymentStatus === "refunded" && String(body?.transaction_status || "").toLowerCase() === "refund") {
       await supabaseRequest(
         supabaseUrl,
         serviceRoleKey,
