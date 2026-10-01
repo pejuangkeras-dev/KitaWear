@@ -109,6 +109,89 @@ export async function onRequestPost(context){
     // first successful refund request may already have moved the order
     // to refunded while the provider confirmation is still pending.
     if(["requested","pending_confirmation","succeeded"].includes(String(request.status||""))){
+      // Never create a second refund. If the webhook has not arrived yet,
+      // ask Midtrans for the current transaction status and synchronize the
+      // matching refund confirmation when bank_confirmed_at is available.
+      if(String(request.status||"")!=="succeeded"){
+        const midtransId=String(order.midtrans_order_id||order.midtrans_transaction_id||"").trim();
+        if(midtransId){
+          const statusEndpoint=production
+            ? `https://api.midtrans.com/v2/${encodeURIComponent(midtransId)}/status`
+            : `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(midtransId)}/status`;
+
+          try{
+            const statusResponse=await fetch(statusEndpoint,{
+              method:"GET",
+              headers:{
+                Accept:"application/json",
+                Authorization:`Basic ${btoa(serverKey+":")}`
+              }
+            });
+            const statusText=await statusResponse.text();
+            let statusData=null;
+            try{statusData=statusText?JSON.parse(statusText):null}catch{statusData=null;}
+
+            if(statusResponse.ok){
+              const refundRows=Array.isArray(statusData?.refunds)?statusData.refunds:[];
+              const matchingRefund=refundRows.find(item =>
+                String(item?.refund_key||"").trim()===refundKey
+              ) || null;
+
+              const confirmedAtRaw=matchingRefund?.bank_confirmed_at||null;
+
+              if(
+                String(statusData?.transaction_status||"").toLowerCase()==="refund" &&
+                confirmedAtRaw
+              ){
+                const confirmedAt=new Date(confirmedAtRaw).toISOString();
+                const confirmedAmount=Number(
+                  matchingRefund?.refund_amount ??
+                  statusData?.refund_amount ??
+                  request.amount ??
+                  0
+                );
+
+                const syncResult=await supabaseRequest(
+                  supabaseUrl,serviceKey,
+                  "/rest/v1/rpc/service_update_refund_request",
+                  {
+                    method:"POST",
+                    body:JSON.stringify({
+                      p_refund_key:refundKey,
+                      p_status:"succeeded",
+                      p_status_code:String(statusData?.status_code||"200"),
+                      p_status_message:String(statusData?.status_message||"Refund confirmed by Midtrans."),
+                      p_refund_chargeback_id:matchingRefund?.refund_chargeback_id!=null
+                        ? String(matchingRefund.refund_chargeback_id):null,
+                      p_refund_amount:Number.isFinite(confirmedAmount)?confirmedAmount:null,
+                      p_midtrans_transaction_id:String(
+                        statusData?.transaction_id||order.midtrans_transaction_id||""
+                      )||null,
+                      p_bank_confirmed_at:confirmedAt,
+                      p_raw_response:statusData,
+                      p_error_message:null
+                    })
+                  }
+                );
+
+                return json({
+                  ok:true,
+                  dispute_id:disputeId,
+                  order_id:order.id,
+                  refund_key:refundKey,
+                  status:"succeeded",
+                  already_requested:true,
+                  synchronized_from_midtrans:true,
+                  refund:syncResult
+                });
+              }
+            }
+          }catch(statusError){
+            console.warn("Midtrans refund status sync skipped:",statusError?.message||statusError);
+          }
+        }
+      }
+
       return json({
         ok:true,
         dispute_id:disputeId,
