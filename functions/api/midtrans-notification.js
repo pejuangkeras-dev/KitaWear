@@ -253,9 +253,22 @@ export async function onRequestPost(context) {
     const incomingRefundStatus=String(body?.transaction_status||"").toLowerCase();
     const incomingRefundKey=String(body?.refund_key||"").trim();
     if(["refund","partial_refund"].includes(incomingRefundStatus) && incomingRefundKey.startsWith("MK-REFUND-")){
-      const confirmedAt=body?.bank_confirmed_at?new Date(body.bank_confirmed_at).toISOString():null;
-      const refundAmount=Number(body?.refund_amount);
-      const updateStatus=incomingRefundStatus==="refund" && confirmedAt ? "succeeded" : "pending_confirmation";
+      // Midtrans sends bank_confirmed_at inside the matching item of the \`refunds\` array
+      // on the confirmed refund notification, not necessarily at the top level.
+      const refundRows=Array.isArray(body?.refunds)?body.refunds:[];
+      const matchingRefund=refundRows.find(item =>
+        String(item?.refund_key||"").trim()===incomingRefundKey
+      ) || refundRows[0] || null;
+      const rawConfirmedAt=body?.bank_confirmed_at || matchingRefund?.bank_confirmed_at || null;
+      const confirmedAt=rawConfirmedAt ? new Date(rawConfirmedAt).toISOString() : null;
+      const refundAmount=Number(
+        body?.refund_amount ??
+        matchingRefund?.refund_amount ??
+        0
+      );
+      const updateStatus=incomingRefundStatus==="refund" && confirmedAt
+        ? "succeeded"
+        : "pending_confirmation";
 
       const refundResult=await supabaseRequest(
         supabaseUrl,
