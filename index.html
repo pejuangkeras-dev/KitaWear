@@ -75,6 +75,7 @@ body{background:var(--bg);color:var(--ink)}
    ACCOUNT / AUTH
 ========================= */
 .account-btn{
+  position:relative;z-index:10;pointer-events:auto;cursor:pointer;
   height:40px;border:1px solid var(--line);background:#fffdf9;border-radius:12px;
   padding:0 12px;font-size:12px;font-weight:850;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis;
 }
@@ -555,7 +556,7 @@ body{background:var(--bg);color:var(--ink)}
 <header class="nav"><div class="container nav-inner">
 <a href="#" class="logo" aria-label="MarketKita"><svg class="logo-mark" viewBox="0 0 48 48" fill="none"><path d="M24 7c-5 0-8 3-8 7 0 3 2 5 5 6" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M21 20 7 31c-3 2-2 7 2 8h30c4-1 5-6 2-8L27 20" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><path d="m18 39 6-7 6 7" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>MarketKita</a>
 <nav class="nav-links"><a href="#" data-i18n="nav_home">Beranda</a><a href="#produk" data-i18n="nav_products">Produk</a><a href="#tentang" data-i18n="nav_about">Tentang Kami</a><a href="#kontak" data-i18n="nav_contact">Kontak</a></nav>
-<div class="actions"><button class="icon-btn" type="button" onclick="openSearch()" aria-label="Cari produk">⌕</button><select id="LanguageSelect" class="lang" aria-label="Bahasa"><option value="id">ID</option><option value="en">EN</option><option value="vi">VI</option><option value="th">TH</option><option value="ch">CH</option></select><button class="icon-btn" id="wishlistButton" type="button" onclick="openWishlist()" aria-label="Wishlist">♡<span id="wishlistCount" style="font-size:9px;vertical-align:top;margin-left:2px">0</span></button><button id="accountButton" class="account-btn" type="button" onclick="marketKitaOpenAccountFallback(event)">Masuk</button><button class="cart" type="button" onclick="toggleCart()">🛒 <span id="count">0</span></button></div>
+<div class="actions"><button class="icon-btn" type="button" onclick="openSearch()" aria-label="Cari produk">⌕</button><select id="LanguageSelect" class="lang" aria-label="Bahasa"><option value="id">ID</option><option value="en">EN</option><option value="vi">VI</option><option value="th">TH</option><option value="ch">CH</option></select><button class="icon-btn" id="wishlistButton" type="button" onclick="openWishlist()" aria-label="Wishlist">♡<span id="wishlistCount" style="font-size:9px;vertical-align:top;margin-left:2px">0</span></button><button id="accountButton" class="account-btn" type="button" >Masuk</button><button class="cart" type="button" onclick="toggleCart()">🛒 <span id="count">0</span></button></div>
 </div></header>
 
 <main>
@@ -996,8 +997,8 @@ body{background:var(--bg);color:var(--ink)}
             <div class="account-page-head"><h3>Ubah Password</h3><p>Perbarui password untuk menjaga keamanan akun Anda.</p></div>
             <div class="profile-form narrow-form">
               <div class="profile-row"><label>Password Baru</label><div><input id="accountNewPassword" type="password" minlength="6" autocomplete="new-password"></div></div>
-              <div class="profile-row"><label>Ulangi Password</label><div><input id="accountNewPasswordConfirm" type="password" minlength="6" autocomplete="new-password"></div></div>
-              <div class="profile-actions"><button class="profile-save" type="button" onclick="changeAccountPassword()">Simpan Password</button><span id="passwordMessage"></span></div>            </div>
+              <div class="profile-row"><label>Ulangi Password</label><div><input id="accountNewPasswordConfirm" type="password" minlength="6" autocomplete="new-password"></div></div>              <div class="profile-actions"><button class="profile-save" type="button" onclick="changeAccountPassword()">Simpan Password</button><span id="passwordMessage"></span></div>
+            </div>
           </div>
 
           <div id="accountSection-orders" class="account-section"><div class="account-page-head"><div><h3>Pesanan Saya</h3><p>Riwayat pesanan dan status pengiriman Anda.</p></div><button type="button" class="orders-refresh" onclick="loadBuyerOrders()">↻ Muat Ulang</button></div><div class="order-filter-row"><button class="order-filter active" data-order-filter="all" onclick="filterBuyerOrders('all')">Semua</button><button class="order-filter" data-order-filter="pending_payment" onclick="filterBuyerOrders('pending_payment')">Belum Bayar</button><button class="order-filter" data-order-filter="processing" onclick="filterBuyerOrders('processing')">Diproses</button><button class="order-filter" data-order-filter="shipped" onclick="filterBuyerOrders('shipped')">Dikirim</button><button class="order-filter" data-order-filter="completed" onclick="filterBuyerOrders('completed')">Selesai</button></div><div id="buyerOrdersList" class="buyer-orders-list"><div class="account-empty">Memuat pesanan...</div></div></div>
@@ -1995,8 +1996,8 @@ function showKwNotice(message,title=t("notice_required")){
   const overlay=document.getElementById("kwNoticeOverlay");
   const titleEl=document.getElementById("kwNoticeTitle");
   const messageEl=document.getElementById("kwNoticeMessage");
-  const button=document.getElementById("kwNoticeButton");
-  if(!overlay || !titleEl || !messageEl || !button) return;
+  const button=document.getElementById("kwNoticeButton");  if(!overlay || !titleEl || !messageEl || !button) return;
+
   titleEl.textContent=title;
   messageEl.textContent=message;
   button.textContent=t("notice_understood");
@@ -2166,7 +2167,7 @@ async function calculateCheckoutShipping(){
   }
 }
 
-function prefillBuyerCheckout(){
+async function prefillBuyerCheckout(){
   if(!kwSupabase || !kwCurrentUser)return;
   try{
     const profile=kwCurrentProfile||{};
@@ -2994,8 +2995,8 @@ function buyerOrderStatusLabel(status){
 }
 
 function buyerOrderStatusClass(status){
-  return String(status||"pending").replace(/[^a-z_]/g,"");
-}
+  return String(status||"pending").replace(/[^a-z_]/g,"");}
+
 function filterBuyerOrders(filter){
   buyerOrderFilter=filter||"all";
   document.querySelectorAll(".order-filter").forEach(btn=>{
@@ -3804,6 +3805,17 @@ document.addEventListener("keydown",e=>{
 document.addEventListener("input",function(e){if(e.target.id==="marketplaceSearch"){marketFilters.query=e.target.value;render();}if(e.target.id==="marketplaceMin"||e.target.id==="marketplaceMax"){marketFilters[e.target.id==="marketplaceMin"?"min":"max"]=e.target.value;render();}});
 document.addEventListener("change",function(e){if(e.target.id==="marketplaceCategory"||e.target.id==="marketplaceStore"||e.target.id==="marketplaceSort"){marketFilters[e.target.id==="marketplaceCategory"?"category":e.target.id==="marketplaceStore"?"store":"sort"]=e.target.value;render();}});
 document.addEventListener("click",function(e){if(e.target.id==="clearMarketplaceFilters"){marketFilters={query:"",category:"",store:"",min:"",max:"",sort:"default"};["marketplaceSearch","marketplaceMin","marketplaceMax"].forEach(function(id){const el=document.getElementById(id);if(el)el.value="";});populateMarketplaceFilters();const sort=document.getElementById("marketplaceSort");if(sort)sort.value="default";render();}});
+document.addEventListener("DOMContentLoaded",()=>{
+  const accountButton=document.getElementById("accountButton");
+  if(accountButton){
+    accountButton.addEventListener("click",function(event){
+      event.preventDefault();
+      event.stopPropagation();
+      marketKitaOpenAccountFallback(event);
+    });
+  }
+});
+
 document.addEventListener("DOMContentLoaded",async()=>{
   loadWishlist();
   updateWishlistCount();
