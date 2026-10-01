@@ -2121,7 +2121,7 @@ async function loadDisputes(){
     root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Order</th><th>Alasan</th><th>Detail</th><th>Status</th><th>Dibuat</th><th>Aksi</th></tr></thead><tbody>'+
       rows.map(x=>'<tr><td>'+escapeHtml(String(x.order_id).slice(0,8))+'</td><td>'+escapeHtml(x.reason||"—")+'</td><td style="max-width:300px">'+escapeHtml(x.description||"—")+'</td><td><span class="status '+statusClass(x.status)+'">'+escapeHtml(x.status)+'</span></td><td>'+escapeHtml(formatDate(x.created_at))+'</td><td>'+
       (["open","reviewing"].includes(x.status)
-        ? '<button class="small-btn" onclick="resolveDispute(\''+x.id+'\',\'resolved_buyer\')">Refund Buyer</button> <button class="small-btn" onclick="resolveDispute(\''+x.id+'\',\'resolved_seller\')">Untuk Seller</button> <button class="small-btn" onclick="resolveDispute(\''+x.id+'\',\'closed\')">Tutup</button>'
+        ? '<button class="small-btn" onclick="resolveDispute(\''+x.id+'\',\'resolved_buyer\')">Review & Refund Buyer</button> <button class="small-btn" onclick="resolveDispute(\''+x.id+'\',\'resolved_seller\')">Untuk Seller</button> <button class="small-btn" onclick="resolveDispute(\''+x.id+'\',\'closed\')">Tutup</button>'
         : '<span class="muted">Selesai</span>')+
       '</td></tr>').join('')+
       '</tbody></table></div>';
@@ -2147,7 +2147,7 @@ async function resolveDispute(id,resolution){
       });
       const data=await response.json().catch(()=>null);
       if(!response.ok)throw new Error(data?.error||"Refund Midtrans gagal.");
-      showNotice("Refund Midtrans berhasil diminta. Status order diperbarui.","success");
+      showNotice("Refund dikirim ke Midtrans. Menunggu konfirmasi bank/payment provider.","success");
       await loadDisputes();
       await loadOrders();
     }catch(e){showNotice(e.message||"Refund gagal diproses.","error");}
