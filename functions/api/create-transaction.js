@@ -440,7 +440,7 @@ export async function onRequestPost(context) {
     );
     const shippingQuote = Array.isArray(quoteRows) ? quoteRows[0] : null;
     const shippingPostalCode = String(shippingQuote?.request_snapshot?.address?.postal_code || "").trim();
-    if (!/^\\d{5}$/.test(shippingPostalCode)) return json({ error: "Kode pos alamat pengiriman tidak valid. Silakan pilih alamat tersimpan yang lengkap." }, 400);
+    if (!/^\d{5}$/.test(shippingPostalCode)) return json({ error: "Kode pos alamat pengiriman tidak valid. Silakan pilih alamat tersimpan yang lengkap." }, 400);
     if (!shippingQuote || shippingQuote.status !== "active") {
       return json({ error: "Quote ongkir sudah tidak tersedia. Silakan hitung ulang." }, 400);
     }
