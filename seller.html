@@ -1,4 +1,3 @@
-```
 <!doctype html>
 <!-- MarketKita Seller Center build: 2026-09-29 / order-render-fix -->
 <html lang="id">
@@ -245,6 +244,23 @@ Export CSV
 Memuat...
 </div>
 
+</div>
+
+
+<div class="card wide" id="phase3BusinessCard">
+<h2>Saldo & Laporan Bisnis</h2>
+<div class="order-summary">
+<div class="mini"><small>Saldo tersedia</small><strong id="p3Available">Rp0</strong></div>
+<div class="mini"><small>Menunggu</small><strong id="p3Pending">Rp0</strong></div>
+<div class="mini"><small>Total dibayar</small><strong id="p3Paid">Rp0</strong></div>
+<div class="mini"><small>Payout diminta</small><strong id="p3Requested">Rp0</strong></div>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin-bottom:14px">
+<div class="field" style="margin:0"><label>Dari</label><input id="p3From" type="date"></div>
+<div class="field" style="margin:0"><label>Sampai</label><input id="p3To" type="date"></div>
+<button class="btn light" type="button" id="p3Refresh">Refresh</button>
+</div>
+<div id="p3Report" class="empty">Memuat laporan...</div>
 </div>
 
 <div class="card wide">
@@ -1392,6 +1408,35 @@ closeOrderModal()
 );
 
 init();
+
+async function loadPhase3Business(){
+  try{
+    const b=await sb.rpc('seller_balance_summary');
+    if(b.error) throw b.error;
+    const x=b.data||{};
+    $('p3Available').textContent=money(x.available);
+    $('p3Pending').textContent=money(x.pending);
+    $('p3Paid').textContent=money(x.paid);
+    $('p3Requested').textContent=money(x.requested);
+
+    const now=new Date();
+    const end=$('p3To').value || now.toISOString().slice(0,10);
+    const start=$('p3From').value || new Date(now.getTime()-29*86400000).toISOString().slice(0,10);
+    $('p3From').value=start; $('p3To').value=end;
+    const r=await sb.rpc('seller_sales_report',{p_from:start,p_to:end});
+    if(r.error) throw r.error;
+    const rows=r.data||[];
+    $('p3Report').innerHTML=rows.length
+      ? '<div class="tablewrap"><table class="table"><thead><tr><th>Tanggal</th><th>Pesanan</th><th>Penjualan</th><th>Fee</th><th>Net</th><th>Ongkir</th></tr></thead><tbody>'+
+        rows.map(x=>'<tr><td>'+esc(x.sale_date)+'</td><td>'+esc(x.orders)+'</td><td>'+money(x.gross_amount)+'</td><td>'+money(x.platform_fee)+'</td><td><strong>'+money(x.net_amount)+'</strong></td><td>'+money(x.shipping_fee)+'</td></tr>').join('')+
+        '</tbody></table></div>'
+      : '<div class="notice">Belum ada penjualan paid pada periode ini.</div>';
+  }catch(e){
+    $('p3Report').innerHTML='<div class="notice">'+esc(e.message||'Gagal memuat laporan bisnis.')+'</div>';
+  }
+}
+$('p3Refresh').addEventListener('click',loadPhase3Business);
+
 </script>
 
 </body>
