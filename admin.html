@@ -1802,6 +1802,9 @@ async function checkAdminAccess(){
   showAdminApp(data);
 
   await loadOrders();
+  await loadSellerApplications();
+  await loadPayoutRequests();
+  await loadDisputes();
   await loadPhase3Dashboard();
   await loadPhase3Vouchers();
 
