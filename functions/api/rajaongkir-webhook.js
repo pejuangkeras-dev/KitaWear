@@ -10,7 +10,7 @@ function marketStatus(s){
   return"processing";
 }
 async function handle(context){
-  const e=context.env,u=clean(e.SUPABASE_URL).replace(/\\/+$/,""),k=clean(e.SUPABASE_SERVICE_ROLE_KEY);
+  const e=context.env,u=clean(e.SUPABASE_URL).replace(/\/+$/,""),k=clean(e.SUPABASE_SERVICE_ROLE_KEY);
   if(!u||!k)return json({error:"Konfigurasi Supabase server belum lengkap."},500);
   const body=await context.request.json().catch(()=>({}));
   const orderNo=clean(body.order_no),awb=clean(body.cnote),status=clean(body.status);
