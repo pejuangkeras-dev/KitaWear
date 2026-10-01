@@ -717,7 +717,10 @@ body{background:var(--bg);color:var(--ink)}
       <textarea id="buyerAddress" required style="width:100%;min-height:84px;border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical"></textarea>
     </div>
     <div id="checkoutShippingSummary" class="checkout-summary-row" style="margin-top:8px">
-      <span>Ongkir</span><strong>Rp0 <small style="font-weight:500;color:#77736c">(menunggu perhitungan)</small></strong>
+      <span>Ongkir</span><strong>Rp0 <small style="font-weight:500;color:#77736c">(pilih alamat)</small></strong>
+    </div>
+    <div id="checkoutShippingOptions" class="checkout-shipping-options" style="margin-top:10px">
+      <div class="checkout-shipping-empty">Pilih alamat tersimpan untuk menghitung ongkir.</div>
     </div>
 
     <div class="field" style="margin-top:12px"><label for="checkoutVoucher">Voucher</label><div style="display:flex;gap:8px"><input id="checkoutVoucher" placeholder="Masukkan voucher yang sudah diklaim" style="flex:1"><button type="button" class="smallbtn" style="width:110px" onclick="validateCheckoutVoucher()">Terapkan</button></div><div id="checkoutVoucherMessage" style="font-size:11px;color:#777;margin-top:6px"></div></div>
@@ -2081,7 +2084,80 @@ function checkout(){
 /* =========================
    CHECKOUT
 ========================= */
-async function prefillBuyerCheckout(){
+async window.marketCheckoutShippingQuoteId=null;
+window.marketCheckoutShippingSelections=[];
+window.marketCheckoutShippingFee=0;
+
+function renderCheckoutShippingOptions(data){
+  const root=document.getElementById("checkoutShippingOptions");
+  if(!root)return;
+  const sellers=Array.isArray(data?.sellers)?data.sellers:[];
+  if(!sellers.length){root.innerHTML='<div class="checkout-shipping-empty">Tidak ada pilihan kurir untuk keranjang ini.</div>';return;}
+  root.innerHTML=sellers.map((seller,si)=>{
+    const opts=Array.isArray(seller.options)?seller.options:[];
+    return '<div class="checkout-shipping-store"><strong>'+escDetail(seller.store_name||"Toko")+'</strong>'+
+      '<label>Layanan pengiriman<select id="checkoutCourier-'+si+'" onchange="updateCheckoutShippingSelection()">'+
+      '<option value="">Pilih kurir</option>'+opts.map((o,oi)=>'<option value="'+si+'|'+oi+'">'+escDetail((o.courier_name||o.courier_company||"Kurir")+" — "+(o.service_name||o.courier_type||"Layanan")+" · "+rupiah(o.price)+(o.duration?" · "+o.duration:""))+'</option>').join("")+
+      '</select></label></div>';
+  }).join("");
+  root.dataset.payload=JSON.stringify(sellers);
+}
+function updateCheckoutShippingSelection(){
+  const root=document.getElementById("checkoutShippingOptions");
+  let sellers=[];
+  try{sellers=JSON.parse(root?.dataset.payload||"[]");}catch{}
+  const selections=[];
+  let fee=0;
+  for(let si=0;si<sellers.length;si++){
+    const val=document.getElementById("checkoutCourier-"+si)?.value||"";
+    if(!val){continue;}
+    const [sidx,oidx]=val.split("|").map(Number);
+    const seller=sellers[sidx], option=seller?.options?.[oidx];
+    if(!seller||!option)continue;
+    const selected={...option,store_id:seller.store_id,store_name:seller.store_name};
+    selections.push(selected);
+    fee+=Number(option.price||0);
+  }
+  window.marketCheckoutShippingSelections=selections;
+  window.marketCheckoutShippingFee=fee;
+  const summary=document.getElementById("checkoutShippingSummary");
+  if(summary)summary.innerHTML='<span>Ongkir</span><strong>'+rupiah(fee)+' <small style="font-weight:500;color:#77736c">'+(selections.length===sellers.length?"":"(lengkapi pilihan kurir)")+'</small></strong>';
+  const base=cart.reduce((s,x)=>s+x.price*x.quantity,0);
+  const total=document.getElementById("checkoutTotal");
+  if(total)total.textContent=rupiah(base+fee);
+}
+async function calculateCheckoutShipping(){
+  const select=document.getElementById("buyerAddressSelect");
+  const addressId=String(select?.value||"").trim();
+  const root=document.getElementById("checkoutShippingOptions");
+  window.marketCheckoutShippingQuoteId=null;
+  window.marketCheckoutShippingSelections=[];
+  window.marketCheckoutShippingFee=0;
+  if(!addressId){
+    if(root)root.innerHTML='<div class="checkout-shipping-empty">Pilih alamat tersimpan untuk menghitung ongkir.</div>';
+    const s=document.getElementById("checkoutShippingSummary");if(s)s.innerHTML='<span>Ongkir</span><strong>Rp0 <small style="font-weight:500;color:#77736c">(pilih alamat)</small></strong>';
+    return;
+  }
+  if(root)root.innerHTML='<div class="checkout-shipping-empty">Menghitung ongkir...</div>';
+  try{
+    const session=(await kwSupabase.auth.getSession()).data?.session;
+    if(!session)throw new Error("Silakan login terlebih dahulu.");
+    const res=await fetch("/api/shipping-quote",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},body:JSON.stringify({
+      address_id:addressId,
+      items:cart.map(x=>({product_id:x.product_id||products[x.productIndex]?.id,size:x.size,quantity:x.quantity})),
+      couriers:"jne:sicepat:jnt:ninja:tiki:lion:anteraja:pos:wahana"
+    })});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(data.error||"Gagal menghitung ongkir.");
+    window.marketCheckoutShippingQuoteId=data.quote_id||null;
+    renderCheckoutShippingOptions(data);
+    updateCheckoutShippingSelection();
+  }catch(error){
+    if(root)root.innerHTML='<div class="checkout-shipping-empty">'+escDetail(error.message||"Gagal menghitung ongkir.")+'</div>';
+  }
+}
+
+function prefillBuyerCheckout(){
   if(!kwSupabase || !kwCurrentUser)return;
   try{
     const profile=kwCurrentProfile||{};
@@ -2098,9 +2174,10 @@ async function prefillBuyerCheckout(){
     buyerAddressCache=rows;
     const select=document.getElementById('buyerAddressSelect');
     if(select){
+      select.onchange=function(){ applyCheckoutAddress(this.value); calculateCheckoutShipping(); };
       select.innerHTML='<option value="">Pilih alamat utama atau alamat tersimpan</option>'+rows.map(a=>'<option value="'+escDetail(a.id)+'">'+escDetail((a.is_default?'★ ':'')+a.label+' — '+a.recipient_name+' — '+a.city)+'</option>').join('');
       const selected=rows.find(a=>a.is_default)||rows[0];
-      if(selected){ select.value=selected.id; applyCheckoutAddress(selected.id); }
+      if(selected){ select.value=selected.id; applyCheckoutAddress(selected.id); calculateCheckoutShipping(); }
     }
   }catch(error){ console.warn('MarketKita checkout address prefill:',error); }
 }
@@ -2143,6 +2220,10 @@ function openCheckout(){
   `).join("");
 
   window.marketCheckoutVoucherId=null;
+  window.marketCheckoutShippingQuoteId=null;
+  window.marketCheckoutShippingSelections=[];
+  window.marketCheckoutShippingFee=0;
+  const shippingRoot=document.getElementById("checkoutShippingOptions");if(shippingRoot)shippingRoot.innerHTML='<div class="checkout-shipping-empty">Memuat alamat dan ongkir...</div>';
   const voucherInput=document.getElementById("checkoutVoucher");if(voucherInput)voucherInput.value="";
   const voucherMsg=document.getElementById("checkoutVoucherMessage");if(voucherMsg)voucherMsg.textContent="";
 
@@ -2172,6 +2253,15 @@ async function startPayment(e){
     return;
   }
 
+  const addressId=String(document.getElementById("buyerAddressSelect")?.value||"").trim();
+  if(!addressId){
+    showKwNotice("Pilih alamat tersimpan sebelum melanjutkan pembayaran.","Alamat Belum Dipilih");
+    return;
+  }
+  if(!window.marketCheckoutShippingQuoteId || !Array.isArray(window.marketCheckoutShippingSelections) || !window.marketCheckoutShippingSelections.length){
+    showKwNotice("Pilih layanan kurir untuk setiap toko sebelum melanjutkan pembayaran.","Kurir Belum Dipilih");
+    return;
+  }
   const formIds=["buyerName","buyerEmail","buyerPhone","buyerAddress"];
   for(const id of formIds){
     const el=document.getElementById(id);
@@ -2225,6 +2315,12 @@ async function startPayment(e){
     }
 
     const payload={
+      address_id:addressId,
+      shipping_quote_id:window.marketCheckoutShippingQuoteId,
+      shipping_selections:window.marketCheckoutShippingSelections.map(x=>({
+        store_id:x.store_id,courier_company:x.courier_company,courier_type:x.courier_type,
+        service_code:x.service_code,service_name:x.service_name,price:x.price,duration:x.duration
+      })),
       customer:{
         name:document.getElementById("buyerName").value.trim(),
         email:document.getElementById("buyerEmail").value.trim(),
