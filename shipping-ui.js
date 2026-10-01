@@ -43,10 +43,32 @@ window.fetch=async function(input,init){
  }
  return originalFetch(input,init);
 };
-function wrap(){
- if(typeof window.openCheckout==="function"&&!window.openCheckout.__mkWrapped){const o=window.openCheckout;window.openCheckout=function(){const r=o.apply(this,arguments);setTimeout(quote,50);return r};window.openCheckout.__mkWrapped=true;}
- if(typeof window.applyCheckoutAddress==="function"&&!window.applyCheckoutAddress.__mkWrapped){const o=window.applyCheckoutAddress;window.applyCheckoutAddress=function(id){const r=o.apply(this,arguments);setTimeout(quote,50);return r};window.applyCheckoutAddress.__mkWrapped=true;}
- if(typeof window.closeCheckout==="function"&&!window.closeCheckout.__mkWrapped){const o=window.closeCheckout;window.closeCheckout=function(){state={quoteId:null,sellers:[],selected:{},loading:false};return o.apply(this,arguments)};window.closeCheckout.__mkWrapped=true;}
+function scheduleQuote(){
+ [0,150,500,1200].forEach(ms=>setTimeout(()=>{quote();},ms));
 }
-setInterval(wrap,500);document.addEventListener("DOMContentLoaded",wrap);
+function wrap(){
+ if(typeof window.openCheckout==="function"&&!window.openCheckout.__mkWrapped){
+  const o=window.openCheckout;
+  window.openCheckout=function(){const r=o.apply(this,arguments);scheduleQuote();return r};
+  window.openCheckout.__mkWrapped=true;
+ }
+ if(typeof window.applyCheckoutAddress==="function"&&!window.applyCheckoutAddress.__mkWrapped){
+  const o=window.applyCheckoutAddress;
+  window.applyCheckoutAddress=function(id){const r=o.apply(this,arguments);scheduleQuote();return r};
+  window.applyCheckoutAddress.__mkWrapped=true;
+ }
+ if(typeof window.closeCheckout==="function"&&!window.closeCheckout.__mkWrapped){
+  const o=window.closeCheckout;
+  window.closeCheckout=function(){state={quoteId:null,sellers:[],selected:{},loading:false};return o.apply(this,arguments)};
+  window.closeCheckout.__mkWrapped=true;
+ }
+}
+function bindAddressChange(){
+ const select=document.getElementById("buyerAddressSelect");
+ if(!select||select.__mkShippingBound)return;
+ select.addEventListener("change",()=>scheduleQuote());
+ select.__mkShippingBound=true;
+}
+setInterval(()=>{wrap();bindAddressChange();},300);
+document.addEventListener("DOMContentLoaded",()=>{wrap();bindAddressChange();});
 })();
