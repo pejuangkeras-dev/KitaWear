@@ -748,4 +748,11 @@ revoke all on function public.decrement_order_stock(uuid) from public,anon,authe
 grant execute on function public.decrement_order_stock(uuid) to service_role;
 
 create extension if not exists pg_cron with schema pg_catalog;
-select cron.schedule('marketkita-release-expired-stock','*/10 * * * *',$$select public.release_expired_stock_reservations();$$);
+do $cron$
+declare v_jobid bigint;
+begin
+  select jobid into v_jobid from cron.job where jobname='marketkita-release-expired-stock' limit 1;
+  if v_jobid is not null then perform cron.unschedule(v_jobid); end if;
+  perform cron.schedule('marketkita-release-expired-stock','*/10 * * * *',$select public.release_expired_stock_reservations();$);
+end
+$cron$;
