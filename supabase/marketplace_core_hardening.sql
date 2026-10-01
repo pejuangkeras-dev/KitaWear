@@ -578,3 +578,174 @@ revoke execute on function public.admin_update_order_status(uuid,text) from publ
 grant execute on function public.admin_update_order_status(uuid,text) to authenticated;
 revoke execute on function public.seller_set_tracking_number(uuid,text) from public,anon;
 grant execute on function public.seller_set_tracking_number(uuid,text) to authenticated;
+
+
+-- Marketplace stock reservation hardening applied on 2026-10-01.
+-- Reservations protect product-size stock while a Midtrans transaction is pending.
+alter table public.product_sizes
+  add column if not exists reserved_stock integer not null default 0;
+
+alter table public.product_sizes
+  add constraint product_sizes_reserved_stock_nonnegative
+  check (reserved_stock >= 0);
+
+create table if not exists public.stock_reservations (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid not null references public.orders(id) on delete cascade,
+  order_item_id uuid not null references public.order_items(id) on delete cascade,
+  product_id uuid not null references public.products(id),
+  size text not null,
+  quantity integer not null check (quantity > 0),
+  status text not null default 'reserved' check (status in ('reserved','finalized','released','expired')),
+  reserved_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  released_at timestamptz,
+  finalized_at timestamptz,
+  created_at timestamptz not null default now(),
+  unique(order_item_id)
+);
+
+create index if not exists stock_reservations_order_idx on public.stock_reservations(order_id,status);
+create index if not exists stock_reservations_expiry_idx on public.stock_reservations(status,expires_at);
+
+alter table public.stock_reservations enable row level security;
+drop policy if exists stock_reservations_buyer_select on public.stock_reservations;
+create policy stock_reservations_buyer_select on public.stock_reservations
+for select to authenticated using (
+  exists(select 1 from public.orders o where o.id=stock_reservations.order_id and o.buyer_id=(select auth.uid()))
+);
+revoke all on public.stock_reservations from anon,authenticated;
+grant select on public.stock_reservations to authenticated;
+
+create or replace function public.reserve_order_stock(p_order_id uuid,p_minutes integer default 1440)
+returns jsonb language plpgsql security definer set search_path=''
+as $function$
+declare v_order record; v_item record; v_size record; v_reserved integer:=0; v_minutes integer:=greatest(5,least(coalesce(p_minutes,1440),10080));
+begin
+  select id,status,payment_status,stock_decremented_at into v_order from public.orders where id=p_order_id for update;
+  if not found then raise exception 'Order tidak ditemukan.'; end if;
+  if v_order.status<>'pending_payment'::public.order_status or v_order.payment_status<>'pending'::public.payment_status then
+    raise exception 'Reservation hanya dapat dibuat untuk order pending_payment.';
+  end if;
+  if v_order.stock_decremented_at is not null then raise exception 'Stok order sudah difinalisasi.'; end if;
+  if exists(select 1 from public.stock_reservations where order_id=p_order_id and status='reserved') then
+    return jsonb_build_object('ok',true,'order_id',p_order_id,'already_reserved',true);
+  end if;
+  for v_item in select id,product_id,size,quantity from public.order_items where order_id=p_order_id order by id loop
+    select id,stock,reserved_stock into v_size from public.product_sizes
+    where product_id=v_item.product_id and upper(size)=upper(v_item.size) for update;
+    if not found then raise exception 'Ukuran % tidak ditemukan untuk produk %.',v_item.size,v_item.product_id; end if;
+    if v_size.stock-v_size.reserved_stock<v_item.quantity then
+      raise exception 'Stok % ukuran % tidak mencukupi. Tersedia %.',v_item.product_id,v_item.size,greatest(0,v_size.stock-v_size.reserved_stock);
+    end if;
+    update public.product_sizes set reserved_stock=reserved_stock+v_item.quantity where id=v_size.id;
+    insert into public.stock_reservations(order_id,order_item_id,product_id,size,quantity,status,expires_at)
+    values(p_order_id,v_item.id,v_item.product_id,v_item.size,v_item.quantity,'reserved',now()+(v_minutes||' minutes')::interval);
+    v_reserved:=v_reserved+v_item.quantity;
+  end loop;
+  return jsonb_build_object('ok',true,'order_id',p_order_id,'reserved_items',v_reserved,'expires_at',now()+(v_minutes||' minutes')::interval);
+end;$function$;
+
+create or replace function public.finalize_order_stock(p_order_id uuid)
+returns void language plpgsql security definer set search_path=''
+as $function$
+declare v_order record; v_item record; v_size record; v_reservation record;
+begin
+  select id,payment_status,stock_decremented_at into v_order from public.orders where id=p_order_id for update;
+  if not found then raise exception 'Order tidak ditemukan.'; end if;
+  if v_order.payment_status<>'paid'::public.payment_status then raise exception 'Stok hanya dapat difinalisasi untuk order paid.'; end if;
+  if v_order.stock_decremented_at is not null then return; end if;
+  for v_item in select id,product_id,size,quantity from public.order_items where order_id=p_order_id order by id loop
+    select * into v_reservation from public.stock_reservations where order_item_id=v_item.id for update;
+    select id,stock,reserved_stock into v_size from public.product_sizes
+    where product_id=v_item.product_id and upper(size)=upper(v_item.size) for update;
+    if not found then raise exception 'Ukuran % tidak ditemukan untuk produk %.',v_item.size,v_item.product_id; end if;
+    if v_reservation.id is not null and v_reservation.status='reserved' then
+      update public.product_sizes set stock=stock-v_item.quantity,reserved_stock=greatest(0,reserved_stock-v_item.quantity)
+      where id=v_size.id and stock>=v_item.quantity;
+      if not found then raise exception 'Stok % ukuran % tidak mencukupi saat finalisasi.',v_item.product_id,v_item.size; end if;
+      update public.stock_reservations set status='finalized',finalized_at=now() where id=v_reservation.id;
+    else
+      update public.product_sizes set stock=stock-v_item.quantity where id=v_size.id and stock>=v_item.quantity;
+      if not found then raise exception 'Stok % ukuran % tidak mencukupi.',v_item.product_id,v_item.size; end if;
+    end if;
+  end loop;
+  update public.orders set stock_decremented_at=now(),updated_at=now() where id=p_order_id;
+end;$function$;
+
+create or replace function public.release_order_stock_reservation(p_order_id uuid,p_reason text default 'released')
+returns void language plpgsql security definer set search_path=''
+as $function$
+declare v_order record; v_reservation record; v_size record; v_status text:=case when lower(coalesce(p_reason,''))='expired' then 'expired' else 'released' end;
+begin
+  select id,payment_status,stock_decremented_at into v_order from public.orders where id=p_order_id for update;
+  if not found or v_order.stock_decremented_at is not null or v_order.payment_status='paid'::public.payment_status then return; end if;
+  for v_reservation in select id,product_id,size,quantity from public.stock_reservations where order_id=p_order_id and status='reserved' order by id for update loop
+    select id,reserved_stock into v_size from public.product_sizes where product_id=v_reservation.product_id and upper(size)=upper(v_reservation.size) for update;
+    if found then update public.product_sizes set reserved_stock=greatest(0,reserved_stock-v_reservation.quantity) where id=v_size.id; end if;
+    update public.stock_reservations set status=v_status,released_at=now() where id=v_reservation.id;
+  end loop;
+end;$function$;
+
+create or replace function public.release_expired_stock_reservations()
+returns integer language plpgsql security definer set search_path=''
+as $function$
+declare v_order_id uuid; v_count integer:=0;
+begin
+  for v_order_id in select distinct order_id from public.stock_reservations where status='reserved' and expires_at<=now() order by order_id for update loop
+    perform public.release_order_stock_reservation(v_order_id,'expired');
+    v_count:=v_count+1;
+  end loop;
+  return v_count;
+end;$function$;
+
+revoke all on function public.reserve_order_stock(uuid,integer) from public,anon,authenticated;
+grant execute on function public.reserve_order_stock(uuid,integer) to service_role;
+revoke all on function public.finalize_order_stock(uuid) from public,anon,authenticated;
+grant execute on function public.finalize_order_stock(uuid) to service_role;
+revoke all on function public.release_order_stock_reservation(uuid,text) from public,anon,authenticated;
+grant execute on function public.release_order_stock_reservation(uuid,text) to service_role;
+revoke all on function public.release_expired_stock_reservations() from public,anon,authenticated;
+grant execute on function public.release_expired_stock_reservations() to service_role;
+
+create or replace function private.release_order_reservation_on_status_change()
+returns trigger language plpgsql security definer set search_path=''
+as $function$
+begin
+  if new.payment_status in ('failed'::public.payment_status,'expired'::public.payment_status,'refunded'::public.payment_status)
+     or new.status in ('cancelled'::public.order_status,'refunded'::public.order_status)
+  then perform public.release_order_stock_reservation(new.id,'released'); end if;
+  return new;
+end;$function$;
+
+drop trigger if exists trg_release_order_reservation_on_status_change on public.orders;
+create trigger trg_release_order_reservation_on_status_change
+after update of status,payment_status on public.orders for each row
+execute function private.release_order_reservation_on_status_change();
+
+create or replace function public.decrement_order_stock(p_order_id uuid)
+returns void language plpgsql security definer set search_path='public'
+as $function$
+declare v_order record; v_item record; v_size record;
+begin
+  select id,payment_status,stock_decremented_at into v_order from public.orders where id=p_order_id for update;
+  if not found then raise exception 'Order tidak ditemukan.'; end if;
+  if v_order.payment_status<>'paid' then raise exception 'Stok hanya dapat dikurangi untuk order yang sudah paid.'; end if;
+  if v_order.stock_decremented_at is not null then return; end if;
+  if exists(select 1 from public.stock_reservations where order_id=p_order_id and status='reserved') then
+    perform public.finalize_order_stock(p_order_id); return;
+  end if;
+  for v_item in select product_id,size,quantity from public.order_items where order_id=p_order_id order by id loop
+    select id,stock into v_size from public.product_sizes where product_id=v_item.product_id and upper(size)=upper(v_item.size) for update;
+    if not found then raise exception 'Ukuran % tidak ditemukan untuk produk %.',v_item.size,v_item.product_id; end if;
+    update public.product_sizes set stock=stock-v_item.quantity where id=v_size.id and stock>=v_item.quantity;
+    if not found then raise exception 'Stok % ukuran % tidak mencukupi.',v_item.product_id,v_item.size; end if;
+  end loop;
+  update public.orders set stock_decremented_at=now(),updated_at=now() where id=p_order_id;
+end;$function$;
+
+revoke all on function public.decrement_order_stock(uuid) from public,anon,authenticated;
+grant execute on function public.decrement_order_stock(uuid) to service_role;
+
+create extension if not exists pg_cron with schema pg_catalog;
+select cron.schedule('marketkita-release-expired-stock','*/10 * * * *',$$select public.release_expired_stock_reservations();$$);
