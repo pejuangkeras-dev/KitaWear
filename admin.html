@@ -998,7 +998,6 @@ tr:last-child td{
 
 
   <!-- STATS -->
-
   <section class="stats">
 
     <div class="stat">
@@ -1181,6 +1180,12 @@ tr:last-child td{
     <div class="stat"><div class="stat-label">Paid Orders</div><div id="p3PaidOrders" class="stat-value">0</div></div>
     <div class="stat"><div class="stat-label">Platform Fee</div><div id="p3PlatformFee" class="stat-value">Rp0</div></div>
     <div class="stat"><div class="stat-label">Seller Net</div><div id="p3SellerNet" class="stat-value">Rp0</div></div>
+  </div>
+  <div class="stats" style="padding:0 18px 18px;margin:0">
+    <div class="stat"><div class="stat-label">Payout Eligible</div><div id="p3PayoutEligible" class="stat-value">Rp0</div><div class="stat-note">Saldo siap dicairkan</div></div>
+    <div class="stat"><div class="stat-label">Payout Paid</div><div id="p3PayoutPaid" class="stat-value">Rp0</div><div class="stat-note">Sudah dibayarkan</div></div>
+    <div class="stat"><div class="stat-label">Payout Refunded</div><div id="p3PayoutRefunded" class="stat-value">Rp0</div><div class="stat-note">Payout yang dikembalikan</div></div>
+    <div class="stat"><div class="stat-label">Payout Pending</div><div id="p3PayoutPending" class="stat-value">Rp0</div><div class="stat-note">Menunggu proses</div></div>
   </div>
   <div style="padding:18px">
     <div id="p3AdminMore" class="muted">Memuat...</div>
@@ -1997,8 +2002,7 @@ async function loadSellerApplications(){
     if(error) throw error;
     sellerApplications=data||[];
     const userIds=[...new Set(sellerApplications.map(x=>x.user_id).filter(Boolean))];
-    let profiles=[];
-    if(userIds.length){
+    let profiles=[];    if(userIds.length){
       const profileResult=await supabaseClient.from("profiles").select("id,full_name,phone,role").in("id",userIds);
       if(profileResult.error) throw profileResult.error;
       profiles=profileResult.data||[];
@@ -2124,6 +2128,7 @@ async function reviewPayoutRequest(id,decision){
     if(!data?.ok)throw new Error("Payout gagal diproses.");
     showNotice("Payout berhasil diperbarui.","success");
     await loadPayoutRequests();
+    await loadPhase3Dashboard();
   }catch(e){showNotice(e.message||"Gagal memproses payout.","error");}
 }
 
@@ -2997,8 +3002,7 @@ async function openOrderDetail(id){
   `;
 
   document
-    .getElementById(
-      "detailChangeStatusBtn"
+    .getElementById(      "detailChangeStatusBtn"
     )
     .addEventListener(
       "click",
@@ -3418,7 +3422,11 @@ document
   )
   .addEventListener(
     "click",
-    loadOrders
+    async ()=>{
+      await loadOrders();
+      await loadPayoutRequests();
+      await loadPhase3Dashboard();
+    }
   );
 
 
@@ -3604,7 +3612,11 @@ async function loadPhase3Dashboard(){
     $('p3PaidOrders').textContent=String(x.paid_orders||0);
     $('p3PlatformFee').textContent=formatRupiah(x.platform_fee);
     $('p3SellerNet').textContent=formatRupiah(x.seller_net);
-    $('p3AdminMore').innerHTML='Total order: <strong>'+escapeHtml(x.orders||0)+'</strong> · Selesai: <strong>'+escapeHtml(x.completed_orders||0)+'</strong> · Ongkir: <strong>'+formatRupiah(x.shipping)+'</strong> · Refund: <strong>'+formatRupiah(x.refunded)+'</strong> · Order voucher: <strong>'+escapeHtml(x.voucher_orders||0)+'</strong> · Payout eligible: <strong>'+formatRupiah(x.payout_eligible)+'</strong> · Payout paid: <strong>'+formatRupiah(x.payout_paid)+'</strong>';
+    $('p3PayoutEligible').textContent=formatRupiah(x.payout_eligible);
+    $('p3PayoutPaid').textContent=formatRupiah(x.payout_paid);
+    $('p3PayoutRefunded').textContent=formatRupiah(x.payout_refunded);
+    $('p3PayoutPending').textContent=formatRupiah(x.payout_pending);
+    $('p3AdminMore').innerHTML='Total order: <strong>'+escapeHtml(x.orders||0)+'</strong> · Paid orders: <strong>'+escapeHtml(x.paid_orders||0)+'</strong> · Selesai: <strong>'+escapeHtml(x.completed_orders||0)+'</strong> · Ongkir: <strong>'+formatRupiah(x.shipping)+'</strong> · Refund order: <strong>'+formatRupiah(x.refunded)+'</strong> · Order voucher: <strong>'+escapeHtml(x.voucher_orders||0)+'</strong>';
   }catch(e){ $('p3AdminMore').textContent=e.message||'Gagal memuat dashboard bisnis.'; }
 }
 async function loadPhase3Vouchers(){
