@@ -367,25 +367,38 @@ await supabaseRequest(
       );
     }
 
-    // After payment is confirmed, create each seller shipment automatically.
+    // Shipping calls Biteship and may take longer than the payment webhook
+    // budget. Run it in the Cloudflare background instead of delaying the
+    // Midtrans acknowledgement.
     if (mapped.paymentStatus === "paid") {
       const shippingSecret = String(env.SHIPPING_INTERNAL_SECRET || "").trim();
       if (shippingSecret) {
-        try {
+        const shippingJob = (async () => {
           const shippingUrl = new URL("/api/shipping-create", context.request.url);
-          const shippingResponse = await fetch(shippingUrl.toString(), {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Shipping-Internal-Secret": shippingSecret
-            },
-            body: JSON.stringify({ order_id: order.id })
-          });
-          if (!shippingResponse.ok) {
-            console.error("MarketKita automatic shipping creation failed:", await shippingResponse.text());
+          for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+              const shippingResponse = await fetch(shippingUrl.toString(), {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-Shipping-Internal-Secret": shippingSecret
+                },
+                body: JSON.stringify({ order_id: order.id })
+              });
+              if (shippingResponse.ok) return;
+              const detail = await shippingResponse.text();
+              console.error(`MarketKita automatic shipping attempt ${attempt} failed:`, detail);
+            } catch (shippingError) {
+              console.error(`MarketKita automatic shipping attempt ${attempt} error:`, shippingError?.message || shippingError);
+            }
+            if (attempt < 3) await new Promise(resolve => setTimeout(resolve, attempt * 500));
           }
-        } catch (shippingError) {
-          console.error("MarketKita automatic shipping creation error:", shippingError?.message || shippingError);
+        })();
+
+        if (typeof context.waitUntil === "function") {
+          context.waitUntil(shippingJob);
+        } else {
+          await shippingJob;
         }
       }
     }
