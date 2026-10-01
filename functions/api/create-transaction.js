@@ -285,32 +285,62 @@ export async function onRequestPost(context) {
     const body = await context.request.json();
 
     const customer = body?.customer || {};
+    const addressId = String(body?.address_id || "").trim();
 
     const rawItems =
       Array.isArray(body?.items)
         ? body.items
         : [];
 
-    const name =
+    let name =
       String(customer.name || "").trim();
 
-    const email =
+    let email =
       String(customer.email || "").trim();
 
-    const phone =
+    let phone =
       String(customer.phone || "").trim();
 
-    const address =
+    let address =
       String(customer.address || "").trim();
 
     const voucherId = String(body?.voucher_id || "").trim();
     const shippingQuoteId = String(body?.shipping_quote_id || "").trim();
     const shippingSelections = Array.isArray(body?.shipping_selections) ? body.shipping_selections : [];
 
+    if (!buyerUser?.id) {
+      return json({ error: "Login diperlukan untuk checkout." }, 401);
+    }
+    if (!addressId) {
+      return json({ error: "Pilih alamat tersimpan sebelum checkout." }, 400);
+    }
+
+    const addressRows = await supabaseRequest(
+      supabaseUrl,
+      serviceRoleKey,
+      "/rest/v1/buyer_addresses?select=id,label,recipient_name,phone,address_line,city,province,postal_code" +
+        "&id=eq." + encodeURIComponent(addressId) +
+        "&user_id=eq." + encodeURIComponent(buyerUser.id) +
+        "&limit=1",
+      { method: "GET" }
+    );
+    const shippingAddress = Array.isArray(addressRows) ? addressRows[0] : null;
+    if (!shippingAddress) {
+      return json({ error: "Alamat pengiriman tidak ditemukan atau bukan milik akun ini." }, 400);
+    }
+    if (!/^\d{5}$/.test(String(shippingAddress.postal_code || ""))) {
+      return json({ error: "Kode pos alamat pengiriman harus 5 digit." }, 400);
+    }
+
+    // The saved address is the source of truth. Client-entered checkout fields cannot
+    // silently replace the address snapshot stored with the order.
+    name = String(shippingAddress.recipient_name || "").trim();
+    phone = String(shippingAddress.phone || "").trim();
+    address = [shippingAddress.address_line, shippingAddress.city, shippingAddress.province, shippingAddress.postal_code].filter(Boolean).join(", ");
+    email = String(buyerUser.email || email || "").trim();
+
     if (!name || !email || !phone || !address) {
-      return json({
-        error: "Data pelanggan belum lengkap."
-      }, 400);
+      return json({ error: "Data alamat pengiriman belum lengkap." }, 400);
     }
 
     if (!rawItems.length) {
@@ -439,8 +469,12 @@ export async function onRequestPost(context) {
       { method: "GET" }
     );
     const shippingQuote = Array.isArray(quoteRows) ? quoteRows[0] : null;
-    const shippingPostalCode = String(shippingQuote?.request_snapshot?.address?.postal_code || "").trim();
+    const shippingPostalCode = String(shippingAddress.postal_code || "").trim();
     if (!/^\d{5}$/.test(shippingPostalCode)) return json({ error: "Kode pos alamat pengiriman tidak valid. Silakan pilih alamat tersimpan yang lengkap." }, 400);
+    const quotedAddressId = String(shippingQuote?.request_snapshot?.address_id || "").trim();
+    if (quotedAddressId && quotedAddressId !== addressId) {
+      return json({ error: "Alamat checkout berubah. Silakan hitung ulang ongkir." }, 409);
+    }
     if (!shippingQuote || shippingQuote.status !== "active") {
       return json({ error: "Quote ongkir sudah tidak tersedia. Silakan hitung ulang." }, 400);
     }
@@ -569,6 +603,24 @@ export async function onRequestPost(context) {
 
             shipping_address:
               address,
+
+            shipping_address_id:
+              shippingAddress.id,
+
+            shipping_recipient_name:
+              shippingAddress.recipient_name,
+
+            shipping_phone:
+              shippingAddress.phone,
+
+            shipping_address_line:
+              shippingAddress.address_line,
+
+            shipping_city:
+              shippingAddress.city,
+
+            shipping_province:
+              shippingAddress.province,
 
             shipping_postal_code:
               shippingPostalCode,
