@@ -55,10 +55,21 @@ export async function onRequestPost(context){
     const reason=String(body?.reason||"Refund sengketa MarketKita").trim().slice(0,255);
     if(!disputeId)return json({error:"dispute_id wajib diisi."},400);
 
+    const authHeader=context.request.headers.get("Authorization")||"";
+    const userToken=authHeader.toLowerCase().startsWith("bearer ") ? authHeader.slice(7).trim() : "";
+    if(!userToken)return json({error:"Session admin diperlukan."},401);
+
     const begin=await supabaseRequest(
       supabaseUrl,serviceKey,
       "/rest/v1/rpc/admin_begin_dispute_refund",
-      {method:"POST",body:JSON.stringify({p_dispute_id:disputeId,p_reason:reason})}
+      {
+        method:"POST",
+        headers:{
+          apikey:anonKey,
+          Authorization:`Bearer ${userToken}`
+        },
+        body:JSON.stringify({p_dispute_id:disputeId,p_reason:reason})
+      }
     );
 
     const request=Array.isArray(begin)?begin[0]:begin;
