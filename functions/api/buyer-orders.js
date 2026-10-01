@@ -28,7 +28,7 @@ export async function onRequestGet(context) {
     if (!supabaseUrl || !serviceRoleKey || !anonKey) return json({ error: "Konfigurasi akun MarketKita belum lengkap." }, 500);
     const user = await getUser(context, supabaseUrl, anonKey);
     if (!user) return json({ error: "LOGIN_REQUIRED" }, 401);
-    const orderRows = await supabaseGet(supabaseUrl, serviceRoleKey, "/rest/v1/orders?select=id,order_number,status,payment_status,customer_name,customer_email,customer_phone,shipping_address,subtotal,shipping_fee,platform_fee,total,paid_at,processing_at,shipped_at,delivered_at,completed_at,created_at,updated_at&buyer_id=eq." + encodeURIComponent(user.id) + "&order=created_at.desc");
+    const orderRows = await supabaseGet(supabaseUrl, serviceRoleKey, "/rest/v1/orders?select=id,order_number,status,payment_status,customer_name,customer_email,customer_phone,shipping_address,shipping_address_id,shipping_recipient_name,shipping_phone,shipping_address_line,shipping_city,shipping_province,shipping_postal_code,subtotal,shipping_fee,platform_fee,total,paid_at,processing_at,shipped_at,delivered_at,completed_at,created_at,updated_at&buyer_id=eq." + encodeURIComponent(user.id) + "&order=created_at.desc");
     const orders = Array.isArray(orderRows) ? orderRows : [];
     if (!orders.length) return json({ orders: [] });
     const orderIds = orders.map(x => x.id).filter(Boolean).join(",");
