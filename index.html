@@ -2259,7 +2259,9 @@ async function startPayment(e){
     showKwNotice("Pilih alamat tersimpan sebelum melanjutkan pembayaran.","Alamat Belum Dipilih");
     return;
   }
-  if(!window.marketCheckoutShippingQuoteId || !Array.isArray(window.marketCheckoutShippingSelections) || !window.marketCheckoutShippingSelections.length){
+  const shippingRoot=document.getElementById("checkoutShippingOptions");
+  let shippingSellerCount=0; try{shippingSellerCount=JSON.parse(shippingRoot?.dataset.payload||"[]").length;}catch{}
+  if(!window.marketCheckoutShippingQuoteId || !Array.isArray(window.marketCheckoutShippingSelections) || !window.marketCheckoutShippingSelections.length || (shippingSellerCount>0 && window.marketCheckoutShippingSelections.length!==shippingSellerCount)){
     showKwNotice("Pilih layanan kurir untuk setiap toko sebelum melanjutkan pembayaran.","Kurir Belum Dipilih");
     return;
   }
