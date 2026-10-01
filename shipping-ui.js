@@ -37,7 +37,7 @@ function updateTotal(ship=totalShipping()){
 }
 async function sessionToken(){try{const s=(typeof kwSupabase!=="undefined"&&kwSupabase?.auth)?await kwSupabase.auth.getSession():null;return s?.data?.session?.access_token||"";}catch{return"";}}
 async function quote(){
- const select=document.getElementById("buyerAddressSelect"),id=select?.value;if(!id||!Array.isArray(typeof cart!=="undefined"?cart:null)||!window.cart.length){state={quoteId:null,sellers:[],selected:{},loading:false};render();return;}
+ const select=document.getElementById("buyerAddressSelect"),id=select?.value;if(!id||!Array.isArray(typeof cart!=="undefined"?cart:null)||!cart.length){state={quoteId:null,sellers:[],selected:{},loading:false};render();return;}
  state.loading=true;render();
  try{
   const token=await sessionToken();if(!token)throw new Error("Silakan login untuk menghitung ongkir.");
