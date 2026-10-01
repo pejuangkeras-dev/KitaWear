@@ -24,6 +24,7 @@ alter table public.products
 
 alter table public.orders
   add column if not exists shipping_quote_id uuid references public.shipping_quotes(id),
+  add column if not exists shipping_postal_code text,
   add column if not exists shipping_selections jsonb not null default '[]'::jsonb;
 
 create table if not exists public.shipping_quotes (
