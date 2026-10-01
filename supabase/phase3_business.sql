@@ -146,3 +146,16 @@ grant execute on function public.seller_sales_report(date,date) to authenticated
 grant execute on function public.admin_business_dashboard(date,date) to authenticated;
 grant execute on function public.admin_create_voucher(text,text,text,text,integer,integer,integer,integer,timestamptz,timestamptz) to authenticated;
 grant execute on function public.admin_set_voucher_active(uuid,boolean) to authenticated;
+
+
+create or replace function public.admin_list_vouchers()
+returns setof public.vouchers
+language plpgsql security definer set search_path to ''
+as $$
+begin
+  if not public.is_admin() then raise exception 'ADMIN_REQUIRED'; end if;
+  return query select v.* from public.vouchers v order by v.created_at desc limit 200;
+end;
+$$;
+revoke execute on function public.admin_list_vouchers() from public,anon;
+grant execute on function public.admin_list_vouchers() to authenticated;
