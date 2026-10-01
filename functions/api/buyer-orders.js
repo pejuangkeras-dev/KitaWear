@@ -34,9 +34,24 @@ export async function onRequestGet(context) {
     const orderIds = orders.map(x => x.id).filter(Boolean).join(",");
     const itemRows = await supabaseGet(supabaseUrl, serviceRoleKey, "/rest/v1/order_items?select=id,order_id,product_id,store_id,product_name,size,quantity,unit_price,line_total,created_at&order_id=in.(" + encodeURIComponent(orderIds) + ")&order=created_at.asc");
     const sellerRows = await supabaseGet(supabaseUrl, serviceRoleKey, "/rest/v1/order_sellers?select=id,order_id,store_id,seller_id,subtotal,platform_fee,shipping_fee,total,seller_status,shipping_status,tracking_number,seller_note,admin_note,created_at,updated_at&order_id=in.(" + encodeURIComponent(orderIds) + ")");
+    const refundRows = await supabaseGet(
+      supabaseUrl,
+      serviceRoleKey,
+      "/rest/v1/refund_requests?select=order_id,amount,status,midtrans_refund_amount,bank_confirmed_at,confirmed_at,reason&buyer_id=eq." +
+      encodeURIComponent(user.id) +
+      "&order_id=in.(" + encodeURIComponent(orderIds) + ")&order=created_at.desc"
+    );
     const items = Array.isArray(itemRows) ? itemRows : [];
     const sellers = Array.isArray(sellerRows) ? sellerRows : [];
-    return json({ orders: orders.map(order => ({ ...order, items: items.filter(item => item.order_id === order.id), sellers: sellers.filter(seller => seller.order_id === order.id) })) });
+    const refunds = Array.isArray(refundRows) ? refundRows : [];
+    return json({
+      orders: orders.map(order => ({
+        ...order,
+        items: items.filter(item => item.order_id === order.id),
+        sellers: sellers.filter(seller => seller.order_id === order.id),
+        refund: refunds.find(refund => refund.order_id === order.id) || null
+      }))
+    });
   } catch (error) {
     console.error("MarketKita buyer orders:", error);
     return json({ error: error?.message || "Gagal mengambil pesanan." }, 500);
