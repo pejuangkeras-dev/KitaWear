@@ -94,6 +94,17 @@ export async function onRequestPost(context){
     const rpcText=await rpcResponse.text();
     let rpcData=null;try{rpcData=rpcText?JSON.parse(rpcText):null}catch{rpcData={};}
     if(!rpcResponse.ok){
+      // Midtrans may send its cancel notification between the Midtrans
+      // cancel call and this RPC. Treat an already-cancelled order as success.
+      const latest=await sb(
+        url,
+        serviceKey,
+        `/rest/v1/orders?select=id,status,payment_status&buyer_id=eq.${encodeURIComponent(user.id)}&id=eq.${encodeURIComponent(order.id)}&limit=1`
+      ).catch(()=>[]);
+      const current=latest?.[0];
+      if(current?.status==="cancelled" && ["failed","expired"].includes(String(current.payment_status||""))){
+        return json({ok:true,order_id:order.id,status:"cancelled",already_cancelled:true});
+      }
       return json({error:rpcData?.message||rpcData?.error||"Pesanan gagal dibatalkan."},rpcResponse.status);
     }
     return json(rpcData||{ok:true,order_id:order.id,status:"cancelled"});
