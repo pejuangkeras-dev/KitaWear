@@ -250,6 +250,44 @@ export async function onRequestPost(context) {
       );
     }
 
+    const incomingRefundStatus=String(body?.transaction_status||"").toLowerCase();
+    const incomingRefundKey=String(body?.refund_key||"").trim();
+    if(["refund","partial_refund"].includes(incomingRefundStatus) && incomingRefundKey.startsWith("MK-REFUND-")){
+      const confirmedAt=body?.bank_confirmed_at?new Date(body.bank_confirmed_at).toISOString():null;
+      const refundAmount=Number(body?.refund_amount);
+      const updateStatus=incomingRefundStatus==="refund" && confirmedAt ? "succeeded" : "pending_confirmation";
+
+      const refundResult=await supabaseRequest(
+        supabaseUrl,
+        serviceRoleKey,
+        "/rest/v1/rpc/service_update_refund_request",
+        {
+          method:"POST",
+          body:JSON.stringify({
+            p_refund_key:incomingRefundKey,
+            p_status:updateStatus,
+            p_status_code:statusCode,
+            p_status_message:String(body?.status_message||"Midtrans refund notification"),
+            p_refund_chargeback_id:body?.refund_chargeback_id!=null?String(body.refund_chargeback_id):null,
+            p_refund_amount:Number.isFinite(refundAmount)?refundAmount:null,
+            p_midtrans_transaction_id:body?.transaction_id||null,
+            p_bank_confirmed_at:confirmedAt,
+            p_raw_response:body,
+            p_error_message:null
+          })
+        }
+      );
+
+      return json({
+        ok:true,
+        order_id:orderId,
+        refund_key:incomingRefundKey,
+        refund_status:incomingRefundStatus,
+        confirmation_status:updateStatus,
+        refund:refundResult
+      });
+    }
+
     const mapped = mapMidtransStatus(
       body?.transaction_status,
       body?.fraud_status
