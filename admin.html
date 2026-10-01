@@ -1200,6 +1200,46 @@ tr:last-child td{
   <div id="sellerReconciliationContainer"><div class="loading">Memuat rekonsiliasi seller...</div></div>
 </section>
 
+<section class="panel" style="margin-top:26px" id="adminUsersPanel">
+  <div class="panel-head"><div><h2 class="panel-title">Users & Seller</h2><div class="muted">Daftar akun marketplace dan peran saat ini.</div></div><button id="adminUsersRefresh" class="btn" type="button">↻ Refresh</button></div>
+  <div class="panel-tools" style="padding:0 18px 14px"><input id="adminUsersSearch" class="search" type="search" placeholder="Cari nama / telepon / ID"><select id="adminUsersRole" class="select"><option value="all">Semua role</option><option value="buyer">Buyer</option><option value="seller">Seller</option><option value="admin">Admin</option></select></div>
+  <div id="adminUsersContainer"><div class="loading">Memuat users...</div></div>
+</section>
+
+<section class="panel" style="margin-top:26px" id="adminCatalogPanel">
+  <div class="panel-head"><div><h2 class="panel-title">Catalog & Stores</h2><div class="muted">Pantau produk, toko, harga, status, dan kesehatan katalog.</div></div><button id="adminCatalogRefresh" class="btn" type="button">↻ Refresh</button></div>
+  <div class="stats" style="padding:18px;margin:0"><div class="stat"><div class="stat-label">Produk Aktif</div><div id="catalogActiveProducts" class="stat-value">0</div></div><div class="stat"><div class="stat-label">Toko Aktif</div><div id="catalogActiveStores" class="stat-value">0</div></div><div class="stat"><div class="stat-label">Produk Bermasalah</div><div id="catalogInvalidProducts" class="stat-value">0</div></div><div class="stat"><div class="stat-label">Seller Pending</div><div id="catalogPendingSellers" class="stat-value">0</div></div></div>
+  <div class="panel-tools" style="padding:0 18px 14px"><input id="adminCatalogSearch" class="search" type="search" placeholder="Cari produk / toko"><select id="adminCatalogStatus" class="select"><option value="all">Semua produk</option><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+  <div id="adminCatalogContainer"><div class="loading">Memuat katalog...</div></div>
+</section>
+
+<section class="panel" style="margin-top:26px" id="adminReviewsPanel">
+  <div class="panel-head"><div><h2 class="panel-title">Reviews & Rating</h2><div class="muted">Moderasi visual dan pemantauan rating produk/seller.</div></div><button id="adminReviewsRefresh" class="btn" type="button">↻ Refresh</button></div>
+  <div class="stats" style="padding:18px;margin:0"><div class="stat"><div class="stat-label">Review Produk</div><div id="adminProductReviewCount" class="stat-value">0</div></div><div class="stat"><div class="stat-label">Review Seller</div><div id="adminSellerReviewCount" class="stat-value">0</div></div><div class="stat"><div class="stat-label">Rating Produk</div><div id="adminProductAvgRating" class="stat-value">0</div></div><div class="stat"><div class="stat-label">Rating Seller</div><div id="adminSellerAvgRating" class="stat-value">0</div></div></div>
+  <div id="adminReviewsContainer"><div class="loading">Memuat review...</div></div>
+</section>
+
+<section class="panel" style="margin-top:26px" id="adminShippingPanel">
+  <div class="panel-head"><div><h2 class="panel-title">Shipping Center</h2><div class="muted">Pantau quote dan shipment RajaOngkir tanpa menyentuh secret key provider.</div></div><button id="adminShippingRefresh" class="btn" type="button">↻ Refresh</button></div>
+  <div class="stats" style="padding:18px;margin:0"><div class="stat"><div class="stat-label">Quotes</div><div id="adminShippingQuotes" class="stat-value">0</div></div><div class="stat"><div class="stat-label">Shipments</div><div id="adminShippingShipments" class="stat-value">0</div></div><div class="stat"><div class="stat-label">Tracking Aktif</div><div id="adminShippingTracking" class="stat-value">0</div></div><div class="stat"><div class="stat-label">Provider</div><div id="adminShippingProvider" class="stat-value" style="font-size:18px">-</div></div></div>
+  <div id="adminShippingContainer"><div class="loading">Memuat shipping...</div></div>
+</section>
+
+<section class="panel" style="margin-top:26px" id="adminRefundsPanel">
+  <div class="panel-head"><div><h2 class="panel-title">Refund Center</h2><div class="muted">Semua refund request, status Midtrans, dan konfirmasi bank.</div></div><button id="adminRefundsRefresh" class="btn" type="button">↻ Refresh</button></div>
+  <div id="adminRefundsContainer"><div class="loading">Memuat refund...</div></div>
+</section>
+
+<section class="panel" style="margin-top:26px" id="adminAuditPanel">
+  <div class="panel-head"><div><h2 class="panel-title">Audit Logs</h2><div class="muted">Jejak perubahan administratif pada order, seller, payout, dispute, refund, voucher, produk, dan toko.</div></div><button id="adminAuditRefresh" class="btn" type="button">↻ Refresh</button></div>
+  <div id="adminAuditContainer"><div class="loading">Memuat audit...</div></div>
+</section>
+
+<section class="panel" style="margin-top:26px" id="adminSettingsPanel">
+  <div class="panel-head"><div><h2 class="panel-title">Admin Settings & Health</h2><div class="muted">Identitas admin aktif dan status komponen utama marketplace.</div></div><button id="adminHealthRefresh" class="btn" type="button">↻ Refresh</button></div>
+  <div id="adminHealthContainer"><div class="loading">Memeriksa sistem...</div></div>
+</section>
+
 <section class="panel" style="margin-top:26px" id="phase3BusinessPanel">
   <div class="panel-head">
     <div><h2 class="panel-title">Business Dashboard</h2><div class="muted">Ringkasan bisnis marketplace berdasarkan periode.</div></div>
@@ -1835,6 +1875,13 @@ async function checkAdminAccess(){
   showAdminApp(data);
 
   await loadOrders();
+  await loadAdminUsers();
+  await loadAdminCatalog();
+  await loadAdminReviews();
+  await loadAdminShipping();
+  await loadAdminRefunds();
+  await loadAdminAudit();
+  await loadAdminHealth();
   await loadSellerApplications();
   await loadPayoutRequests();
   await loadPayoutAudit();
@@ -3650,6 +3697,93 @@ document.addEventListener(
 })();
 
 
+async function loadAdminUsers(){
+  const root=$('adminUsersContainer'); if(!root)return;
+  try{
+    const {data,error}=await supabaseClient.from('profiles').select('id,full_name,phone,role,created_at,updated_at').order('created_at',{ascending:false}).limit(300);
+    if(error)throw error;
+    window.adminUsers=data||[]; renderAdminUsers();
+  }catch(e){root.innerHTML='<div class="error">'+escapeHtml(e.message||'Gagal memuat users.')+'</div>';}
+}
+function renderAdminUsers(){
+  const root=$('adminUsersContainer'), q=String($('adminUsersSearch')?.value||'').toLowerCase(), role=$('adminUsersRole')?.value||'all';
+  const rows=(window.adminUsers||[]).filter(x=>(role==='all'||x.role===role)&&(!q||[x.full_name,x.phone,x.id].some(v=>String(v||'').toLowerCase().includes(q))));
+  root.innerHTML=rows.length?'<div class="table-wrap"><table><thead><tr><th>Nama</th><th>Phone</th><th>Role</th><th>User ID</th><th>Dibuat</th><th>Update</th></tr></thead><tbody>'+rows.map(x=>'<tr><td><strong>'+escapeHtml(x.full_name||'Tanpa nama')+'</strong></td><td>'+escapeHtml(x.phone||'—')+'</td><td><span class="status '+(x.role==='admin'?'paid':x.role==='seller'?'processing':'pending')+'">'+escapeHtml(x.role)+'</span></td><td><span class="muted">'+escapeHtml(String(x.id).slice(0,12))+'…</span></td><td>'+escapeHtml(formatDate(x.created_at))+'</td><td>'+escapeHtml(formatDate(x.updated_at))+'</td></tr>').join('')+'</tbody></table></div>':'<div class="empty">Tidak ada user yang cocok.</div>';
+}
+async function loadAdminCatalog(){
+  const root=$('adminCatalogContainer'); if(!root)return;
+  try{
+    const audit=await supabaseClient.rpc('admin_catalog_audit'); if(audit.error)throw audit.error;
+    const x=audit.data||{}; $('catalogActiveProducts').textContent=String(x.active_products||0); $('catalogActiveStores').textContent=String(x.active_stores||0); $('catalogInvalidProducts').textContent=String(x.invalid_active_products||0); $('catalogPendingSellers').textContent=String(x.pending_seller_applications||0);
+    const [pr,st]=await Promise.all([
+      supabaseClient.from('products').select('id,store_id,name,slug,category,price,status,created_at,updated_at').order('created_at',{ascending:false}).limit(300),
+      supabaseClient.from('stores').select('id,owner_id,name,slug,status,created_at,updated_at').order('created_at',{ascending:false}).limit(300)
+    ]);
+    if(pr.error)throw pr.error;if(st.error)throw st.error;
+    window.adminProducts=pr.data||[];window.adminStores=st.data||[];renderAdminCatalog();
+  }catch(e){root.innerHTML='<div class="error">'+escapeHtml(e.message||'Gagal memuat katalog.')+'</div>';}
+}
+function renderAdminCatalog(){
+  const root=$('adminCatalogContainer'),q=String($('adminCatalogSearch')?.value||'').toLowerCase(),filter=$('adminCatalogStatus')?.value||'all',stores=new Map((window.adminStores||[]).map(x=>[x.id,x]));
+  let rows=(window.adminProducts||[]).filter(x=>filter==='all'||String(x.status)===filter).filter(x=>{const st=stores.get(x.store_id);return !q||[x.name,x.slug,x.category,st?.name,st?.slug].some(v=>String(v||'').toLowerCase().includes(q));});
+  root.innerHTML=rows.length?'<div class="table-wrap"><table><thead><tr><th>Produk</th><th>Toko</th><th>Kategori</th><th>Harga</th><th>Status</th><th>Update</th></tr></thead><tbody>'+rows.map(x=>'<tr><td><strong>'+escapeHtml(x.name)+'</strong><div class="muted">'+escapeHtml(x.slug)+'</div></td><td>'+escapeHtml(stores.get(x.store_id)?.name||'—')+'</td><td>'+escapeHtml(x.category||'—')+'</td><td>'+formatRupiah(x.price)+'</td><td><span class="status '+(String(x.status)==='active'?'paid':'pending')+'">'+escapeHtml(x.status)+'</span></td><td>'+escapeHtml(formatDate(x.updated_at))+'</td></tr>').join('')+'</tbody></table></div>':'<div class="empty">Tidak ada produk.</div>';
+}
+async function loadAdminReviews(){
+  const root=$('adminReviewsContainer');if(!root)return;
+  try{
+    const [p,s]=await Promise.all([
+      supabaseClient.from('product_reviews').select('id,product_id,store_id,rating,review_text,seller_reply,created_at').order('created_at',{ascending:false}).limit(100),
+      supabaseClient.from('seller_reviews').select('id,store_id,rating,comment,reviewer_name,created_at').order('created_at',{ascending:false}).limit(100)
+    ]);
+    if(p.error)throw p.error;if(s.error)throw s.error;
+    window.adminProductReviews=p.data||[];window.adminSellerReviews=s.data||[];
+    const pa=window.adminProductReviews.reduce((a,x)=>a+Number(x.rating||0),0),sa=window.adminSellerReviews.reduce((a,x)=>a+Number(x.rating||0),0);
+    $('adminProductReviewCount').textContent=String(window.adminProductReviews.length);$('adminSellerReviewCount').textContent=String(window.adminSellerReviews.length);
+    $('adminProductAvgRating').textContent=window.adminProductReviews.length?(pa/window.adminProductReviews.length).toFixed(1)+' ★':'0';$('adminSellerAvgRating').textContent=window.adminSellerReviews.length?(sa/window.adminSellerReviews.length).toFixed(1)+' ★':'0';
+    root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Jenis</th><th>Rating</th><th>Isi</th><th>Reply Seller</th><th>Waktu</th></tr></thead><tbody>'+window.adminProductReviews.map(x=>'<tr><td>Produk</td><td><strong>'+escapeHtml(x.rating)+' ★</strong></td><td style="max-width:420px">'+escapeHtml(x.review_text||'—')+'</td><td>'+escapeHtml(x.seller_reply||'—')+'</td><td>'+escapeHtml(formatDate(x.created_at))+'</td></tr>').join('')+window.adminSellerReviews.map(x=>'<tr><td>Seller</td><td><strong>'+escapeHtml(x.rating)+' ★</strong></td><td style="max-width:420px">'+escapeHtml(x.comment||'—')+'</td><td>'+escapeHtml(x.reviewer_name||'—')+'</td><td>'+escapeHtml(formatDate(x.created_at))+'</td></tr>').join('')+'</tbody></table></div>';
+  }catch(e){root.innerHTML='<div class="error">'+escapeHtml(e.message||'Gagal memuat review.')+'</div>';}
+}
+async function loadAdminShipping(){
+  const root=$('adminShippingContainer');if(!root)return;
+  try{
+    const [q,s]=await Promise.all([
+      supabaseClient.from('shipping_quotes').select('id,buyer_id,total_fee,status,expires_at,created_at,used_at').order('created_at',{ascending:false}).limit(100),
+      supabaseClient.from('shipping_shipments').select('id,order_id,provider,provider_tracking_id,courier_company,courier_type,waybill_id,status,shipping_fee,tracking_url,last_webhook_at,created_at,updated_at').order('created_at',{ascending:false}).limit(100)
+    ]);
+    if(q.error)throw q.error;if(s.error)throw s.error;
+    const quotes=q.data||[],ships=s.data||[];$('adminShippingQuotes').textContent=String(quotes.length);$('adminShippingShipments').textContent=String(ships.length);$('adminShippingTracking').textContent=String(ships.filter(x=>x.waybill_id||x.provider_tracking_id).length);$('adminShippingProvider').textContent=ships[0]?.provider||'RajaOngkir';
+    root.innerHTML=ships.length?'<div class="table-wrap"><table><thead><tr><th>Order</th><th>Provider</th><th>Courier</th><th>Resi</th><th>Status</th><th>Ongkir</th><th>Update</th></tr></thead><tbody>'+ships.map(x=>'<tr><td>'+escapeHtml(String(x.order_id).slice(0,12))+'…</td><td>'+escapeHtml(x.provider)+'</td><td>'+escapeHtml((x.courier_company||'—')+' '+(x.courier_type||''))+'</td><td>'+escapeHtml(x.waybill_id||x.provider_tracking_id||'—')+'</td><td>'+escapeHtml(x.status)+'</td><td>'+formatRupiah(x.shipping_fee)+'</td><td>'+escapeHtml(formatDate(x.updated_at))+'</td></tr>').join('')+'</tbody></table></div>':'<div class="empty">Belum ada shipment tercatat. Quote tersimpan: '+quotes.length+'.</div>';
+  }catch(e){root.innerHTML='<div class="error">'+escapeHtml(e.message||'Gagal memuat shipping.')+'</div>';}
+}
+async function loadAdminRefunds(){
+  const root=$('adminRefundsContainer');if(!root)return;
+  try{
+    const {data,error}=await supabaseClient.from('refund_requests').select('id,order_id,buyer_id,admin_id,refund_key,amount,reason,status,midtrans_status_code,midtrans_refund_chargeback_id,requested_at,confirmed_at,created_at').order('created_at',{ascending:false}).limit(100);
+    if(error)throw error;const rows=data||[];
+    root.innerHTML=rows.length?'<div class="table-wrap"><table><thead><tr><th>Order</th><th>Refund Key</th><th>Nominal</th><th>Status</th><th>Midtrans</th><th>Diajukan</th><th>Konfirmasi</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+escapeHtml(String(x.order_id).slice(0,12))+'…</td><td>'+escapeHtml(x.refund_key)+'</td><td>'+formatRupiah(x.amount)+'</td><td><span class="status '+(x.status==='succeeded'?'paid':x.status==='failed'?'failed':'pending')+'">'+escapeHtml(x.status)+'</span></td><td>'+escapeHtml(x.midtrans_status_code||'—')+(x.midtrans_refund_chargeback_id?' · '+escapeHtml(x.midtrans_refund_chargeback_id):'')+'</td><td>'+escapeHtml(formatDate(x.requested_at||x.created_at))+'</td><td>'+escapeHtml(formatDate(x.confirmed_at))+'</td></tr>').join('')+'</tbody></table></div>':'<div class="empty">Belum ada refund request.</div>';
+  }catch(e){root.innerHTML='<div class="error">'+escapeHtml(e.message||'Gagal memuat refund.')+'</div>';}
+}
+async function loadAdminAudit(){
+  const root=$('adminAuditContainer');if(!root)return;
+  try{
+    const {data,error}=await supabaseClient.from('admin_audit_logs').select('id,actor_id,action,entity_type,entity_id,metadata,created_at').order('created_at',{ascending:false}).limit(100);
+    if(error)throw error;const rows=data||[];
+    root.innerHTML=rows.length?'<div class="table-wrap"><table><thead><tr><th>Waktu</th><th>Aktor</th><th>Aksi</th><th>Entity</th><th>ID</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+escapeHtml(formatDate(x.created_at))+'</td><td>'+escapeHtml(String(x.actor_id||'—').slice(0,12))+'…</td><td><strong>'+escapeHtml(x.action)+'</strong></td><td>'+escapeHtml(x.entity_type)+'</td><td>'+escapeHtml(String(x.entity_id||'—').slice(0,12))+'…</td></tr>').join('')+'</tbody></table></div>':'<div class="empty">Belum ada audit log administratif.</div>';
+  }catch(e){root.innerHTML='<div class="error">'+escapeHtml(e.message||'Gagal memuat audit logs.')+'</div>';}
+}
+async function loadAdminHealth(){
+  const root=$('adminHealthContainer');if(!root)return;
+  try{
+    const [profile,ordersQ,productsQ,notifQ]=await Promise.all([
+      supabaseClient.from('profiles').select('full_name,phone,role,updated_at').eq('id',currentUser.id).maybeSingle(),
+      supabaseClient.from('orders').select('id',{count:'exact',head:true}),
+      supabaseClient.from('products').select('id',{count:'exact',head:true}),
+      supabaseClient.from('notifications').select('id',{count:'exact',head:true})
+    ]);
+    if(profile.error)throw profile.error;
+    root.innerHTML='<div class="stats" style="padding:18px;margin:0"><div class="stat"><div class="stat-label">Admin</div><div class="stat-value" style="font-size:18px">'+escapeHtml(profile.data?.full_name||'Admin')+'</div><div class="stat-note">'+escapeHtml(profile.data?.phone||'—')+'</div></div><div class="stat"><div class="stat-label">Orders</div><div class="stat-value">'+escapeHtml(ordersQ.count??0)+'</div></div><div class="stat"><div class="stat-label">Products</div><div class="stat-value">'+escapeHtml(productsQ.count??0)+'</div></div><div class="stat"><div class="stat-label">Notifications</div><div class="stat-value">'+escapeHtml(notifQ.count??0)+'</div></div></div><div style="padding:18px" class="muted">Supabase: <strong>Connected</strong> · Role: <strong>'+escapeHtml(profile.data?.role||'—')+'</strong> · Last profile update: <strong>'+escapeHtml(formatDate(profile.data?.updated_at))+'</strong></div>';
+  }catch(e){root.innerHTML='<div class="error">'+escapeHtml(e.message||'Health check gagal.')+'</div>';}
+}
 async function loadSellerReconciliation(){
   const root=$('sellerReconciliationContainer');
   if(!root)return;
@@ -3742,6 +3876,17 @@ async function createPhase3Voucher(e){
     await loadPhase3Vouchers();
   }catch(err){msg.textContent=err.message||'Gagal membuat voucher.';}
 }
+$('adminUsersRefresh').addEventListener('click',loadAdminUsers);
+$('adminUsersSearch').addEventListener('input',renderAdminUsers);
+$('adminUsersRole').addEventListener('change',renderAdminUsers);
+$('adminCatalogRefresh').addEventListener('click',loadAdminCatalog);
+$('adminCatalogSearch').addEventListener('input',renderAdminCatalog);
+$('adminCatalogStatus').addEventListener('change',renderAdminCatalog);
+$('adminReviewsRefresh').addEventListener('click',loadAdminReviews);
+$('adminShippingRefresh').addEventListener('click',loadAdminShipping);
+$('adminRefundsRefresh').addEventListener('click',loadAdminRefunds);
+$('adminAuditRefresh').addEventListener('click',loadAdminAudit);
+$('adminHealthRefresh').addEventListener('click',loadAdminHealth);
 $('p3AdminRefresh').addEventListener('click',loadPhase3Dashboard);
 $('p3VoucherRefresh').addEventListener('click',loadPhase3Vouchers);
 $('p3VoucherForm').addEventListener('submit',createPhase3Voucher);
