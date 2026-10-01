@@ -307,6 +307,29 @@ await supabaseRequest(
       );
     }
 
+    // After payment is confirmed, create each seller shipment automatically.
+    if (mapped.paymentStatus === "paid") {
+      const shippingSecret = String(env.SHIPPING_INTERNAL_SECRET || "").trim();
+      if (shippingSecret) {
+        try {
+          const shippingUrl = new URL("/api/shipping-create", context.request.url);
+          const shippingResponse = await fetch(shippingUrl.toString(), {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Shipping-Internal-Secret": shippingSecret
+            },
+            body: JSON.stringify({ order_id: order.id })
+          });
+          if (!shippingResponse.ok) {
+            console.error("MarketKita automatic shipping creation failed:", await shippingResponse.text());
+          }
+        } catch (shippingError) {
+          console.error("MarketKita automatic shipping creation error:", shippingError?.message || shippingError);
+        }
+      }
+    }
+
     // Create seller payout records only after payment is confirmed.
     // The payout stays pending until the buyer confirms receipt.
     if (mapped.paymentStatus === "paid") {
