@@ -1674,7 +1674,7 @@ async function loadProductReviewsForDetail(productId,storeId,productName){
     const bar=document.getElementById("productReviewBars");
     const bars=[5,4,3,2,1].map(n=>rows.filter(x=>Number(x.rating)===n).length); const total=rows.length||1;
     if(bar)bar.innerHTML=bars.map((n,i)=>{const pct=Math.round(n/total*100);return `<div class="review-bar"><span>${5-i}★</span><i><b style="width:${pct}%"></b></i><span>${pct}%</span></div>`}).join("");
-    if(list)list.innerHTML=rows.length?rows.map(x=>`<div class="review-item"><div class="review-item-head"><strong>${escDetail(x.reviewer_name||"Pembeli")}</strong><span>${new Date(x.created_at).toLocaleDateString("id-ID")}</span></div><div class="review-stars">${stars(x.rating)}</div><p>${escDetail(x.comment)}</p></div>`).join(""):`<div class="review-empty">Belum ada ulasan produk.</div>`;
+    if(list)list.innerHTML=rows.length?rows.map(x=>`<div class="review-item"><div class="review-item-head"><strong>${escDetail(x.reviewer_name||"Pembeli")}</strong><span>${new Date(x.created_at).toLocaleDateString("id-ID")}</span></div><div class="review-stars">${stars(x.rating)}</div><p>${escDetail(x.comment)}</p>${x.seller_reply?`<div class="review-reply"><strong>Balasan seller</strong><div>${escDetail(x.seller_reply)}</div><small>${x.seller_replied_at?new Date(x.seller_replied_at).toLocaleDateString("id-ID"):""}</small></div>`:""}</div>`).join(""):`<div class="review-empty">Belum ada ulasan produk.</div>`;
     const form=document.getElementById("productReviewForm"); if(form)form.style.display=data.canReview?"block":"none";
   }catch(e){if(list)list.innerHTML='<div class="review-empty">Ulasan produk belum tersedia.</div>';}
 }
@@ -1717,7 +1717,7 @@ const r=await fetch(`/api/reviews?type=seller&store_id=${encodeURIComponent(stor
     const total=rows.length||1;
     const bar=document.getElementById("sellerReviewBars");
     if(bar)bar.innerHTML=bars.map((n,i)=>{const pct=Math.round(n/total*100);return `<div class="review-bar"><span>${5-i}★</span><i><b style="width:${pct}%"></b></i><span>${pct}%</span></div>`}).join("");
-    if(list)list.innerHTML=rows.length?rows.map(x=>`<div class="review-item"><div class="review-item-head"><strong>${escDetail(x.reviewer_name||"Pembeli")}</strong><span>${new Date(x.created_at).toLocaleDateString("id-ID")}</span></div><div class="review-stars">${stars(x.rating)}</div><p>${escDetail(x.comment)}</p></div>`).join(""):`<div class="review-empty">Belum ada ulasan seller. Ulasan akan muncul setelah pembeli menyelesaikan pesanan.</div>`;
+    if(list)list.innerHTML=rows.length?rows.map(x=>`<div class="review-item"><div class="review-item-head"><strong>${escDetail(x.reviewer_name||"Pembeli")}</strong><span>${new Date(x.created_at).toLocaleDateString("id-ID")}</span></div><div class="review-stars">${stars(x.rating)}</div><p>${escDetail(x.comment)}</p>${x.seller_reply?`<div class="review-reply"><strong>Balasan seller</strong><div>${escDetail(x.seller_reply)}</div></div>`:""}</div>`).join(""):`<div class="review-empty">Belum ada ulasan seller. Ulasan akan muncul setelah pembeli menyelesaikan pesanan.</div>`;
     if(kwSupabase){
       const session=(await kwSupabase.auth.getSession()).data?.session;
       const form=document.getElementById("sellerReviewForm"); if(form)form.style.display=data.canReview?"block":"none";
@@ -2904,6 +2904,57 @@ function showBuyerTrackingModal(t){
 }
 function closeBuyerTrackingModal(){const modal=document.getElementById("mkTrackModal");if(modal)modal.remove();}
 
+
+function buyerReviewStars(rating){
+  const n=Math.max(0,Math.min(5,Number(rating)||0));
+  return "★★★★★".split("").map((s,i)=>i<n?"★":"☆").join("");
+}
+function toggleBuyerReviewForm(orderItemId){
+  const el=document.getElementById("buyer-review-form-"+orderItemId);
+  if(el)el.style.display=el.style.display==="none"?"block":"none";
+}
+function selectBuyerReviewRating(orderItemId,n){
+  const input=document.getElementById("buyer-review-rating-"+orderItemId);
+  if(input)input.value=String(n);
+  document.querySelectorAll("#buyer-review-stars-"+orderItemId+" button").forEach((b,i)=>b.classList.toggle("active",i<n));
+}
+async function submitBuyerReview(orderItemId){
+  const rating=Number(document.getElementById("buyer-review-rating-"+orderItemId)?.value||0);
+  const text=String(document.getElementById("buyer-review-text-"+orderItemId)?.value||"").trim();
+  const msg=document.getElementById("buyer-review-msg-"+orderItemId);
+  if(!rating){if(msg)msg.textContent="Pilih rating 1–5.";return;}
+  if(text.length<3){if(msg)msg.textContent="Tulis ulasan minimal 3 karakter.";return;}
+  if(text.length>2000){if(msg)msg.textContent="Ulasan maksimal 2000 karakter.";return;}
+  try{
+    if(msg)msg.textContent="Mengirim ulasan...";
+    const result=await kwSupabase.rpc("submit_product_review",{p_order_item_id:orderItemId,p_rating:rating,p_review_text:text});
+    if(result.error)throw result.error;
+    showKwNotice("Ulasan berhasil disimpan dan akan tampil di produk serta toko seller.","Ulasan Tersimpan");
+    await loadBuyerOrders();
+  }catch(error){
+    if(msg)msg.textContent=error.message||"Gagal menyimpan ulasan.";
+  }
+}
+function buyerReviewMarkup(item,order){
+  if(!["completed"].includes(String(order?.status||"")))return "";
+  const review=item?.review;
+  if(review){
+    return '<div class="buyer-review-box"><div class="buyer-review-head"><strong>Ulasan Anda</strong><span class="buyer-review-stars">'+buyerReviewStars(review.rating)+'</span></div>'+
+      (review.review_text?'<p>'+escDetail(review.review_text)+'</p>':'')+
+      (review.seller_reply?'<div class="buyer-review-reply"><strong>Balasan seller</strong><p>'+escDetail(review.seller_reply)+'</p><small>'+escDetail(review.seller_replied_at?new Date(review.seller_replied_at).toLocaleString("id-ID"):"")+'</small></div>':'')+
+      '</div>';
+  }
+  const id=String(item.id);
+  return '<div class="buyer-review-box"><div class="buyer-review-head"><strong>Belum diulas</strong></div>'+
+    '<button type="button" class="buyer-review-open" onclick="toggleBuyerReviewForm(\''+escDetail(id)+'\')">★ Beri Ulasan</button>'+
+    '<div id="buyer-review-form-'+escDetail(id)+'" class="buyer-review-form" style="display:none">'+
+    '<input type="hidden" id="buyer-review-rating-'+escDetail(id)+'" value="0">'+
+    '<div id="buyer-review-stars-'+escDetail(id)+'" class="buyer-review-star-buttons">'+[1,2,3,4,5].map(n=>'<button type="button" onclick="selectBuyerReviewRating(\''+escDetail(id)+'\','+n+')">'+n+'★</button>').join("")+'</div>'+
+    '<textarea id="buyer-review-text-'+escDetail(id)+'" maxlength="2000" placeholder="Bagaimana kualitas produk ini?"></textarea>'+
+    '<button type="button" class="buyer-review-submit" onclick="submitBuyerReview(\''+escDetail(id)+'\')">Kirim Ulasan</button>'+
+    '<div id="buyer-review-msg-'+escDetail(id)+'" class="buyer-review-msg"></div></div></div>';
+}
+
 function renderBuyerOrders(){
   const root=document.getElementById("buyerOrdersList");
   if(!root)return;
@@ -2918,7 +2969,7 @@ function renderBuyerOrders(){
     const trackingInfo=trackingNumbers.length ? trackingNumbers.map(x=>escDetail(x)).join(" · ") : "Belum tersedia";
     return `<article class="buyer-order-card">
       <div class="buyer-order-head"><div><strong>${escDetail(order.order_number)}</strong><span>${new Date(order.created_at).toLocaleString("id-ID")}</span></div><span class="buyer-order-status ${buyerOrderStatusClass(order.status)}">${buyerOrderStatusLabel(order.status)}</span></div>
-      <div class="buyer-order-items">${items.map(item=>`<div class="buyer-order-item"><div><strong>${escDetail(item.product_name)}</strong><span>Ukuran ${escDetail(item.size)} · Qty ${item.quantity}</span></div><strong>${rupiah(item.line_total)}</strong></div>`).join("")}</div>
+      <div class="buyer-order-items">${items.map(item=>`<div class="buyer-order-item"><div><strong>${escDetail(item.product_name)}</strong><span>Ukuran ${escDetail(item.size)} · Qty ${item.quantity}</span></div><strong>${rupiah(item.line_total)}</strong></div>${buyerReviewMarkup(item,order)}`).join("")}</div>
       <div class="buyer-order-foot"><span>${sellerNames} toko · ${items.length} item</span><strong>Total ${rupiah(order.total)}</strong></div>
       ${order.refund ? '<div class="buyer-refund-status" style="margin:10px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:#faf8f3"><strong>Refund: '+escDetail(order.refund.status==="succeeded"?"Berhasil dikonfirmasi":order.refund.status==="pending_confirmation"?"Menunggu konfirmasi":"Sedang diproses")+'</strong><span style="display:block;margin-top:4px">Nominal refund: '+rupiah(order.refund.midtrans_refund_amount ?? order.refund.amount ?? 0)+(order.refund.bank_confirmed_at ? " · Dikonfirmasi "+new Date(order.refund.bank_confirmed_at).toLocaleString("id-ID") : "")+'</span></div>' : ""}
       <div class="buyer-tracking"><div class="buyer-tracking-title"><strong>Lacak Pesanan</strong><span>${trackingNumbers.length?`${trackingNumbers.length} resi`:"Resi belum tersedia"}</span></div><div class="buyer-tracking-steps">${buyerTrackingSteps(order)}</div><div class="buyer-tracking-info"><div class="buyer-tracking-chip">Status Pengiriman<strong>${escDetail(order.shipping_status||sellers[0]?.shipping_status||"Menunggu")}</strong></div><div class="buyer-tracking-chip">Resi<strong>${trackingInfo}</strong></div></div>${canConfirm?`<button class="buyer-order-confirm" type="button" onclick="confirmBuyerOrder('${escDetail(order.id)}')">✓ Pesanan Diterima</button>`:""}</div>
@@ -3670,6 +3721,22 @@ document.addEventListener("DOMContentLoaded",async()=>{
 .review-reply{margin-top:10px;padding:10px 12px;border-left:3px solid #171817;background:#f3f1ec;font-size:12px}
 .review-form{display:grid;gap:10px}.review-stars button{border:0;background:none;font-size:27px;padding:2px;color:#bbb}.review-stars button.active{color:#b4872d}.review-form textarea{width:100%;min-height:100px;border:1px solid var(--line);border-radius:11px;padding:11px;resize:vertical}
 .review-form button.submit-review{height:44px;border:0;border-radius:11px;background:#171817;color:#fff;font-weight:800}
+<style>
+.buyer-review-box{margin:9px 0;padding:11px;border:1px solid var(--line);border-radius:12px;background:#fffdf9}
+.buyer-review-head{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:12px}
+.buyer-review-stars{color:#b4872d;letter-spacing:1px}
+.buyer-review-open{margin-top:8px;border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 11px;font-weight:800;font-size:12px}
+.buyer-review-form{margin-top:9px}
+.buyer-review-star-buttons{display:flex;gap:5px;margin-bottom:8px}
+.buyer-review-star-buttons button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 8px;color:#777}
+.buyer-review-star-buttons button.active{background:#f4ead3;color:#8a641e;border-color:#d5bb83}
+.buyer-review-form textarea{width:100%;min-height:82px;border:1px solid var(--line);border-radius:9px;padding:9px;resize:vertical}
+.buyer-review-submit{margin-top:7px;border:0;background:#171817;color:#fff;border-radius:9px;padding:9px 13px;font-weight:800}
+.buyer-review-msg{font-size:11px;color:#777;margin-top:7px}
+.buyer-review-reply{margin-top:8px;padding:9px 11px;border-left:3px solid #171817;background:#f2f0eb;font-size:12px}
+.buyer-review-reply p{margin:4px 0}
+.buyer-review-reply small{color:#888}
+</style>
 </style>
 <script>
 function renderRatingStars(r){const n=Math.max(0,Math.min(5,Number(r)||0));return '★★★★★'.split('').map((s,i)=>'<span class="'+(i<n?'':'muted')+'">'+s+'</span>').join('')}
