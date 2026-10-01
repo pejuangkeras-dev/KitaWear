@@ -970,7 +970,7 @@ ${pill(status)}
 <br>
 ${pill(o.payment_status)}
 </td>
-<td>${x.tracking_number ? `<strong>${esc(x.tracking_number)}</strong>` : '—'}${x.shipment ? `<br><small>${esc(x.shipment.courier_company||x.shipment.provider||'Kurir')} · ${esc(x.shipment.status||'diproses')}</small>` : ''}</td>
+<td>${x.tracking_number ? `<strong>${esc(x.tracking_number)}</strong><br><button class="btn light" type="button" style="margin-top:6px;padding:7px 9px;font-size:11px" onclick="trackSellerShipment('${x.order_id}','${x.id}',this)">Lacak</button>` : '—'}${x.shipment ? `<br><small>${esc(x.shipment.courier_company||x.shipment.provider||'Kurir')} · ${esc(x.shipment.status||'diproses')}</small>` : ''}</td>
 <td>
 <button class="btn light" onclick="openOrderModal('${x.order_id}')">Detail</button>
 ${sellerStatusActions(status,x.order_id)}
@@ -1077,6 +1077,20 @@ URL.revokeObjectURL(a.href);
 
 }
 
+async function trackSellerShipment(orderId,orderSellerId,button){
+  if(button){button.disabled=true;button.textContent='Melacak...';}
+  try{
+    const session=(await sb.auth.getSession()).data?.session;
+    if(!session)throw new Error('Sesi login sudah berakhir.');
+    const r=await fetch('/api/shipping-track',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({order_id:orderId,order_seller_id:orderSellerId}),cache:'no-store'});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(d.error||'Gagal melacak resi.');
+    const t=d.tracking||{},timeline=t.timeline||[],last=timeline[timeline.length-1];
+    toast((t.courier_name||'Kurir')+' · '+(t.waybill_number||'Resi')+' · '+(t.status||'Status diperbarui')+(last?.description?' · '+last.description:''));
+    await loadOrders();
+  }catch(e){toast(e.message||'Gagal melacak resi.');}
+  finally{if(button){button.disabled=false;button.textContent='Lacak';}}
+}
 function sellerStatusActions(status,orderId){
 if(status==='paid') return `<div class="order-actions"><button class="btn green" onclick="updateSellerOrder('${orderId}','processing')">Proses</button></div>`;
 if(status==='processing') return `<div class="order-actions"><button class="btn green" onclick="shipSellerOrder('${orderId}')">Kirim + Resi</button></div>`;
