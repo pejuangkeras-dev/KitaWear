@@ -2621,6 +2621,17 @@ kwSupabase=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{
     if(accountParam==="reset" && sessionResult.data?.session){
       setTimeout(()=>openResetPassword(),100);
     }
+  // Inline HTML handlers run in the global window scope. These auth functions
+  // are declared inside initMarketKitaAuth, so expose the required handlers
+  // explicitly after initialization to avoid ReferenceError on click/submit.
+  window.marketKitaOpenAccountFallback=marketKitaOpenAccountFallback;
+  window.openAccount=openAccount;
+  window.closeAccount=closeAccount;
+  window.setAuthMode=setAuthMode;
+  window.submitAuth=submitAuth;
+  window.sendPasswordReset=sendPasswordReset;
+  window.updateForgottenPassword=updateForgottenPassword;
+
   }catch(error){
     console.warn("MarketKita auth:",error);
     updateAccountButton(null,null);
