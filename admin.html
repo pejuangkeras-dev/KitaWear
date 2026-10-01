@@ -997,8 +997,7 @@ tr:last-child td{
   </section>
 
 
-  <!-- STATS -->
-  <section class="stats">
+  <!-- STATS -->  <section class="stats">
 
     <div class="stat">
 
@@ -1167,6 +1166,14 @@ tr:last-child td{
       <button id="refreshPayoutRequestsBtn" class="btn" type="button">↻ Refresh</button>
     </div>
     <div id="payoutRequestsContainer"><div class="loading">Memuat payout...</div></div>
+  </section>
+
+  <section class="panel" style="margin-top:26px">
+    <div class="panel-head">
+      <div><h2 class="panel-title">Audit Payout</h2><div class="muted">Jejak persetujuan dan pembayaran payout yang tercatat di database.</div></div>
+      <button id="refreshPayoutAuditBtn" class="btn" type="button">↻ Refresh</button>
+    </div>
+    <div id="payoutAuditContainer"><div class="loading">Memuat audit payout...</div></div>
   </section>
 
   
@@ -1807,6 +1814,7 @@ async function checkAdminAccess(){
   await loadOrders();
   await loadSellerApplications();
   await loadPayoutRequests();
+  await loadPayoutAudit();
   await loadDisputes();
   await loadPhase3Dashboard();
   await loadPhase3Vouchers();
@@ -1997,8 +2005,7 @@ async function loadSellerApplications(){
   if(!supabaseClient) return;
   const container=document.getElementById("sellerApplicationsContainer");
   container.innerHTML='<div class="loading">Memuat pengajuan seller...</div>';
-  try{
-    const {data,error}=await supabaseClient.from("seller_applications").select("*").order("created_at",{ascending:false});
+  try{    const {data,error}=await supabaseClient.from("seller_applications").select("*").order("created_at",{ascending:false});
     if(error) throw error;
     sellerApplications=data||[];
     const userIds=[...new Set(sellerApplications.map(x=>x.user_id).filter(Boolean))];
@@ -2118,6 +2125,25 @@ async function loadPayoutRequests(){
       '</td></tr>').join('')+
       '</tbody></table></div>';
   }catch(e){root.innerHTML='<div class="error">'+escapeHtml(e.message||"Gagal memuat payout.")+'</div>';}
+}
+
+async function loadPayoutAudit(requestId=null){
+  const root=document.getElementById("payoutAuditContainer");
+  if(!root)return;
+  root.innerHTML='<div class="loading">Memuat audit payout...</div>';
+  try{
+    let query=supabaseClient.from("seller_payout_audit").select("id,payout_request_id,seller_id,admin_id,action,previous_status,new_status,amount,admin_note,created_at").order("created_at",{ascending:false}).limit(100);
+    if(requestId) query=query.eq("payout_request_id",requestId);
+    const {data,error}=await query;
+    if(error)throw error;
+    const rows=data||[];
+    if(!rows.length){root.innerHTML='<div class="empty">Belum ada audit payout yang tercatat.</div>';return;}
+    root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Waktu</th><th>Request</th><th>Seller</th><th>Aksi</th><th>Perubahan</th><th>Nominal</th><th>Catatan</th></tr></thead><tbody>'+
+      rows.map(x=>'<tr><td>'+escapeHtml(formatDate(x.created_at))+'</td><td>'+escapeHtml(String(x.payout_request_id).slice(0,8))+'</td><td>'+escapeHtml(String(x.seller_id).slice(0,8))+'</td><td><strong>'+escapeHtml(x.action)+'</strong></td><td>'+escapeHtml(x.previous_status)+' → '+escapeHtml(x.new_status)+'</td><td>'+formatRupiah(x.amount)+'</td><td>'+escapeHtml(x.admin_note||"—")+'</td></tr>').join('')+
+      '</tbody></table></div>';
+  }catch(e){
+    root.innerHTML='<div class="error">'+escapeHtml(e.message||"Gagal memuat audit payout.")+'</div>';
+  }
 }
 
 async function reviewPayoutRequest(id,decision){
@@ -2998,7 +3024,6 @@ async function openOrderDetail(id){
       </button>
 
     </div>
-
   `;
 
   document
@@ -3356,7 +3381,8 @@ async function saveOrderStatus(){
 
 
 document.getElementById("sellerApplicationFilter").addEventListener("change",renderSellerApplications);
-document.getElementById("refreshPayoutRequestsBtn").addEventListener("click",loadPayoutRequests);
+document.getElementById("refreshPayoutRequestsBtn").addEventListener("click",async()=>{await loadPayoutRequests();await loadPayoutAudit();});
+document.getElementById("refreshPayoutAuditBtn").addEventListener("click",()=>loadPayoutAudit());
 document.getElementById("refreshDisputesBtn").addEventListener("click",loadDisputes);
 document.getElementById("refreshSellerApplicationsBtn").addEventListener("click",loadSellerApplications);
 document.getElementById("closeRefundReasonBtn").addEventListener("click",closeRefundReasonModal);
