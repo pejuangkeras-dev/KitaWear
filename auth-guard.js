@@ -21,7 +21,7 @@ const MARKETKITA_COOKIE_CHUNK=3600;
 function marketKitaEncode(value){
   const bytes=new TextEncoder().encode(String(value)); let binary="";
   for(let i=0;i<bytes.length;i+=0x8000) binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
-  return btoa(binary).replace(/\\+/g,"-").replace(/\\//g,"_").replace(/=+$/,"");
+  return btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 }
 function marketKitaDecode(value){
   try{
