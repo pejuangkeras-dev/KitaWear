@@ -3662,5 +3662,28 @@ document.addEventListener("DOMContentLoaded",async()=>{
 
 .account-notification{padding:14px;border-bottom:1px solid var(--line);background:#fff}.account-notification:last-child{border-bottom:0}.account-notification.unread{background:#f4f8f5}.account-notification strong{display:block;font-size:13px}.account-notification p{margin:5px 0;color:#666;font-size:12px;line-height:1.5}.account-notification time{font-size:10px;color:#999}.voucher-item{padding:15px;border:1px solid var(--line);border-radius:14px;background:#fff;margin-bottom:10px}.voucher-item strong{font-size:15px}.voucher-item p{margin:5px 0;color:#666;font-size:12px}.voucher-item button{margin-top:8px;height:36px;border:0;border-radius:9px;background:#171817;color:#fff;padding:0 13px;font-weight:800}.voucher-item button:disabled{opacity:.55}.chat-bubble{max-width:78%;padding:9px 11px;border-radius:12px;margin:7px 0;font-size:12px;line-height:1.45}.chat-bubble.me{margin-left:auto;background:#171817;color:#fff}.chat-bubble.them{margin-right:auto;background:#fff;border:1px solid var(--line)}
 </style>
-</body>
+<style>
+.rating-summary{display:flex;align-items:center;gap:7px;margin:7px 0 11px;font-size:12px;color:#777}
+.rating-stars{letter-spacing:1px;color:#b4872d}.review-list{display:grid;gap:12px;margin-top:14px}
+.review-card{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fffdf9}
+.review-head{display:flex;justify-content:space-between;gap:10px}.review-name{font-weight:800;font-size:13px}.review-date{font-size:11px;color:#888}.review-text{font-size:13px;line-height:1.6;margin-top:7px}
+.review-reply{margin-top:10px;padding:10px 12px;border-left:3px solid #171817;background:#f3f1ec;font-size:12px}
+.review-form{display:grid;gap:10px}.review-stars button{border:0;background:none;font-size:27px;padding:2px;color:#bbb}.review-stars button.active{color:#b4872d}.review-form textarea{width:100%;min-height:100px;border:1px solid var(--line);border-radius:11px;padding:11px;resize:vertical}
+.review-form button.submit-review{height:44px;border:0;border-radius:11px;background:#171817;color:#fff;font-weight:800}
+</style>
+<script>
+function renderRatingStars(r){const n=Math.max(0,Math.min(5,Number(r)||0));return '★★★★★'.split('').map((s,i)=>'<span class="'+(i<n?'':'muted')+'">'+s+'</span>').join('')}
+async function loadProductRating(productId,target){
+  if(!target||!productId)return;
+  try{const {data,error}=await sb.rpc('product_rating_summary',{p_product_id:productId});if(error)throw error;
+    target.innerHTML='<span class="rating-stars">'+renderRatingStars(data?.average_rating)+'</span><b>'+(data?.average_rating||0)+'</b> ('+(data?.review_count||0)+' ulasan)';
+  }catch(e){target.textContent='Belum ada ulasan'}
+}
+async function submitReviewForItem(itemId,rating,text){
+  if(!sb||!sb.auth){showNotice('Login diperlukan','Silakan login untuk memberi ulasan.');return false}
+  const {data,error}=await sb.rpc('submit_product_review',{p_order_item_id:itemId,p_rating:rating,p_review_text:text||null});
+  if(error){showNotice('Ulasan belum tersimpan',error.message||'Gagal menyimpan ulasan.');return false}
+  showNotice('Ulasan tersimpan','Terima kasih. Ulasan Anda berhasil ditambahkan.'); return true;
+}
+</script></body>
 </html>
