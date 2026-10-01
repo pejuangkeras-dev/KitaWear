@@ -585,9 +585,19 @@ grant execute on function public.seller_set_tracking_number(uuid,text) to authen
 alter table public.product_sizes
   add column if not exists reserved_stock integer not null default 0;
 
-alter table public.product_sizes
-  add constraint product_sizes_reserved_stock_nonnegative
-  check (reserved_stock >= 0);
+do $constraint$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname='product_sizes_reserved_stock_nonnegative'
+      and conrelid='public.product_sizes'::regclass
+  ) then
+    alter table public.product_sizes
+      add constraint product_sizes_reserved_stock_nonnegative
+      check (reserved_stock >= 0);
+  end if;
+end
+$constraint$;
 
 create table if not exists public.stock_reservations (
   id uuid primary key default gen_random_uuid(),
