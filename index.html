@@ -2066,7 +2066,7 @@ function closeKwConfirm(result=false){
   if(resolve)resolve(Boolean(result));
 }
 
-document.addEventListener("DOMContentLoaded",()=>{ setTimeout(()=>{ if(kwCurrentUser){ refreshNotificationUnread(); loadNotificationPreferences(); } },1200); });
+document.addEventListener("DOMContentLoaded",()=>{ setTimeout(()=>{ if(kwCurrentUser){ refreshNotificationUnread(); loadNotificationPreferences(); ensureNotificationRealtime(); } },1200); });
 document.addEventListener("DOMContentLoaded",()=>{
   document.getElementById("kwConfirmOk")?.addEventListener("click",()=>closeKwConfirm(true));
   document.getElementById("kwConfirmCancel")?.addEventListener("click",()=>closeKwConfirm(false));
