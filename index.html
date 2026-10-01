@@ -890,7 +890,7 @@ body{background:var(--bg);color:var(--ink)}
           <div class="account-nav-group">
             <div class="account-nav-title">Aktivitas</div>
             <button class="account-nav-item" data-account-section="orders" onclick="showAccountSection('orders')">Pesanan Saya</button>
-            <button class="account-nav-item" data-account-section="alerts" onclick="showAccountSection('alerts')">Notifikasi</button>
+            <button class="account-nav-item" data-account-section="alerts" onclick="showAccountSection('alerts')">Notifikasi <span id="notificationUnreadBadge" class="notification-unread-badge" style="display:none">0</span></button>
             <button class="account-nav-item" data-account-section="messages" onclick="showAccountSection('messages')">Pesan</button>
             <button class="account-nav-item" data-account-section="voucher" onclick="showAccountSection('voucher')">Voucher Saya</button>
             <button class="account-nav-item" data-account-section="disputes" onclick="showAccountSection('disputes')">Pusat Sengketa</button>
@@ -1002,7 +1002,16 @@ body{background:var(--bg);color:var(--ink)}
           </div>
 
           <div id="accountSection-orders" class="account-section"><div class="account-page-head"><div><h3>Pesanan Saya</h3><p>Riwayat pesanan dan status pengiriman Anda.</p></div><button type="button" class="orders-refresh" onclick="loadBuyerOrders()">↻ Muat Ulang</button></div><div class="order-filter-row"><button class="order-filter active" data-order-filter="all" onclick="filterBuyerOrders('all')">Semua</button><button class="order-filter" data-order-filter="pending_payment" onclick="filterBuyerOrders('pending_payment')">Belum Bayar</button><button class="order-filter" data-order-filter="processing" onclick="filterBuyerOrders('processing')">Diproses</button><button class="order-filter" data-order-filter="shipped" onclick="filterBuyerOrders('shipped')">Dikirim</button><button class="order-filter" data-order-filter="completed" onclick="filterBuyerOrders('completed')">Selesai</button></div><div id="buyerOrdersList" class="buyer-orders-list"><div class="account-empty">Memuat pesanan...</div></div></div>
-          <div id="accountSection-alerts" class="account-section"><div class="account-page-head"><h3>Notifikasi</h3><p>Informasi penting mengenai akun dan pesanan Anda.</p></div><div id="notificationList" class="account-empty">Memuat notifikasi...</div></div>
+          <div id="accountSection-alerts" class="account-section">
+  <div class="account-page-head">
+    <div><h3>Notifikasi</h3><p>Informasi penting mengenai akun dan pesanan Anda.</p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button type="button" class="orders-refresh" onclick="markAllNotificationsRead()">✓ Tandai semua dibaca</button>
+      <button type="button" class="orders-refresh" onclick="loadNotifications()">↻ Muat Ulang</button>
+    </div>
+  </div>
+  <div id="notificationList" class="account-empty">Memuat notifikasi...</div>
+</div>
           <div id="accountSection-messages" class="account-section">
             <div class="account-page-head">
               <div><h3>Pesan</h3><p>Lihat dan balas percakapan Anda dengan seller MarketKita.</p></div>
@@ -1031,7 +1040,18 @@ body{background:var(--bg);color:var(--ink)}
             </div>
             <div id="buyerAddressesList" class="buyer-address-list"><div class="account-empty">Memuat alamat...</div></div>
           </div>
-          <div id="accountSection-notifications" class="account-section"><div class="account-page-head"><h3>Pengaturan Notifikasi</h3><p>Atur jenis informasi yang ingin Anda terima.</p></div><div class="account-empty">Pengaturan notifikasi akan tersedia di sini.</div></div>
+          <div id="accountSection-notifications" class="account-section">
+  <div class="account-page-head"><h3>Pengaturan Notifikasi</h3><p>Pilih jenis informasi yang ingin Anda terima. Pengaturan ini berlaku untuk notifikasi di akun MarketKita.</p></div>
+  <div class="notification-preferences-card">
+    <label><input id="notifPrefOrder" type="checkbox" checked> <span><strong>Pesanan</strong><small>Status pembayaran, diproses, dikirim, selesai, dan pembatalan.</small></span></label>
+    <label><input id="notifPrefChat" type="checkbox" checked> <span><strong>Pesan</strong><small>Pesan baru dari buyer atau seller.</small></span></label>
+    <label><input id="notifPrefPayout" type="checkbox" checked> <span><strong>Payout</strong><small>Perubahan saldo dan status payout seller.</small></span></label>
+    <label><input id="notifPrefDispute" type="checkbox" checked> <span><strong>Sengketa &amp; Refund</strong><small>Perubahan status sengketa dan refund.</small></span></label>
+    <label><input id="notifPrefPromotion" type="checkbox" checked> <span><strong>Promo &amp; Voucher</strong><small>Voucher yang diklaim dan informasi promosi.</small></span></label>
+    <label><input id="notifPrefSystem" type="checkbox" checked> <span><strong>Sistem</strong><small>Informasi keamanan dan layanan penting.</small></span></label>
+    <div class="profile-actions"><button class="profile-save" type="button" onclick="saveNotificationPreferences()">Simpan Pengaturan</button><span id="notificationPreferenceMessage"></span></div>
+  </div>
+</div>
           <div id="accountSection-privacy" class="account-section"><div class="account-page-head"><h3>Pengaturan Privasi</h3><p>Kelola preferensi privasi akun MarketKita.</p></div><div class="account-empty">Pengaturan privasi akan tersedia di sini.</div></div>
           <div id="accountSection-voucher" class="account-section"><div class="account-page-head"><h3>Voucher Saya</h3><p>Klaim voucher yang tersedia untuk akun Anda.</p></div><div id="voucherList" class="account-empty">Memuat voucher...</div></div><div id="accountSection-disputes" class="account-section">
             <div class="account-page-head"><div><h3>Pusat Sengketa</h3><p>Ajukan dan pantau sengketa pesanan yang mengalami masalah.</p></div><button type="button" class="orders-refresh" onclick="loadBuyerDisputes()">↻ Muat Ulang</button></div>
@@ -2046,6 +2066,7 @@ function closeKwConfirm(result=false){
   if(resolve)resolve(Boolean(result));
 }
 
+document.addEventListener("DOMContentLoaded",()=>{ setTimeout(()=>{ if(kwCurrentUser){ refreshNotificationUnread(); loadNotificationPreferences(); } },1200); });
 document.addEventListener("DOMContentLoaded",()=>{
   document.getElementById("kwConfirmOk")?.addEventListener("click",()=>closeKwConfirm(true));
   document.getElementById("kwConfirmCancel")?.addEventListener("click",()=>closeKwConfirm(false));
@@ -3479,16 +3500,66 @@ async function logoutAccount(){
 }
 
 
+async function refreshNotificationUnread(){
+  if(!kwSupabase||!kwCurrentUser)return;
+  const badge=document.getElementById("notificationUnreadBadge");
+  const {count,error}=await kwSupabase.from("notifications").select("id",{count:"exact",head:true}).eq("user_id",kwCurrentUser.id).is("read_at",null);
+  if(error||!badge)return;
+  badge.textContent=String(count||0);
+  badge.style.display=(count||0)>0?"inline-flex":"none";
+}
 async function loadNotifications(){
   const root=document.getElementById("notificationList");
   if(!root||!kwSupabase||!kwCurrentUser)return;
-  const {data,error}=await kwSupabase.from("notifications").select("*").eq("user_id",kwCurrentUser.id).order("created_at",{ascending:false}).limit(30);
+  const {data,error}=await kwSupabase.from("notifications").select("*").eq("user_id",kwCurrentUser.id).order("created_at",{ascending:false}).limit(50);
   if(error){root.textContent=error.message;return;}
-  if(!data?.length){root.innerHTML="Belum ada notifikasi baru.";return;}
+  if(!data?.length){root.className="account-empty";root.innerHTML="Belum ada notifikasi.";await refreshNotificationUnread();return;}
   root.className="";
-  root.innerHTML=data.map(n=>'<div class="account-notification '+(n.read_at?"":"unread")+'"><strong>'+escDetail(n.title)+'</strong><p>'+escDetail(n.message)+'</p><time>'+new Date(n.created_at).toLocaleString("id-ID")+'</time></div>').join("");
-  const unread=data.filter(n=>!n.read_at).map(n=>n.id);
-  if(unread.length) await kwSupabase.from("notifications").update({read_at:new Date().toISOString()}).in("id",unread);
+  root.innerHTML=data.map(n=>{
+    const href=n.link||"";
+    const action=n.read_at?"":"<button type='button' class='notification-read-btn' onclick=\"markNotificationRead('"+n.id+"')\">Tandai dibaca</button>";
+    return '<div class="account-notification '+(n.read_at?"":"unread")+'"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><strong>'+escDetail(n.title)+'</strong>'+action+'</div><p>'+escDetail(n.message)+'</p><time>'+new Date(n.created_at).toLocaleString("id-ID")+'</time>'+(href?'<a class="notification-link" href="'+escDetail(href)+'">Buka</a>':'')+'</div>';
+  }).join("");
+  await refreshNotificationUnread();
+}
+async function markNotificationRead(id){
+  if(!kwSupabase||!kwCurrentUser||!id)return;
+  const {error}=await kwSupabase.from("notifications").update({read_at:new Date().toISOString()}).eq("id",id).eq("user_id",kwCurrentUser.id);
+  if(error){showKwNotice(error.message,"Notifikasi");return;}
+  await loadNotifications();
+}
+async function markAllNotificationsRead(){
+  if(!kwSupabase||!kwCurrentUser)return;
+  const {error}=await kwSupabase.from("notifications").update({read_at:new Date().toISOString()}).eq("user_id",kwCurrentUser.id).is("read_at",null);
+  if(error){showKwNotice(error.message,"Notifikasi");return;}
+  await loadNotifications();
+}
+async function loadNotificationPreferences(){
+  if(!kwSupabase||!kwCurrentUser)return;
+  const {data,error}=await kwSupabase.from("notification_preferences").select("*").eq("user_id",kwCurrentUser.id).maybeSingle();
+  if(error){console.warn("notification preferences:",error.message);return;}
+  const p=data||{};
+  const map={order:"notifPrefOrder",chat:"notifPrefChat",payout:"notifPrefPayout",dispute:"notifPrefDispute",promotion:"notifPrefPromotion",system:"notifPrefSystem"};
+  for(const [key,id] of Object.entries(map)){const el=document.getElementById(id);if(el)el.checked=p[key+"_updates"]===undefined?p[key]!==false:p[key+"_updates"]!==false;}
+}
+async function saveNotificationPreferences(){
+  if(!kwSupabase||!kwCurrentUser)return;
+  const payload={
+    user_id:kwCurrentUser.id,
+    order_updates:!!document.getElementById("notifPrefOrder")?.checked,
+    chat_messages:!!document.getElementById("notifPrefChat")?.checked,
+    payout_updates:!!document.getElementById("notifPrefPayout")?.checked,
+    dispute_updates:!!document.getElementById("notifPrefDispute")?.checked,
+    promotions:!!document.getElementById("notifPrefPromotion")?.checked,
+    system_updates:!!document.getElementById("notifPrefSystem")?.checked,
+    updated_at:new Date().toISOString()
+  };
+  const {error}=await kwSupabase.from("notification_preferences").upsert(payload,{onConflict:"user_id"});
+  const msg=document.getElementById("notificationPreferenceMessage");
+  if(error){if(msg)msg.textContent=error.message;return;}
+  if(msg)msg.textContent="Pengaturan tersimpan.";
+  setTimeout(()=>{if(msg)msg.textContent=""},2500);
+  await refreshNotificationUnread();
 }
 async function loadVouchers(){
   const root=document.getElementById("voucherList");
@@ -3892,6 +3963,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
 .wishlist-empty{padding:35px 15px;text-align:center;color:#77736c;border:1px dashed var(--line);border-radius:14px}.wishlist-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.wishlist-mini{border:1px solid var(--line);border-radius:13px;overflow:hidden;background:#fff}.wishlist-mini img{width:100%;aspect-ratio:1/1.15;object-fit:cover}.wishlist-mini-body{padding:11px}.wishlist-mini-body strong{display:block;font-size:13px}.wishlist-mini-body span{display:block;color:#666;font-size:12px;margin-top:4px}
 @media(max-width:760px){.marketplace-toolbar{align-items:stretch}.marketplace-toolbar input,.marketplace-toolbar select,.marketplace-toolbar button{width:100%;min-width:0}.marketplace-toolbar .filter-search{min-width:0}.product-card-actions{grid-template-columns:1fr}.wishlist-grid{grid-template-columns:1fr 1fr}}
 
+.notification-unread-badge{display:inline-flex;min-width:18px;height:18px;padding:0 5px;border-radius:999px;align-items:center;justify-content:center;background:#171817;color:#fff;font-size:10px;font-weight:900;margin-left:6px}.notification-read-btn{border:0;background:transparent;text-decoration:underline;font-size:10px;cursor:pointer;color:#555}.notification-link{display:inline-block;margin-top:8px;font-size:11px;font-weight:800;color:#171817}.notification-preferences-card{display:grid;gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}.notification-preferences-card label{display:flex;gap:12px;align-items:flex-start;padding:15px 16px;border-bottom:1px solid var(--line);cursor:pointer}.notification-preferences-card label:last-of-type{border-bottom:0}.notification-preferences-card input{margin-top:3px}.notification-preferences-card span{display:grid;gap:4px}.notification-preferences-card small{font-size:11px;color:#777;line-height:1.45}.notification-preferences-card .profile-actions{padding:14px 16px;border-top:1px solid var(--line)}
 .account-notification{padding:14px;border-bottom:1px solid var(--line);background:#fff}.account-notification:last-child{border-bottom:0}.account-notification.unread{background:#f4f8f5}.account-notification strong{display:block;font-size:13px}.account-notification p{margin:5px 0;color:#666;font-size:12px;line-height:1.5}.account-notification time{font-size:10px;color:#999}.voucher-item{padding:15px;border:1px solid var(--line);border-radius:14px;background:#fff;margin-bottom:10px}.voucher-item strong{font-size:15px}.voucher-item p{margin:5px 0;color:#666;font-size:12px}.voucher-item button{margin-top:8px;height:36px;border:0;border-radius:9px;background:#171817;color:#fff;padding:0 13px;font-weight:800}.voucher-item button:disabled{opacity:.55}.chat-bubble{max-width:78%;padding:9px 11px;border-radius:12px;margin:7px 0;font-size:12px;line-height:1.45}.chat-bubble.me{margin-left:auto;background:#171817;color:#fff}.chat-bubble.them{margin-right:auto;background:#fff;border:1px solid var(--line)}
 </style>
 </style>
