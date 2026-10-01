@@ -3456,7 +3456,7 @@ async function loadPhase3Dashboard(){
 async function loadPhase3Vouchers(){
   const root=$('p3VoucherList'); if(!root)return;
   try{
-    const q=await supabaseClient.from('vouchers').select('id,code,title,discount_type,discount_value,min_order_amount,max_discount,usage_limit,used_count,starts_at,expires_at,active').order('created_at',{ascending:false}).limit(100);
+    const q=await supabaseClient.rpc('admin_list_vouchers');
     if(q.error)throw q.error;
     const rows=q.data||[];
     root.innerHTML=rows.length
