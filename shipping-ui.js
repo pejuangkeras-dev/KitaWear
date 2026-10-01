@@ -5,7 +5,7 @@ const rp=v=>"Rp"+Number(v||0).toLocaleString("id-ID");
 function box(){let x=document.getElementById("mkShippingBox");if(x)return x;const ref=document.getElementById("buyerAddress");if(!ref)return null;x=document.createElement("div");x.id="mkShippingBox";x.style.cssText="margin:12px 0;padding:14px;border:1px solid #ded9cf;border-radius:14px;background:#fffdf9";ref.closest(".field")?.after(x);return x;}
 function render(){
  const x=box();if(!x)return;
- if(state.loading){x.innerHTML="<strong>🚚 Menghitung ongkir…</strong><div style='font-size:11px;color:#777;margin-top:5px'>Mengambil tarif kurir dari Biteship.</div>";updateShippingSummary("Menghitung…");updatePayState();return;}
+ if(state.loading){x.innerHTML="<strong>🚚 Menghitung ongkir…</strong><div style='font-size:11px;color:#777;margin-top:5px'>Mengambil tarif kurir dari RajaOngkir.</div>";updateShippingSummary("Menghitung…");updatePayState();return;}
  if(!state.sellers.length){x.innerHTML="<strong>🚚 Pengiriman otomatis</strong><div style='font-size:11px;color:#777;margin-top:5px'>Pilih alamat tersimpan untuk menghitung pilihan kurir.</div>";updateShippingSummary("Menunggu alamat");updatePayState();return;}
  let total=0;
  const html=state.sellers.map(g=>{
