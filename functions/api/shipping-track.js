@@ -37,7 +37,23 @@ if(String(shipment?.provider||"") === "rajaongkir_delivery" && deliveryKey && cl
   const text=await response.text();try{data=text?JSON.parse(text):{};}catch{data={};}
   if(responseStatus>=400||!data.meta||data.meta.status!=="success")throw new Error((data.meta&&data.meta.message)||data.message||"Resi belum dapat dilacak. Pastikan nomor resi dan kurir benar.");
 }
-const tracking=data.data||{},summary=tracking.summary||{},delivery=tracking.delivery_status||{},ms=marketStatus(summary.status||delivery.status,Boolean(tracking.delivered)),timeline=Array.isArray(tracking.manifest)?tracking.manifest.map(x=>({code:clean(x.manifest_code),description:clean(x.manifest_description),date:clean(x.manifest_date),time:clean(x.manifest_time),city:clean(x.city_name)})):[],patch={provider:"rajaongkir",waybill_id:awb,courier_company:summary.courier_name||(choice&&choice.courier_company)||(shipment&&shipment.courier_company)||courier,courier_type:summary.service_code||(choice&&choice.courier_type)||(shipment&&shipment.courier_type)||null,status:String(summary.status||delivery.status||"tracking").toLowerCase(),last_webhook_at:new Date().toISOString(),raw_response:data};
+const tracking=data.data||{};
+let summary=tracking.summary||{},delivery=tracking.delivery_status||{},timeline=[];
+if(String(shipment?.provider||"") === "rajaongkir_delivery"){
+  summary={
+    courier_name:tracking.shipping||tracking.courier||((choice&&choice.courier_company)||(shipment&&shipment.courier_company)||courier),
+    service_code:tracking.shipping_type||((choice&&choice.service_code)||(shipment&&shipment.courier_type)||null),
+    waybill_number:tracking.awb||tracking.airway_bill||awb,
+    status:tracking.order_status||tracking.status||"tracking",
+    origin:tracking.shipper_address||null,
+    destination:tracking.receiver_address||null
+  };
+  delivery={status:tracking.order_status||tracking.status||"tracking"};
+  if(Array.isArray(tracking.history))timeline=tracking.history.map(x=>({code:clean(x.status||x.code),description:clean(x.description||x.message),date:clean(x.date||x.created_at),time:clean(x.time),city:clean(x.city||x.city_name)}));
+}else{
+  timeline=Array.isArray(tracking.manifest)?tracking.manifest.map(x=>({code:clean(x.manifest_code),description:clean(x.manifest_description),date:clean(x.manifest_date),time:clean(x.manifest_time),city:clean(x.city_name)})):[];
+}
+const ms=marketStatus(summary.status||delivery.status,Boolean(tracking.delivered)),patch={provider:String(shipment?.provider||"rajaongkir"),waybill_id:awb,courier_company:summary.courier_name||(choice&&choice.courier_company)||(shipment&&shipment.courier_company)||courier,courier_type:summary.service_code||(choice&&choice.courier_type)||(shipment&&shipment.courier_type)||null,status:String(summary.status||delivery.status||"tracking").toLowerCase(),last_webhook_at:new Date().toISOString(),raw_response:data};
 let shipmentRow=shipment;if(shipment){const z=await sb(u,k,"/rest/v1/shipping_shipments?id=eq."+encodeURIComponent(shipment.id),{method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify(patch)});shipmentRow=z&&z[0]||Object.assign({},shipment,patch);}else{const z=await sb(u,k,"/rest/v1/shipping_shipments",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify({order_seller_id:requested.id,order_id:order.id,provider:"rajaongkir",waybill_id:awb,courier_company:patch.courier_company,courier_type:patch.courier_type,status:patch.status,shipping_fee:0,raw_response:data,last_webhook_at:new Date().toISOString()})});shipmentRow=z&&z[0]||null;}
 const sellerPatch={shipping_status:ms,tracking_number:awb,seller_status:ms==="delivered"?"completed":ms==="shipped"?"shipped":ms==="cancelled"?"cancelled":"processing"};await sb(u,k,"/rest/v1/order_sellers?id=eq."+encodeURIComponent(requested.id),{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(sellerPatch)});
 const all=await sb(u,k,"/rest/v1/order_sellers?select=id,seller_status,shipping_status&order_id=eq."+encodeURIComponent(order.id)),rows=Array.isArray(all)?all:[],allShipped=rows.length>0&&rows.every(x=>["shipped","delivered","completed"].includes(String(x.shipping_status||""))),allDelivered=rows.length>0&&rows.every(x=>String(x.shipping_status||"")==="delivered"),op={shipping_status:allDelivered?"delivered":allShipped?"shipped":"processing",updated_at:new Date().toISOString()};
