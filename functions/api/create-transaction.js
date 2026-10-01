@@ -236,6 +236,7 @@ function groupByStore(items) {
 
 export async function onRequestPost(context) {
   let createdOrderId = null;
+  let voucherConsumed = false;
 
   try {
     const env = context.env;
@@ -790,6 +791,24 @@ export async function onRequestPost(context) {
       }
     );
 
+    // Consume the voucher atomically before creating the Midtrans transaction.
+    // This prevents a race where Midtrans succeeds but voucher consumption fails.
+    if (voucherId && buyerUser?.id && discountAmount > 0) {
+      await supabaseRequest(
+        supabaseUrl,
+        serviceRoleKey,
+        "/rest/v1/rpc/consume_user_voucher",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            p_voucher_id: voucherId,
+            p_user_id: buyerUser.id
+          })
+        }
+      );
+      voucherConsumed = true;
+    }
+
     const endpoint =
       production
         ? "https://app.midtrans.com/snap/v1/transactions"
@@ -932,6 +951,22 @@ export async function onRequestPost(context) {
       !midtransResponse.ok ||
       !midtransResult.token
     ) {
+      if (voucherConsumed) {
+        await supabaseRequest(
+          supabaseUrl,
+          serviceRoleKey,
+          "/rest/v1/rpc/release_user_voucher",
+          {
+            method: "POST",
+            body: JSON.stringify({
+              p_voucher_id: voucherId,
+              p_user_id: buyerUser.id
+            })
+          }
+        ).catch(() => {});
+        voucherConsumed = false;
+      }
+
       await supabaseRequest(
         supabaseUrl,
         serviceRoleKey,
@@ -950,21 +985,6 @@ export async function onRequestPost(context) {
           midtransResult?.error_messages?.join(", ") ||
           "Gagal membuat transaksi Midtrans."
       }, midtransResponse.status || 502);
-    }
-
-    if (voucherId && buyerUser?.id && discountAmount > 0) {
-      await supabaseRequest(
-        supabaseUrl,
-        serviceRoleKey,
-        "/rest/v1/rpc/consume_user_voucher",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            p_voucher_id: voucherId,
-            p_user_id: buyerUser.id
-          })
-        }
-      );
     }
 
     return json({
@@ -1012,6 +1032,22 @@ export async function onRequestPost(context) {
         supabaseUrl &&
         serviceRoleKey
       ) {
+        if (voucherConsumed && voucherId && buyerUser?.id) {
+          await supabaseRequest(
+            supabaseUrl,
+            serviceRoleKey,
+            "/rest/v1/rpc/release_user_voucher",
+            {
+              method: "POST",
+              body: JSON.stringify({
+                p_voucher_id: voucherId,
+                p_user_id: buyerUser.id
+              })
+            }
+          ).catch(() => {});
+          voucherConsumed = false;
+        }
+
         await supabaseRequest(
           supabaseUrl,
           serviceRoleKey,
