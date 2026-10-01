@@ -2135,6 +2135,21 @@ let kwAuthMode="login";
 let kwCurrentUser=null;
 let kwCurrentProfile=null;
 
+let kwChatRealtimeChannel=null;
+function setupMarketKitaChatRealtime(){
+  if(!kwSupabase||!kwCurrentUser||kwChatRealtimeChannel)return;
+  try{
+    kwChatRealtimeChannel=kwSupabase.channel("marketkita-chat-"+kwCurrentUser.id)
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"chat_messages"},payload=>{
+        const m=payload.new;
+        if(activeChatThread&&String(m.thread_id)===String(activeChatThread.id)) loadChatMessages();
+        if(buyerInboxThread&&String(m.thread_id)===String(buyerInboxThread.id)) openBuyerChatThread(buyerInboxThread.id);
+        loadBuyerChats().catch(()=>{});
+      })
+      .subscribe();
+  }catch(e){console.warn("MarketKita chat realtime:",e);}
+}
+
 async function initMarketKitaAuth(){
   try{
     const response=await fetch("/api/public-config",{cache:"no-store"});
@@ -2185,6 +2200,7 @@ async function applyMarketKitaSession(session){
   }
 
   updateAccountButton(kwCurrentUser,kwCurrentProfile);
+  if(kwCurrentUser) setupMarketKitaChatRealtime();
 
   const accountParam=new URLSearchParams(location.search).get("account");
   if(accountParam==="login" && !kwCurrentUser){
