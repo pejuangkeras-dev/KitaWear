@@ -1,42 +1,100 @@
 function json(data,status=200){return new Response(JSON.stringify(data),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"}});}
-function sh(k){return {apikey:k,Authorization:`Bearer ${k}`,"Content-Type":"application/json"};}
-async function sb(u,k,p,o={}){const r=await fetch(u+p,{...o,headers:{...sh(k),...(o.headers||{})}});const t=await r.text();let d={};try{d=t?JSON.parse(t):{};}catch{}if(!r.ok)throw new Error(d?.message||d?.error||d?.details||`Supabase HTTP ${r.status}`);return d;}
-async function bite(env,p,b){const k=String(env.BITESHIP_API_KEY||"").trim();if(!k)throw new Error("BITESHIP_API_KEY belum dipasang.");const r=await fetch("https://api.biteship.com"+p,{method:"POST",headers:{authorization:k,"content-type":"application/json"},body:JSON.stringify(b)});const t=await r.text();let d={};try{d=t?JSON.parse(t):{};}catch{}if(!r.ok||d?.success===false)throw new Error(d?.message||d?.error||"Biteship gagal membuat shipment.");return d;}
+const clean=v=>String(v==null?"":v).trim();
+const int=v=>Number.isFinite(Number(v))?Math.round(Number(v)):0;
+function sh(k){return{apikey:k,Authorization:"Bearer "+k,"Content-Type":"application/json"};}
+async function sb(u,k,p,o={}){
+  const r=await fetch(u+p,{...o,headers:{...sh(k),...(o.headers||{})}});
+  const t=await r.text();let d={};try{d=t?JSON.parse(t):{};}catch{}
+  if(!r.ok)throw new Error(d?.message||d?.error||d?.details||`Supabase HTTP ${r.status}`);
+  return d;
+}
+async function authUser(request,u,a){
+  const h=request.headers.get("Authorization")||"";
+  if(!/^Bearer\\s+/i.test(h))return null;
+  const r=await fetch(u+"/auth/v1/user",{headers:{apikey:a,Authorization:h}});
+  if(!r.ok)return null;
+  const d=await r.json().catch(()=>null);
+  return d?.id?d:null;
+}
+function courierName(v){
+  const s=clean(v).toLowerCase();
+  const map=[["j&t","J&T"],["jnt","J&T"],["jne","JNE"],["sicepat","SICEPAT"],["si cepat","SICEPAT"],["sap","SAP"],["idexpress","IDEXPRESS"],["ide","IDEXPRESS"],["ninja","NINJA"],["lion","LION"],["pos","POS"],["spx","SPX"],["tiki","TIKI"],["wahana","WAHANA"],["anteraja","ANTERAJA"]];
+  const hit=map.find(([needle])=>s.includes(needle));
+  return hit?hit[1]:clean(v).split(/\\s+/)[0].toUpperCase();
+}
+function serviceType(selection){
+  const raw=clean(selection?.service_code||selection?.service_name||selection?.courier_type);
+  const upper=raw.toUpperCase();
+  if(/REG/.test(upper))return upper.includes("REG23")?"REG23":upper.includes("REG19")?"REG19":upper.includes("REGULER")?"REGULER":"REG";
+  if(/\\bECO\\b/.test(upper))return"ECO";
+  if(/\\bEZ\\b/.test(upper))return"EZ";
+  if(/\\bGOKIL\\b/.test(upper))return"GOKIL";
+  if(/\\bINSTANT\\b/.test(upper))return"INSTANT";
+  const cleaned=upper.replace(/[^A-Z0-9_-]/g,"");
+  return cleaned||"REG";
+}
+async function destination(base,key,keyword){
+  const q=new URLSearchParams({keyword:clean(keyword)});
+  const r=await fetch(base+"/tariff/api/v1/destination/search?"+q.toString(),{headers:{"x-api-key":key}});
+  const t=await r.text();let d={};try{d=t?JSON.parse(t):{};}catch{}
+  if(!r.ok||!d.meta||d.meta.status!=="success")throw new Error(d.meta?.message||"Gagal mencari destination RajaOngkir.");
+  const rows=Array.isArray(d.data)?d.data:[];
+  return rows.find(x=>clean(x.zip_code)===clean(keyword))||rows[0]||null;
+}
+async function komerce(base,key,path,body){
+  const r=await fetch(base+path,{method:"POST",headers:{"x-api-key":key,"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(body)});
+  const t=await r.text();let d={};try{d=t?JSON.parse(t):{};}catch{}
+  if(!r.ok||!d.meta||d.meta.status!=="success")throw new Error(d.meta?.message||d.message||"Komerce gagal membuat order pengiriman.");
+  return d;
+}
 export async function onRequestPost(context){
  try{
-  const env=context.env,u=String(env.SUPABASE_URL||"").trim().replace(/\/+$/,""),k=String(env.SUPABASE_SERVICE_ROLE_KEY||"").trim(),secret=String(env.SHIPPING_INTERNAL_SECRET||"").trim();
-  if(!u||!k||!secret)return json({error:"Konfigurasi shipping server belum lengkap."},500);
-  if((context.request.headers.get("X-Shipping-Internal-Secret")||"")!==secret)return json({error:"Unauthorized"},401);
-  const {order_id}=await context.request.json().catch(()=>({})); if(!order_id)return json({error:"order_id wajib."},400);
-  const orders=await sb(u,k,`/rest/v1/orders?select=id,order_number,buyer_id,customer_name,customer_email,customer_phone,shipping_address,shipping_postal_code,shipping_quote_id,shipping_selections,status,payment_status&id=eq.${encodeURIComponent(order_id)}&limit=1`);
-  const order=orders?.[0];if(!order)return json({error:"Order tidak ditemukan."},404);
-  if(order.payment_status!=="paid")return json({error:"Shipment hanya dibuat setelah pembayaran paid."},409);
-  const os=await sb(u,k,`/rest/v1/order_sellers?select=id,order_id,store_id,seller_id,shipping_fee,subtotal&order_id=eq.${encodeURIComponent(order.id)}`);
-  const selected=Array.isArray(order.shipping_selections)?order.shipping_selections:[];
-  const items=await sb(u,k,`/rest/v1/order_items?select=product_id,store_id,product_name,size,quantity,unit_price,line_total&order_id=eq.${encodeURIComponent(order.id)}`);
-  const results=[];
-  for(const seller of (os||[])){
-   const existing=await sb(u,k,`/rest/v1/shipping_shipments?select=id,provider_order_id,waybill_id&order_seller_id=eq.${encodeURIComponent(seller.id)}&limit=1`);
-   if(existing?.length){results.push(existing[0]);continue;}
-   const choice=selected.find(x=>String(x.store_id)===String(seller.store_id));
-   if(!choice)throw new Error("Pilihan kurir seller tidak ditemukan.");
-   const stores=await sb(u,k,`/rest/v1/stores?select=id,name,pickup_name,pickup_phone,pickup_address,pickup_postal_code,pickup_note,pickup_latitude,pickup_longitude&id=eq.${encodeURIComponent(seller.store_id)}&limit=1`);
-   const store=stores?.[0];if(!store)throw new Error("Toko pickup tidak ditemukan.");
-   const productIds=(items||[]).filter(x=>String(x.store_id)===String(seller.store_id));
-   const ids=[...new Set(productIds.map(x=>x.product_id).filter(Boolean))];
-   const products=ids.length?await sb(u,k,`/rest/v1/products?select=id,name,weight_gram,length_cm,width_cm,height_cm&id=in.(${ids.map(encodeURIComponent).join(",")})`):[];
-   const pm=new Map((products||[]).map(x=>[String(x.id),x]));
-   const shipItems=productIds.map(x=>{const p=pm.get(String(x.product_id))||{};return{name:x.product_name,description:`Size ${x.size}`,category:"fashion",value:Number(x.unit_price||0),quantity:Number(x.quantity||1),weight:Number(p.weight_gram||500),length:Number(p.length_cm||20),width:Number(p.width_cm||15),height:Number(p.height_cm||5)};});
-   const collectionMethods=Array.isArray(choice.collection_methods)?choice.collection_methods:[];
-   const originCollectionMethod=collectionMethods.includes("pickup")?"pickup":(collectionMethods[0]||"pickup");
-   const payload={origin_contact_name:store.pickup_name,origin_contact_phone:store.pickup_phone,origin_address:store.pickup_address,origin_postal_code:Number(store.pickup_postal_code),origin_note:store.pickup_note||"",origin_collection_method:originCollectionMethod,destination_contact_name:order.customer_name,destination_contact_phone:order.customer_phone,destination_contact_email:order.customer_email,destination_address:order.shipping_address,destination_postal_code:Number(order.shipping_postal_code),courier_company:choice.courier_company,courier_type:choice.courier_type,delivery_type:"now",reference_id:`${order.id}-${seller.id}`,metadata:{marketkita_order_id:order.id,order_seller_id:seller.id},items:shipItems};
-   if(store.pickup_latitude!=null&&store.pickup_longitude!=null)payload.origin_coordinate={latitude:Number(store.pickup_latitude),longitude:Number(store.pickup_longitude)};
-   const created=await bite(env,"/v1/orders",payload), courier=created?.courier||{};
-   const row={order_seller_id:seller.id,order_id:order.id,provider:"biteship",provider_order_id:created.id||null,provider_tracking_id:courier.tracking_id||null,courier_company:courier.company||choice.courier_company,courier_type:courier.type||choice.courier_type,waybill_id:courier.waybill_id||null,status:created.status||"confirmed",shipping_fee:Number(created.price||choice.price||seller.shipping_fee||0),tracking_url:courier.link||null,pickup_requested_at:new Date().toISOString(),raw_response:created};
-   const inserted=await sb(u,k,"/rest/v1/shipping_shipments",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify(row)});
-   await sb(u,k,`/rest/v1/order_sellers?id=eq.${encodeURIComponent(seller.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({tracking_number:courier.waybill_id||null,shipping_status:"processing",seller_status:"processing"})});
-   results.push(inserted?.[0]||row);
+  const e=context.env,u=clean(e.SUPABASE_URL).replace(/\\/+$/,""),k=clean(e.SUPABASE_SERVICE_ROLE_KEY),a=clean(e.SUPABASE_ANON_KEY),apiKey=clean(e.RAJAONGKIR_DELIVERY_API_KEY),base=clean(e.RAJAONGKIR_DELIVERY_BASE_URL)||"https://api-sandbox.collaborator.komerce.id";
+  if(!u||!k||!a)return json({error:"Konfigurasi Supabase server belum lengkap."},500);
+  if(!apiKey)return json({error:"RAJAONGKIR_DELIVERY_API_KEY belum dipasang di Cloudflare. Gunakan API key Shipping Delivery, bukan Shipping Cost."},500);
+  const user=await authUser(context.request,u,a);if(!user)return json({error:"Silakan login sebagai seller."},401);
+  const body=await context.request.json().catch(()=>({})),orderId=clean(body.order_id),requestedSellerId=clean(body.order_seller_id);
+  if(!orderId)return json({error:"order_id wajib."},400);
+  const profile=await sb(u,k,"/rest/v1/profiles?select=id,role&id=eq."+encodeURIComponent(user.id)+"&limit=1"),role=clean(profile?.[0]?.role).toLowerCase(),isAdmin=role==="admin";
+  const orders=await sb(u,k,"/rest/v1/orders?select=id,order_number,buyer_id,customer_name,customer_email,customer_phone,shipping_address,shipping_postal_code,shipping_selections,status,payment_status&id=eq."+encodeURIComponent(orderId)+"&limit=1"),order=orders?.[0];
+  if(!order)return json({error:"Pesanan tidak ditemukan."},404);
+  if(order.payment_status!=="paid")return json({error:"Pengiriman hanya dapat dibuat untuk pesanan yang sudah dibayar."},409);
+  const sellers=await sb(u,k,"/rest/v1/order_sellers?select=id,order_id,store_id,seller_id,subtotal,shipping_fee,total,seller_status,shipping_status,tracking_number&id=eq."+encodeURIComponent(requestedSellerId)+"&order_id=eq."+encodeURIComponent(orderId)+"&limit=1"),seller=sellers?.[0];
+  if(!seller)return json({error:"Data order seller tidak ditemukan."},404);
+  if(!isAdmin&&String(seller.seller_id)!==String(user.id))return json({error:"Akses ditolak."},403);
+  if(!["processing","paid"].includes(clean(seller.seller_status)))return json({error:"Order seller harus berada pada status paid atau processing sebelum membuat pengiriman."},409);
+  if(clean(seller.tracking_number))return json({ok:true,already_created:true,waybill_id:clean(seller.tracking_number)});
+  const existing=await sb(u,k,"/rest/v1/shipping_shipments?select=id,provider,provider_order_id,provider_tracking_id,waybill_id,status,raw_response&order_seller_id=eq."+encodeURIComponent(seller.id)+"&limit=1");
+  const existingShipment=existing?.[0];if(existingShipment?.provider_order_id||existingShipment?.waybill_id)return json({ok:true,already_created:true,shipment:existingShipment});
+  const stores=await sb(u,k,"/rest/v1/stores?select=id,name,pickup_name,pickup_phone,pickup_address,pickup_postal_code,pickup_latitude,pickup_longitude,owner_id&id=eq."+encodeURIComponent(seller.store_id)+"&limit=1"),store=stores?.[0];
+  if(!store)return json({error:"Data alamat pickup toko belum lengkap."},409);
+  const originPostal=clean(store.pickup_postal_code),destinationPostal=clean(order.shipping_postal_code);
+  if(!originPostal||!destinationPostal)return json({error:"Kode pos pickup toko atau alamat buyer belum tersedia."},409);
+  const origin=await destination(base,apiKey,originPostal),receiver=await destination(base,apiKey,destinationPostal);
+  if(!origin?.id||!receiver?.id)return json({error:"Destination RajaOngkir tidak ditemukan untuk kode pos pickup/penerima."},422);
+  const items=await sb(u,k,"/rest/v1/order_items?select=id,product_id,product_name,size,quantity,unit_price,line_total&order_id=eq."+encodeURIComponent(orderId)+"&store_id=eq."+encodeURIComponent(seller.store_id)+"&order=created_at.asc");
+  if(!items?.length)return json({error:"Item pesanan seller tidak ditemukan."},404);
+  const ids=[...new Set(items.map(x=>x.product_id).filter(Boolean))];
+  const products=await sb(u,k,"/rest/v1/products?select=id,name,weight_gram,length_cm,width_cm,height_cm&id=in.("+ids.map(encodeURIComponent).join(",")+")"),pmap=new Map((products||[]).map(x=>[String(x.id),x]));
+  const details=items.map(item=>{const p=pmap.get(String(item.product_id))||{},weight=int(p.weight_gram),width=Number(p.width_cm),height=Number(p.height_cm),length=Number(p.length_cm);if(weight<=0||!(width>0)||!(height>0)||!(length>0))throw new Error("Dimensi/berat produk "+clean(item.product_name)+" belum lengkap.");return{product_name:clean(item.product_name),product_variant_name:clean(item.size)||"Default",product_price:int(item.unit_price),product_weight:weight,product_width:width,product_height:height,product_length:length,qty:int(item.quantity),subtotal:int(item.line_total)};});
+  const selections=Array.isArray(order.shipping_selections)?order.shipping_selections:[],selection=selections.find(x=>String(x.store_id)===String(seller.store_id))||{},shippingCost=int(selection.price||seller.shipping_fee),courier=courierName(selection.courier_company||selection.courier_type||selection.service_name),shippingType=serviceType(selection),subtotal=details.reduce((s,x)=>s+x.subtotal,0),grandTotal=subtotal+shippingCost;
+  const authSeller=await fetch(u+"/auth/v1/admin/users/"+encodeURIComponent(seller.seller_id),{headers:{apikey:k,Authorization:"Bearer "+k}}),authData=authSeller.ok?await authSeller.json().catch(()=>null):null,shipperEmail=clean(e.RAJAONGKIR_SHIPPER_EMAIL)||clean(authData?.email)||"shipping@marketkita.pages.dev";
+  const shipperPhone=clean(store.pickup_phone).replace(/[^0-9]/g,""),receiverPhone=clean(order.customer_phone).replace(/[^0-9]/g,"");if(!shipperPhone||!receiverPhone)return json({error:"Nomor telepon pickup atau buyer belum tersedia."},422);
+  const payload={order_date:new Date().toISOString().slice(0,10),brand_name:"MarketKita",shipper_name:clean(store.pickup_name)||clean(store.name)||"MarketKita Seller",shipper_phone:shipperPhone,shipper_destination_id:int(origin.id),shipper_address:clean(store.pickup_address),receiver_name:clean(order.customer_name)||"Buyer MarketKita",receiver_phone:receiverPhone,receiver_destination_id:int(receiver.id),receiver_address:clean(order.shipping_address),receiver_email:clean(order.customer_email)||undefined,shipper_email:shipperEmail,shipping:courier,shipping_type:shippingType,payment_method:"BANK TRANSFER",shipping_cost:shippingCost,shipping_cashback:0,service_fee:0,additional_cost:0,grand_total:grandTotal,cod_value:0,insurance_value:0,notes:"MarketKita order "+clean(order.order_number),order_details:details};
+  Object.keys(payload).forEach(key=>payload[key]===undefined&&delete payload[key]);
+  const result=await komerce(base,apiKey,"/order/api/v1/orders/store",payload),data=result.data||{};if(!data.order_no)return json({error:"Komerce tidak mengembalikan order_no."},502);
+  const detailRes=await fetch(base+"/order/api/v1/orders/detail?order_no="+encodeURIComponent(data.order_no),{headers:{"x-api-key":apiKey}}),detailText=await detailRes.text();let detailData={};try{detailData=detailText?JSON.parse(detailText):{};}catch{}
+  const awb=clean(detailData?.data?.awb||detailData?.data?.airway_bill||data.awb||""),providerStatus=clean(detailData?.data?.order_status||"Diajukan");
+  const row={order_seller_id:seller.id,order_id:order.id,provider:"rajaongkir_delivery",provider_order_id:String(data.order_no),provider_tracking_id:String(data.order_id||""),waybill_id:awb||null,courier_company:courier,courier_type:shippingType,status:providerStatus,shipping_fee:shippingCost,tracking_url:clean(detailData?.data?.live_tracking_url)||null,raw_response:{create:result,detail:detailData},last_webhook_at:new Date().toISOString()};
+  let shipmentRow;
+  if(existingShipment?.id){const z=await sb(u,k,"/rest/v1/shipping_shipments?id=eq."+encodeURIComponent(existingShipment.id),{method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify(row)});shipmentRow=z?.[0]||null;}
+  else{const z=await sb(u,k,"/rest/v1/shipping_shipments",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify(row)});shipmentRow=z?.[0]||null;}
+  if(awb){
+    await sb(u,k,"/rest/v1/order_sellers?id=eq."+encodeURIComponent(seller.id),{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({tracking_number:awb,shipping_status:"shipped",seller_status:"shipped",updated_at:new Date().toISOString()})});
+    const all=await sb(u,k,"/rest/v1/order_sellers?select=id,shipping_status&order_id=eq."+encodeURIComponent(order.id)),rows=Array.isArray(all)?all:[],allShipped=rows.length>0&&rows.every(x=>["shipped","delivered"].includes(String(x.shipping_status||"")));
+    if(allShipped&&["paid","processing"].includes(String(order.status||"")))await sb(u,k,"/rest/v1/orders?id=eq."+encodeURIComponent(order.id),{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"shipped",shipping_status:"shipped",shipped_at:new Date().toISOString(),updated_at:new Date().toISOString()})});
   }
-  return json({ok:true,order_id:order.id,shipments:results});
- }catch(e){console.error("MarketKita shipping create:",e?.message||e);return json({error:e?.message||"Gagal membuat shipment."},500);}
+  return json({ok:true,order_id:order.id,order_seller_id:seller.id,provider_order_no:data.order_no,provider_order_id:data.order_id||null,waybill_id:awb||null,courier,shipping_type:shippingType,shipment:shipmentRow});
+ }catch(e){console.error("MarketKita shipping create:",e?.message||e);return json({error:e?.message||"Gagal membuat pengiriman."},500);}
 }
+export async function onRequestGet(){return json({ok:true,service:"MarketKita RajaOngkir Delivery Create",sandbox:true});}
