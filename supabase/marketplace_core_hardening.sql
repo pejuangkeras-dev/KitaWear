@@ -430,3 +430,151 @@ begin
 end;$function$;
 revoke all on function public.admin_resolve_dispute_service(uuid,text) from public,anon,authenticated;
 grant execute on function public.admin_resolve_dispute_service(uuid,text) to service_role;
+
+
+-- Fulfillment/payment hardening applied on 2026-10-01.
+-- Sellers and admins cannot move an unpaid order into fulfillment states.
+-- Tracking numbers are only accepted after payment and processing/shipping.
+create or replace function public.seller_update_order_status(p_order_id uuid, p_status text)
+returns jsonb language plpgsql security definer set search_path=''
+as $function$
+declare
+  v_user uuid := (select auth.uid());
+  v_status text := lower(trim(coalesce(p_status,'')));
+  v_current public.order_status;
+  v_payment public.payment_status;
+begin
+  if v_user is null then raise exception 'Anda harus login.'; end if;
+  if not exists(select 1 from public.profiles where id=v_user and role='seller') then
+    raise exception 'Akses ditolak. Akun bukan seller.';
+  end if;
+  if not exists(
+    select 1 from public.order_items oi join public.stores s on s.id=oi.store_id
+    where oi.order_id=p_order_id and s.owner_id=v_user
+  ) then raise exception 'Pesanan tidak ditemukan atau bukan milik toko Anda.'; end if;
+  if exists(
+    select 1 from public.order_items oi
+    left join public.stores s on s.id=oi.store_id
+    where oi.order_id=p_order_id
+      and coalesce(s.owner_id,'00000000-0000-0000-0000-000000000000'::uuid)<>v_user
+  ) then raise exception 'Pesanan ini berisi toko lain dan tidak dapat diubah oleh seller ini.'; end if;
+
+  if v_status='delivered' then v_status='completed'; end if;
+  if v_status not in ('processing','shipped','completed','cancelled') then
+    raise exception 'Status seller tidak valid.';
+  end if;
+
+  select status,payment_status into v_current,v_payment
+  from public.orders where id=p_order_id for update;
+  if not found then raise exception 'Pesanan tidak ditemukan.'; end if;
+
+  if v_status in ('processing','shipped','completed') and v_payment<>'paid'::public.payment_status then
+    raise exception 'Pesanan belum dibayar. Seller hanya dapat memproses pesanan yang sudah paid.';
+  end if;
+  if v_status='processing' and v_current<>'paid'::public.order_status then
+    raise exception 'Pesanan hanya dapat diproses dari status Paid.';
+  end if;
+  if v_status='shipped' and v_current<>'processing'::public.order_status then
+    raise exception 'Pesanan hanya dapat dikirim setelah diproses.';
+  end if;
+  if v_status='completed' and v_current<>'shipped'::public.order_status then
+    raise exception 'Pesanan hanya dapat diselesaikan setelah dikirim.';
+  end if;
+  if v_status='cancelled' and v_current not in ('pending_payment'::public.order_status,'paid'::public.order_status,'processing'::public.order_status) then
+    raise exception 'Pesanan tidak dapat dibatalkan dari status saat ini.';
+  end if;
+
+  update public.orders set
+    status=v_status::public.order_status,
+    processing_at=case when v_status='processing' and processing_at is null then now() else processing_at end,
+    shipped_at=case when v_status='shipped' and shipped_at is null then now() else shipped_at end,
+    delivered_at=case when v_status='completed' and delivered_at is null then now() else delivered_at end,
+    completed_at=case when v_status='completed' and completed_at is null then now() else completed_at end,
+    updated_at=now()
+  where id=p_order_id;
+
+  update public.order_sellers set
+    seller_status=case when v_status='processing' then 'processing' when v_status='shipped' then 'shipped' when v_status='completed' then 'completed' when v_status='cancelled' then 'cancelled' else seller_status end,
+    shipping_status=case when v_status='shipped' then 'shipped' when v_status='completed' then 'delivered' when v_status='cancelled' then 'cancelled' else shipping_status end,
+    updated_at=now()
+  where order_id=p_order_id;
+
+  return jsonb_build_object('ok',true,'order_id',p_order_id,'status',v_status);
+end;
+$function$;
+
+create or replace function public.admin_update_order_status(p_order_id uuid, p_status text)
+returns jsonb language plpgsql security definer set search_path=''
+as $function$
+declare v_role text; v_payment public.payment_status;
+begin
+  select role into v_role from public.profiles where id=(select auth.uid());
+  if v_role is distinct from 'admin' then
+    raise exception 'Akses ditolak. Hanya admin yang dapat mengubah status pesanan.';
+  end if;
+  if p_status not in ('pending_payment','paid','processing','shipped','delivered','completed','cancelled','refunded','disputed') then
+    raise exception 'Status order tidak valid: %',p_status;
+  end if;
+  select payment_status into v_payment from public.orders where id=p_order_id for update;
+  if not found then raise exception 'Order tidak ditemukan: %',p_order_id; end if;
+  if p_status in ('processing','shipped','delivered','completed') and v_payment<>'paid'::public.payment_status then
+    raise exception 'Order belum dibayar. Status % hanya boleh setelah payment_status=paid.',p_status;
+  end if;
+  update public.orders set status=p_status::public.order_status,updated_at=now() where id=p_order_id;
+  return jsonb_build_object('ok',true,'order_id',p_order_id,'status',p_status);
+end;
+$function$;
+
+create or replace function public.seller_set_tracking_number(p_order_id uuid, p_tracking_number text)
+returns jsonb language plpgsql security definer set search_path=''
+as $function$
+declare v_user uuid := (select auth.uid()); v_tracking text := trim(coalesce(p_tracking_number,'')); v_count integer; v_status public.order_status; v_payment public.payment_status;
+begin
+  if v_user is null then raise exception 'Anda harus login.'; end if;
+  if not exists(select 1 from public.profiles where id=v_user and role='seller') then
+    raise exception 'Akses ditolak. Akun bukan seller.'; end if;
+  if v_tracking='' then raise exception 'Nomor resi wajib diisi.'; end if;
+  if length(v_tracking)>120 then raise exception 'Nomor resi terlalu panjang.'; end if;
+  if not exists(
+    select 1 from public.order_items oi join public.stores s on s.id=oi.store_id
+    where oi.order_id=p_order_id and s.owner_id=v_user
+  ) then raise exception 'Pesanan tidak ditemukan atau bukan milik toko Anda.'; end if;
+
+  select status,payment_status into v_status,v_payment from public.orders where id=p_order_id for update;
+  if not found then raise exception 'Pesanan tidak ditemukan.'; end if;
+  if v_payment<>'paid'::public.payment_status then
+    raise exception 'Resi hanya dapat dipasang untuk pesanan yang sudah dibayar.';
+  end if;
+  if v_status not in ('processing'::public.order_status,'shipped'::public.order_status) then
+    raise exception 'Resi hanya dapat dipasang setelah pesanan diproses atau dikirim.';
+  end if;
+
+  select count(*) into v_count
+  from public.order_items oi join public.stores s on s.id=oi.store_id
+  where oi.order_id=p_order_id and s.owner_id=v_user;
+
+  update public.order_sellers os
+  set tracking_number=v_tracking,
+      shipping_status=case when v_status='shipped'::public.order_status then 'shipped' else os.shipping_status end,
+      updated_at=now()
+  where os.order_id=p_order_id
+    and exists(select 1 from public.stores s where s.id=os.store_id and s.owner_id=v_user);
+
+  if not found then raise exception 'Data pengiriman toko tidak ditemukan.'; end if;
+
+  update public.orders o
+  set tracking_number=case when v_count=1 then v_tracking else o.tracking_number end,
+      shipping_status=case when v_status='shipped'::public.order_status then 'shipped' else o.shipping_status end,
+      updated_at=now()
+  where o.id=p_order_id;
+
+  return jsonb_build_object('ok',true,'order_id',p_order_id,'tracking_number',v_tracking);
+end;
+$function$;
+
+revoke execute on function public.seller_update_order_status(uuid,text) from public,anon;
+grant execute on function public.seller_update_order_status(uuid,text) to authenticated;
+revoke execute on function public.admin_update_order_status(uuid,text) from public,anon;
+grant execute on function public.admin_update_order_status(uuid,text) to authenticated;
+revoke execute on function public.seller_set_tracking_number(uuid,text) from public,anon;
+grant execute on function public.seller_set_tracking_number(uuid,text) to authenticated;
