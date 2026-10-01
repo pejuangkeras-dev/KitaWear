@@ -585,6 +585,18 @@ export async function onRequestPost(context) {
             shipping_quote_id:
               shippingQuoteId,
 
+            shipping_selections:
+              [...selectedByStore.values()].map(x => ({
+                store_id: x.store_id,
+                store_name: x.store_name,
+                courier_company: x.courier_company,
+                courier_type: x.courier_type,
+                service_code: x.service_code,
+                service_name: x.service_name,
+                price: x.price,
+                duration: x.duration
+              })),
+
             total:
               total,
 
