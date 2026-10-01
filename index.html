@@ -2914,7 +2914,7 @@ function renderBuyerOrders(){
     const sellers=Array.isArray(order.sellers)?order.sellers:[];
     const sellerNames=sellers.map(s=>s.store_id).filter(Boolean).length;
     const trackingNumbers=[...new Set(sellers.map(s=>String(s.tracking_number||"").trim()).filter(Boolean))];
-    const canConfirm=order.status==="shipped";
+    const canConfirm=["shipped","delivered"].includes(order.status);
     const trackingInfo=trackingNumbers.length ? trackingNumbers.map(x=>escDetail(x)).join(" · ") : "Belum tersedia";
     return `<article class="buyer-order-card">
       <div class="buyer-order-head"><div><strong>${escDetail(order.order_number)}</strong><span>${new Date(order.created_at).toLocaleString("id-ID")}</span></div><span class="buyer-order-status ${buyerOrderStatusClass(order.status)}">${buyerOrderStatusLabel(order.status)}</span></div>
