@@ -14,8 +14,29 @@ const requested=sellers[0],shipments=await sb(u,k,"/rest/v1/shipping_shipments?s
 const awb=clean(requested.tracking_number||(shipment&&shipment.waybill_id));if(!awb)return json({error:"Nomor resi belum tersedia."},400);
 const selected=Array.isArray(order.shipping_selections)?order.shipping_selections:[],choice=selected.find(x=>String(x.store_id)===String(requested.store_id)),courier=courierCode((choice&&choice.courier_company)||(shipment&&shipment.courier_company));if(!courier)return json({error:"Kode kurir tidak dapat ditentukan."},400);
 const phone=clean(order.customer_phone).replace(/\D/g,""),qs=new URLSearchParams({awb:awb,courier:courier});if(phone)qs.set("last_phone_number",phone.slice(-5));
-const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),12000);let response;try{response=await fetch("https://rajaongkir.komerce.id/api/v1/track/waybill?"+qs.toString(),{method:"POST",headers:{key:rk},signal:ctrl.signal});}catch(x){if(x&&x.name==="AbortError")throw new Error("RajaOngkir tidak merespons dalam 12 detik.");throw new Error("Gagal terhubung ke RajaOngkir.");}finally{clearTimeout(timer);}
-const text=await response.text();let data={};try{data=text?JSON.parse(text):{};}catch{}if(!response.ok||!data.meta||data.meta.status!=="success")throw new Error((data.meta&&data.meta.message)||data.message||"Resi belum dapat dilacak. Pastikan nomor resi dan kurir benar.");
+const deliveryKey=clean(e.RAJAONGKIR_DELIVERY_API_KEY),deliveryBase=clean(e.RAJAONGKIR_DELIVERY_BASE_URL)||"https://api-sandbox.collaborator.komerce.id";
+let data={}, responseStatus=200;
+if(String(shipment?.provider||"") === "rajaongkir_delivery" && deliveryKey && clean(shipment?.provider_order_id)){
+  const detailUrl=deliveryBase+"/order/api/v1/orders/detail?order_no="+encodeURIComponent(shipment.provider_order_id);
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),12000);
+  try{
+    const r=await fetch(detailUrl,{headers:{"x-api-key":deliveryKey},signal:ctrl.signal});
+    responseStatus=r.status;
+    const t=await r.text();try{data=t?JSON.parse(t):{};}catch{data={};}
+  }catch(x){if(x?.name==="AbortError")throw new Error("RajaOngkir Delivery tidak merespons dalam 12 detik.");throw new Error("Gagal terhubung ke RajaOngkir Delivery.");}
+  finally{clearTimeout(timer);}
+  if(responseStatus>=400||!data.meta||data.meta.status!=="success")throw new Error(data.meta?.message||"Status shipment RajaOngkir Delivery belum tersedia.");
+}else{
+  if(!rk)return json({error:"RAJAONGKIR_API_KEY belum dipasang di Cloudflare."},500);
+  const phone=clean(order.customer_phone).replace(/\\D/g,""),qs=new URLSearchParams({awb:awb,courier:courier});if(phone)qs.set("last_phone_number",phone.slice(-5));
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),12000);let response;
+  try{response=await fetch("https://rajaongkir.komerce.id/api/v1/track/waybill?"+qs.toString(),{method:"POST",headers:{key:rk},signal:ctrl.signal});}
+  catch(x){if(x&&x.name==="AbortError")throw new Error("RajaOngkir tidak merespons dalam 12 detik.");throw new Error("Gagal terhubung ke RajaOngkir.");}
+  finally{clearTimeout(timer);}
+  responseStatus=response.status;
+  const text=await response.text();try{data=text?JSON.parse(text):{};}catch{data={};}
+  if(responseStatus>=400||!data.meta||data.meta.status!=="success")throw new Error((data.meta&&data.meta.message)||data.message||"Resi belum dapat dilacak. Pastikan nomor resi dan kurir benar.");
+}
 const tracking=data.data||{},summary=tracking.summary||{},delivery=tracking.delivery_status||{},ms=marketStatus(summary.status||delivery.status,Boolean(tracking.delivered)),timeline=Array.isArray(tracking.manifest)?tracking.manifest.map(x=>({code:clean(x.manifest_code),description:clean(x.manifest_description),date:clean(x.manifest_date),time:clean(x.manifest_time),city:clean(x.city_name)})):[],patch={provider:"rajaongkir",waybill_id:awb,courier_company:summary.courier_name||(choice&&choice.courier_company)||(shipment&&shipment.courier_company)||courier,courier_type:summary.service_code||(choice&&choice.courier_type)||(shipment&&shipment.courier_type)||null,status:String(summary.status||delivery.status||"tracking").toLowerCase(),last_webhook_at:new Date().toISOString(),raw_response:data};
 let shipmentRow=shipment;if(shipment){const z=await sb(u,k,"/rest/v1/shipping_shipments?id=eq."+encodeURIComponent(shipment.id),{method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify(patch)});shipmentRow=z&&z[0]||Object.assign({},shipment,patch);}else{const z=await sb(u,k,"/rest/v1/shipping_shipments",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify({order_seller_id:requested.id,order_id:order.id,provider:"rajaongkir",waybill_id:awb,courier_company:patch.courier_company,courier_type:patch.courier_type,status:patch.status,shipping_fee:0,raw_response:data,last_webhook_at:new Date().toISOString()})});shipmentRow=z&&z[0]||null;}
 const sellerPatch={shipping_status:ms,tracking_number:awb,seller_status:ms==="delivered"?"completed":ms==="shipped"?"shipped":ms==="cancelled"?"cancelled":"processing"};await sb(u,k,"/rest/v1/order_sellers?id=eq."+encodeURIComponent(requested.id),{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(sellerPatch)});
