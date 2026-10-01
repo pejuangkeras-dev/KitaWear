@@ -555,7 +555,7 @@ body{background:var(--bg);color:var(--ink)}
 <header class="nav"><div class="container nav-inner">
 <a href="#" class="logo" aria-label="MarketKita"><svg class="logo-mark" viewBox="0 0 48 48" fill="none"><path d="M24 7c-5 0-8 3-8 7 0 3 2 5 5 6" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M21 20 7 31c-3 2-2 7 2 8h30c4-1 5-6 2-8L27 20" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><path d="m18 39 6-7 6 7" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>MarketKita</a>
 <nav class="nav-links"><a href="#" data-i18n="nav_home">Beranda</a><a href="#produk" data-i18n="nav_products">Produk</a><a href="#tentang" data-i18n="nav_about">Tentang Kami</a><a href="#kontak" data-i18n="nav_contact">Kontak</a></nav>
-<div class="actions"><button class="icon-btn" type="button" onclick="openSearch()" aria-label="Cari produk">⌕</button><select id="LanguageSelect" class="lang" aria-label="Bahasa"><option value="id">ID</option><option value="en">EN</option><option value="vi">VI</option><option value="th">TH</option><option value="ch">CH</option></select><button class="icon-btn" id="wishlistButton" type="button" onclick="openWishlist()" aria-label="Wishlist">♡<span id="wishlistCount" style="font-size:9px;vertical-align:top;margin-left:2px">0</span></button><button id="accountButton" class="account-btn" type="button" onclick="openAccount()">Masuk</button><button class="cart" type="button" onclick="toggleCart()">🛒 <span id="count">0</span></button></div>
+<div class="actions"><button class="icon-btn" type="button" onclick="openSearch()" aria-label="Cari produk">⌕</button><select id="LanguageSelect" class="lang" aria-label="Bahasa"><option value="id">ID</option><option value="en">EN</option><option value="vi">VI</option><option value="th">TH</option><option value="ch">CH</option></select><button class="icon-btn" id="wishlistButton" type="button" onclick="openWishlist()" aria-label="Wishlist">♡<span id="wishlistCount" style="font-size:9px;vertical-align:top;margin-left:2px">0</span></button><button id="accountButton" class="account-btn" type="button" onclick="marketKitaOpenAccountFallback(event)">Masuk</button><button class="cart" type="button" onclick="toggleCart()">🛒 <span id="count">0</span></button></div>
 </div></header>
 
 <main>
@@ -2691,6 +2691,22 @@ function updateAccountButton(user,profile){
   if(adminLink) adminLink.style.display=profile?.role==="admin" ? "flex" : "none";
 }
 
+function marketKitaOpenAccountFallback(event){
+  if(event) event.preventDefault();
+  const overlay=document.getElementById("authOverlay");
+  if(!overlay) return;
+  overlay.classList.add("show");
+  overlay.setAttribute("aria-hidden","false");
+  if(typeof openAccount==="function"){
+    try{ openAccount(); }catch(error){ console.warn("MarketKita openAccount fallback:",error); }
+  }else{
+    const guest=document.getElementById("authGuest");
+    const user=document.getElementById("authUser");
+    if(guest) guest.style.display="block";
+    if(user) user.classList.remove("show");
+  }
+}
+
 function openAccount(){
   const overlay=document.getElementById("authOverlay");
   if(!overlay) return;
@@ -3845,6 +3861,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
 
 .account-notification{padding:14px;border-bottom:1px solid var(--line);background:#fff}.account-notification:last-child{border-bottom:0}.account-notification.unread{background:#f4f8f5}.account-notification strong{display:block;font-size:13px}.account-notification p{margin:5px 0;color:#666;font-size:12px;line-height:1.5}.account-notification time{font-size:10px;color:#999}.voucher-item{padding:15px;border:1px solid var(--line);border-radius:14px;background:#fff;margin-bottom:10px}.voucher-item strong{font-size:15px}.voucher-item p{margin:5px 0;color:#666;font-size:12px}.voucher-item button{margin-top:8px;height:36px;border:0;border-radius:9px;background:#171817;color:#fff;padding:0 13px;font-weight:800}.voucher-item button:disabled{opacity:.55}.chat-bubble{max-width:78%;padding:9px 11px;border-radius:12px;margin:7px 0;font-size:12px;line-height:1.45}.chat-bubble.me{margin-left:auto;background:#171817;color:#fff}.chat-bubble.them{margin-right:auto;background:#fff;border:1px solid var(--line)}
 </style>
+</style>
 <style>
 .rating-summary{display:flex;align-items:center;gap:7px;margin:7px 0 11px;font-size:12px;color:#777}
 .rating-stars{letter-spacing:1px;color:#b4872d}.review-list{display:grid;gap:12px;margin-top:14px}
@@ -3868,7 +3885,6 @@ document.addEventListener("DOMContentLoaded",async()=>{
 .buyer-review-reply{margin-top:8px;padding:9px 11px;border-left:3px solid #171817;background:#f2f0eb;font-size:12px}
 .buyer-review-reply p{margin:4px 0}
 .buyer-review-reply small{color:#888}
-</style>
 </style>
 <script>
 function renderRatingStars(r){const n=Math.max(0,Math.min(5,Number(r)||0));return '★★★★★'.split('').map((s,i)=>'<span class="'+(i<n?'':'muted')+'">'+s+'</span>').join('')}
