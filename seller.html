@@ -369,7 +369,7 @@ Memuat...
 <button id="toastClose" class="toast-close" type="button">Tutup</button>
 </div>
 </div>
-<div id="productResultModal" class="result-modal" onclick="if(event.target===this)closeProductResultModal()">
+<div id="productEditModal" class="modal" onclick="if(event.target===this)closeProductEditModal()"><div class="modalbox" style="max-width:760px"><div class="modalhead"><div><h2 id="productEditTitle">Edit Produk</h2><div class="msg">Perubahan hanya berlaku pada produk toko Anda.</div></div><button class="close" type="button" onclick="closeProductEditModal()">Tutup</button></div><form id="productEditForm"><input type="hidden" id="editProductId"><div class="grid" style="grid-template-columns:1fr 1fr"><div class="field"><label>Nama produk</label><input id="editProductName" required maxlength="160"></div><div class="field"><label>Harga</label><input id="editProductPrice" type="number" min="1" required></div><div class="field"><label>Kategori</label><input id="editProductCategory"></div><div class="field"><label>Status</label><select id="editProductStatus"><option value="draft">Draft</option><option value="active">Aktif</option><option value="archived">Arsip</option></select></div></div><div class="field"><label>Deskripsi</label><textarea id="editProductDescription" maxlength="5000"></textarea></div><div class="field"><label>Berat (gram)</label><input id="editProductWeight" type="number" min="1" max="100000"></div><div class="field"><label>Ukuran & stok</label><input id="editProductSizes" placeholder="M:10,L:8,XL:5" required><small style="display:block;color:var(--muted);margin-top:5px">Format SIZE:STOK.</small></div><div class="field"><label>Tambah foto</label><input id="editProductImages" type="file" accept="image/jpeg,image/png,image/webp" multiple><small style="display:block;color:var(--muted);margin-top:5px">Maksimal 5 MB per foto, maksimal 8 foto total.</small></div><div id="editProductGallery" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0"></div><div id="productEditMsg" class="msg"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn light" type="button" onclick="closeProductEditModal()">Batal</button><button class="btn green" type="submit">Simpan Perubahan</button></div></form></div></div><div id="productResultModal" class="result-modal" onclick="if(event.target===this)closeProductResultModal()">
 <div class="result-modal-card">
 <div id="productResultIcon" class="result-icon">✓</div>
 <h2 id="productResultTitle">Berhasil</h2>
@@ -733,30 +733,16 @@ $('productResultModal').classList.remove('show');
 }
 
 async function saveProduct(e){
-e.preventDefault();
-$('productMsg').textContent='Mengunggah foto dan menyimpan produk...';
-try{
-if(!store) throw Error('Buat toko terlebih dahulu.');
-const file=$('productImageFile').files?.[0];
-const image=await uploadProductImage(file);
-const slug=$('productName').value.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+Date.now();
-const p=await sb.from('products').insert({store_id:store.id,name:$('productName').value.trim(),slug,description:$('productDescription').value.trim(),category:$('productCategory').value.trim(),price:Number($('productPrice').value),image_url:image,gallery:[image],colors:[],status:'active'}).select().single();
-if(p.error)throw p.error;
-const sizes=$('productSizes').value.split(',').map(x=>x.trim()).filter(Boolean).map(x=>{const z=x.split(':');return{product_id:p.data.id,size:z[0].trim().toUpperCase(),stock:Number(z[1]||0)}});
-const s=await sb.from('product_sizes').insert(sizes);
-if(s.error)throw s.error;
-$('productMsg').textContent='Produk berhasil ditambahkan.';
-e.target.reset();
-$('productImagePreview').style.display='none';
-$('productImagePreviewImg').removeAttribute('src');
-await loadProducts();
-showProductResult('success','Produk berhasil ditambahkan','Produk, foto, ukuran, dan stok sudah tersimpan di toko Anda.');
-}catch(e){
-const message=e.message||'Gagal menyimpan produk.';
-$('productMsg').textContent=message;
-showProductResult('error','Produk gagal ditambahkan',message);
-}
-}
+e.preventDefault(); $('productMsg').textContent='Mengunggah foto dan menyimpan produk...';
+try{if(!store)throw Error('Buat toko terlebih dahulu.');const name=$('productName').value.trim(),price=Number($('productPrice').value);if(name.length<2||!Number.isFinite(price)||price<=0)throw Error('Nama dan harga produk tidak valid.');const specs=parseProductSizes($('productSizes').value);const file=$('productImageFile').files?.[0];const image=await uploadProductImage(file);const slug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+Date.now();const p=await sb.from('products').insert({store_id:store.id,name,slug,description:$('productDescription').value.trim(),category:$('productCategory').value.trim(),price,image_url:image,gallery:[image],colors:[],status:'active'}).select().single();if(p.error)throw p.error;const s=await sb.from('product_sizes').insert(specs.map(x=>({product_id:p.data.id,size:x.size,stock:x.stock})));if(s.error){await sb.from('products').delete().eq('id',p.data.id).eq('store_id',store.id);throw s.error;}e.target.reset();$('productImagePreview').style.display='none';await loadProducts();showProductResult('success','Produk berhasil ditambahkan','Produk, foto, ukuran, dan stok sudah tersimpan.');}catch(e){const m=e.message||'Gagal menyimpan produk.';$('productMsg').textContent=m;showProductResult('error','Produk gagal ditambahkan',m);}}
+function parseProductSizes(raw){const map=new Map();for(const part of String(raw||'').split(',')){const z=part.split(':');const size=String(z[0]||'').trim().toUpperCase(),stock=Number(z[1]);if(!size)continue;if(!Number.isInteger(stock)||stock<0)throw Error('Stok untuk '+size+' harus bilangan bulat 0 atau lebih.');map.set(size,stock);}if(!map.size)throw Error('Minimal satu ukuran/stok harus diisi.');return [...map].map(([size,stock])=>({size,stock}));}
+function openProductEdit(id){const p=(window.sellerProducts||[]).find(x=>String(x.id)===String(id));if(!p)return;$('editProductId').value=p.id;$('editProductName').value=p.name||'';$('editProductPrice').value=p.price||0;$('editProductCategory').value=p.category||'';$('editProductDescription').value=p.description||'';$('editProductStatus').value=p.status||'draft';$('editProductWeight').value=p.weight_gram||500;$('editProductSizes').value=(p.product_sizes||[]).map(x=>x.size+':'+x.stock).join(',');renderEditProductGallery(p.gallery||[p.image_url].filter(Boolean));$('editProductImages').value='';$('productEditMsg').textContent='';$('productEditModal').classList.add('show');}
+function renderEditProductGallery(gallery){const root=$('editProductGallery'),arr=Array.isArray(gallery)?gallery.filter(Boolean):[];root.innerHTML=arr.length?arr.map((url,i)=>`<div style="position:relative"><img src="${esc(url)}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px;border:1px solid var(--line)"><button type="button" class="btn light" style="position:absolute;right:3px;bottom:3px;padding:4px 6px" onclick="removeEditGalleryImage(${i})">×</button></div>`).join(''):'<div class="notice">Belum ada foto.</div>';}
+function removeEditGalleryImage(i){const p=(window.sellerProducts||[]).find(x=>String(x.id)===$('editProductId').value);if(!p)return;const arr=Array.isArray(p.gallery)?p.gallery.filter(Boolean):[];arr.splice(i,1);p.gallery=arr;renderEditProductGallery(arr);}
+async function toggleProductStatus(id,status){try{const q=await sb.from('products').update({status,updated_at:new Date().toISOString()}).eq('id',id).eq('store_id',store.id);if(q.error)throw q.error;await loadProducts();toast(status==='active'?'Produk diaktifkan.':'Produk diarsipkan.');}catch(e){toast(e.message||'Gagal mengubah status.');}}
+async function deleteSellerProduct(id){if(!confirm('Hapus produk ini? Jika sudah pernah dipesan, gunakan Arsipkan.'))return;try{const q=await sb.from('products').delete().eq('id',id).eq('store_id',store.id);if(q.error)throw q.error;await loadProducts();toast('Produk dihapus.');}catch(e){toast(e.message||'Produk tidak dapat dihapus. Jika sudah dipakai order, arsipkan produk.');}}
+async function saveProductEdit(e){e.preventDefault();$('productEditMsg').textContent='Menyimpan...';try{const id=$('editProductId').value,p=(window.sellerProducts||[]).find(x=>String(x.id)===String(id));if(!p)throw Error('Produk tidak ditemukan.');const name=$('editProductName').value.trim(),price=Number($('editProductPrice').value),weight=Number($('editProductWeight').value||500);if(name.length<2||!Number.isFinite(price)||price<=0)throw Error('Nama dan harga produk tidak valid.');if(!Number.isInteger(weight)||weight<1||weight>100000)throw Error('Berat produk tidak valid.');const sizes=parseProductSizes($('editProductSizes').value);let gallery=Array.isArray(p.gallery)?p.gallery.filter(Boolean):[];for(const file of [...($('editProductImages').files||[])])gallery.push(await uploadProductImage(file));gallery=gallery.slice(0,8);if(!gallery.length)throw Error('Produk harus memiliki minimal satu foto.');const q=await sb.from('products').update({name,description:$('editProductDescription').value.trim(),category:$('editProductCategory').value.trim(),price,status:$('editProductStatus').value,weight_gram:weight,image_url:gallery[0],gallery,updated_at:new Date().toISOString()}).eq('id',id).eq('store_id',store.id);if(q.error)throw q.error;const oldMap=new Map((p.product_sizes||[]).map(x=>[String(x.size).toUpperCase(),x]));for(const s of sizes){const old=oldMap.get(s.size);if(old){if(Number(old.reserved_stock||0)>s.stock)throw Error('Stok '+s.size+' tidak boleh di bawah reserved stock.');const u=await sb.from('product_sizes').update({stock:s.stock}).eq('id',old.id).eq('product_id',id);if(u.error)throw u.error;oldMap.delete(s.size);}else{const ins=await sb.from('product_sizes').insert({product_id:id,size:s.size,stock:s.stock});if(ins.error)throw ins.error;}}for(const old of oldMap.values()){if(Number(old.reserved_stock||0)>0)throw Error('Ukuran '+old.size+' masih memiliki reserved stock dan tidak dapat dihapus.');const d=await sb.from('product_sizes').delete().eq('id',old.id).eq('product_id',id);if(d.error)throw d.error;}await loadProducts();closeProductEditModal();showProductResult('success','Produk diperbarui','Informasi, foto, status, ukuran, dan stok telah diperbarui.');}catch(e){$('productEditMsg').textContent=e.message||'Gagal memperbarui produk.';}}
+function closeProductEditModal(){$('productEditModal').classList.remove('show');}
 
 async function replaceProductImage(productId,input){
 try{
@@ -773,56 +759,9 @@ finally{input.value='';}
 }
 
 async function loadProducts(){
-
-const q=await sb
-.from('products')
-.select(
-'id,name,price,image_url,status,product_sizes(size,stock)'
-)
-.eq('store_id',store.id)
-.order('created_at',{ascending:false});
-
-if(q.error)throw q.error;
-
-const rows=q.data||[];
-
-$('sProducts').textContent=rows.length;
-
-$('productList').innerHTML=
-rows.length
-?
-rows.map(p=>`
-
-<div class="product">
-
-<div class="thumb">
-<img src="${esc(p.image_url||'')}" alt="">
-</div>
-
-<div>
-<strong>${esc(p.name)}</strong>
-
-<small>
-${money(p.price)} · ${pill(p.status)}
-<br>
-${(p.product_sizes||[])
-.map(s=>`${esc(s.size)}:${s.stock}`)
-.join(' · ')}
-</small>
-
-</div>
-
-<span>
-<input type="file" id="photo-${esc(p.id)}" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="replaceProductImage('${esc(p.id)}',this)">
-<button class="btn light" type="button" onclick="document.getElementById('photo-${esc(p.id)}').click()">Ganti foto</button>
-</span>
-
-</div>
-
-`).join('')
-:
-'<div class="empty">Belum ada produk.</div>'
-
+const q=await sb.from('products').select('id,name,slug,description,category,price,image_url,gallery,status,weight_gram,product_sizes(id,size,stock,reserved_stock)').eq('store_id',store.id).order('created_at',{ascending:false});
+if(q.error)throw q.error; const rows=q.data||[]; window.sellerProducts=rows; $('sProducts').textContent=rows.length;
+$('productList').innerHTML=rows.length?rows.map(p=>{const sizes=p.product_sizes||[],gallery=Array.isArray(p.gallery)?p.gallery.filter(Boolean):[];return `<div class="product" style="align-items:flex-start"><div class="thumb"><img src="${esc(p.image_url||gallery[0]||'')}" alt=""></div><div style="min-width:0;flex:1"><strong>${esc(p.name)}</strong><small>${money(p.price)} · ${pill(p.status)}<br>${sizes.map(s=>esc(s.size)+':'+s.stock+(s.reserved_stock?' (reserved '+s.reserved_stock+')':'')).join(' · ')||'Belum ada ukuran'}<br>${gallery.length} foto · ${p.weight_gram||500}g</small></div><span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="btn light" type="button" onclick="openProductEdit('${esc(p.id)}')">Edit</button><button class="btn light" type="button" onclick="toggleProductStatus('${esc(p.id)}','${p.status==='active'?'archived':'active'}')">${p.status==='active'?'Arsipkan':'Aktifkan'}</button><button class="btn light" type="button" onclick="deleteSellerProduct('${esc(p.id)}')">Hapus</button></span></div>`}).join(''):'<div class="empty">Belum ada produk.</div>';
 }
 
 async function loadShipmentStatus(orderIds){
@@ -1579,7 +1518,7 @@ async function replyToSellerReview(reviewId){
   }catch(e){if(msg)msg.textContent=e.message||'Gagal menyimpan balasan.';}
 }
 
-</script>
+document.getElementById("productEditForm").addEventListener("submit",saveProductEdit);\n</script>
 
 </body>
 </html>
