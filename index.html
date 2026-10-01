@@ -2085,7 +2085,7 @@ function checkout(){
 /* =========================
    CHECKOUT
 ========================= */
-async window.marketCheckoutShippingQuoteId=null;
+window.marketCheckoutShippingQuoteId=null;
 window.marketCheckoutShippingSelections=[];
 window.marketCheckoutShippingFee=0;
 
@@ -2094,9 +2094,19 @@ function renderCheckoutShippingOptions(data){
   if(!root)return;
   const sellers=Array.isArray(data?.sellers)?data.sellers:[];
   if(!sellers.length){root.innerHTML='<div class="checkout-shipping-empty">Tidak ada pilihan kurir untuk keranjang ini.</div>';return;}
+  const subtotalByStore=new Map();
+  for(const item of (Array.isArray(cart)?cart:[])){
+    const p=products[item.productIndex]||{};
+    const sid=String(item.store_id||p.store_id||"");
+    if(!sid)continue;
+    subtotalByStore.set(sid,(subtotalByStore.get(sid)||0)+Number(item.price||p.price||0)*Number(item.quantity||1));
+  }
   root.innerHTML=sellers.map((seller,si)=>{
     const opts=Array.isArray(seller.options)?seller.options:[];
-    return '<div class="checkout-shipping-store"><strong>'+escDetail(seller.store_name||"Toko")+'</strong>'+
+    const sub=Number(subtotalByStore.get(String(seller.store_id))||0);
+    return '<div class="checkout-shipping-store" data-store-id="'+escDetail(seller.store_id)+'" style="padding:12px 0;border-bottom:1px solid var(--line)">'+
+      '<div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:8px"><strong>'+escDetail(seller.store_name||"Toko")+'</strong><strong>'+rupiah(sub)+'</strong></div>'+
+      '<div style="font-size:11px;color:#777;margin-bottom:7px">Subtotal produk toko</div>'+
       '<label>Layanan pengiriman<select id="checkoutCourier-'+si+'" onchange="updateCheckoutShippingSelection()">'+
       '<option value="">Pilih kurir</option>'+opts.map((o,oi)=>'<option value="'+si+'|'+oi+'">'+escDetail((o.courier_name||o.courier_company||"Kurir")+" — "+(o.service_name||o.courier_type||"Layanan")+" · "+rupiah(o.price)+(o.duration?" · "+o.duration:""))+'</option>').join("")+
       '</select></label></div>';
