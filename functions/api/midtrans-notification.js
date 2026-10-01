@@ -217,7 +217,7 @@ export async function onRequestPost(context) {
     const orders = await supabaseRequest(
       supabaseUrl,
       serviceRoleKey,
-      `/rest/v1/orders?select=id,order_number,total,status,payment_status,midtrans_order_id,midtrans_transaction_id,paid_at&order_number=eq.${encodeURIComponent(orderId)}&limit=1`,
+      `/rest/v1/orders?select=id,order_number,total,status,payment_status,midtrans_order_id,midtrans_transaction_id,paid_at,buyer_id,voucher_id&order_number=eq.${encodeURIComponent(orderId)}&limit=1`,
       {
         method: "GET"
       }
@@ -365,6 +365,28 @@ export async function onRequestPost(context) {
         body: JSON.stringify(orderPatch)
       }
     );
+
+    // Voucher yang sudah dikonsumsi saat membuat transaksi dikembalikan
+    // hanya jika Midtrans benar-benar menyatakan pembayaran gagal/kedaluwarsa/batal.
+    // release_user_voucher aman dipanggil ulang (idempotent).
+    if (
+      order.voucher_id &&
+      order.buyer_id &&
+      ["failed", "expired"].includes(String(mapped.paymentStatus || "").toLowerCase())
+    ) {
+      await supabaseRequest(
+        supabaseUrl,
+        serviceRoleKey,
+        "/rest/v1/rpc/release_user_voucher",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            p_voucher_id: order.voucher_id,
+            p_user_id: order.buyer_id
+          })
+        }
+      );
+    }
 
     // Sinkronkan status pembayaran ke semua seller
     // yang berada di dalam order yang sama.
