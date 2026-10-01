@@ -380,6 +380,16 @@ const c=
 return `<span class="pill ${c}">${esc(x)}</span>`
 }
 
+let sellerChatRealtime=null;
+function setupSellerChatRealtime(){
+  if(!sb||!user||sellerChatRealtime)return;
+  sellerChatRealtime=sb.channel("seller-chat-"+user.id)
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"chat_messages"},payload=>{
+      if(sellerChatThread&&String(payload.new.thread_id)===String(sellerChatThread.id)) loadSellerChatMessages();
+      loadSellerChats().catch(()=>{});
+    })
+    .subscribe();
+}
 let sellerChatThread=null;
 async function loadSellerChats(){const root=$('sellerChatThreads');if(!root||!store)return;const q=await sb.from('chat_threads').select('id,buyer_id,store_id,updated_at').eq('store_id',store.id).eq('seller_id',user.id).order('updated_at',{ascending:false});if(q.error){root.textContent=q.error.message;return;}if(!q.data?.length){root.textContent='Belum ada percakapan.';return;}root.innerHTML=q.data.map(t=>`<div class="chat-thread" onclick="openSellerChatThread('${t.id}')"><strong>Chat #${String(t.id).slice(0,8)}</strong><small>Terakhir diperbarui ${new Date(t.updated_at).toLocaleString('id-ID')}</small></div>`).join('');}
 async function openSellerChatThread(id){const q=await sb.from('chat_threads').select('*').eq('id',id).eq('seller_id',user.id).maybeSingle();if(q.error||!q.data)return;sellerChatThread=q.data;$('sellerChatBox').style.display='block';await loadSellerChatMessages();}
@@ -399,6 +409,7 @@ const guard=await window.KWAuth.requireRole(['buyer','seller','admin']);
 sb=guard.client;
 user=guard.user;
 profile=guard.profile;
+setupSellerChatRealtime();
 
 const currentRole=String(profile?.role||'buyer').toLowerCase();
 const roleLabel={
