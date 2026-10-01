@@ -303,10 +303,12 @@ Memuat...
 <h2>Saldo & Laporan Bisnis</h2>
 <div class="order-summary">
 <div class="mini"><small>Saldo tersedia</small><strong id="p3Available">Rp0</strong></div>
-<div class="mini"><small>Menunggu</small><strong id="p3Pending">Rp0</strong></div>
+<div class="mini"><small>Menunggu payout</small><strong id="p3Pending">Rp0</strong></div>
 <div class="mini"><small>Total dibayar</small><strong id="p3Paid">Rp0</strong></div>
 <div class="mini"><small>Payout diminta</small><strong id="p3Requested">Rp0</strong></div>
 </div>
+<div id="p3Reconciliation" class="notice" style="margin-bottom:14px">Memeriksa rekonsiliasi saldo...</div>
+<div id="p3LedgerBreakdown" class="notice" style="margin-bottom:14px">Memuat rincian ledger...</div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin-bottom:14px">
 <div class="field" style="margin:0"><label>Dari</label><input id="p3From" type="date"></div>
 <div class="field" style="margin:0"><label>Sampai</label><input id="p3To" type="date"></div>
@@ -697,8 +699,7 @@ return pub.data.publicUrl;
 }
 
 function showProductResult(type,title,message){
-const ok=type==="success";
-$('productResultIcon').textContent=ok?'✓':'!';
+const ok=type==="success";$('productResultIcon').textContent=ok?'✓':'!';
 $('productResultIcon').className='result-icon'+(ok?'':' error');
 $('productResultTitle').textContent=title;
 $('productResultMessage').textContent=message;
@@ -1397,8 +1398,7 @@ saveProduct
 );
 
 $('productImageFile')
-.addEventListener(
-'change',
+.addEventListener('change',
 e=>{
 const file=e.target.files?.[0];
 if(!file){$('productImagePreview').style.display='none';return;}
@@ -1503,6 +1503,20 @@ async function loadPhase3Business(){
     $('p3Pending').textContent=money(x.pending);
     $('p3Paid').textContent=money(x.paid);
     $('p3Requested').textContent=money(x.requested);
+    const discrepancy=Number(x.reconciliation_discrepancy||0);
+    $('p3Reconciliation').innerHTML=x.reconciled
+      ? '<strong>✓ Saldo terrekonsiliasi.</strong> Ledger payout dan riwayat payout tidak memiliki selisih.'
+      : '<strong>⚠ Perlu rekonsiliasi.</strong> Selisih tercatat '+money(Math.abs(discrepancy))+'. Hubungi admin sebelum mengajukan payout baru.';
+    $('p3LedgerBreakdown').innerHTML=
+      '<strong>Rincian saldo</strong><br>'+
+      'Eligible: '+money(x.ledger_eligible)+
+      ' · Pending ledger: '+money(x.ledger_pending)+
+      ' · Paid ledger: '+money(x.ledger_paid)+
+      ' · Refunded: '+money(x.ledger_refunded)+
+      '<br><small>Request pending: '+money(x.requests_pending)+
+      ' · Approved: '+money(x.requests_approved)+
+      ' · Paid request: '+money(x.requests_paid)+
+      ' · Rejected: '+money(x.requests_rejected)+'</small>';
 
     const now=new Date();
     const end=$('p3To').value || now.toISOString().slice(0,10);
