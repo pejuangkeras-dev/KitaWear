@@ -61,6 +61,7 @@ create table if not exists public.shipping_shipments (
   raw_response jsonb not null default '{}'::jsonb
 );
 
+
 create index if not exists shipping_quotes_buyer_idx on public.shipping_quotes(buyer_id, created_at desc);
 create index if not exists shipping_quotes_expiry_idx on public.shipping_quotes(status, expires_at);
 create index if not exists shipping_shipments_order_idx on public.shipping_shipments(order_id);
