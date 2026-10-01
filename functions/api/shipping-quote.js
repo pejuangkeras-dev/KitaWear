@@ -103,11 +103,21 @@ export async function onRequestPost(context){
     return (()=>{
       const quoteId=crypto.randomUUID();
       const expires=new Date(Date.now()+15*60*1000).toISOString();
-      const snapshot={buyer_id:buyer.id,address_id:addressId,address,items:rawItems};
+      const totalFee=sellerQuotes.reduce((sum,seller)=>sum+Math.min(...(seller.options||[]).map(o=>Number(o.price||0)).filter(Number.isFinite)),0);
+      const snapshot={
+        buyer_id:buyer.id,
+        address_id:addressId,
+        postal_code:String(address.postal_code||""),
+        items:rawItems.map(item=>({
+          product_id:String(item.product_id||""),
+          size:String(item.size||"").trim().toUpperCase(),
+          quantity:Number(item.quantity||0)
+        }))
+      };
       return sb(url,key,"/rest/v1/shipping_quotes",{
         method:"POST",headers:{Prefer:"return=representation"},
-        body:JSON.stringify({id:quoteId,buyer_id:buyer.id,total_fee:0,status:"active",expires_at:expires,selections:sellerQuotes,request_snapshot:snapshot})
-      }).then(()=>json({quote_id:quoteId,expires_at:expires,sellers:sellerQuotes},200));
+        body:JSON.stringify({id:quoteId,buyer_id:buyer.id,total_fee:totalFee,status:"active",expires_at:expires,selections:sellerQuotes,request_snapshot:snapshot})
+      }).then(()=>json({quote_id:quoteId,expires_at:expires,total_fee:totalFee,sellers:sellerQuotes},200));
     })();
   }catch(error){console.error("MarketKita shipping quote error:",error?.message||error);return json({error:error?.message||"Gagal menghitung ongkir."},500);}
 }
