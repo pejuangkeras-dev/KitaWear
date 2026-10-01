@@ -59,6 +59,14 @@ a{
   display:none!important;
 }
 
+/* Auth bootstrap: jangan tampilkan login sebelum session selesai diperiksa. */
+#loginScreen{
+  display:none;
+}
+#loginScreen.auth-ready{
+  display:flex;
+}
+
 /* ================= TOP ================= */
 
 .top{
@@ -1821,21 +1829,36 @@ function showAdminApp(profile){
 
 async function checkSession(){
 
+  const loginScreen=document.getElementById("loginScreen");
+  const adminApp=document.getElementById("adminApp");
+
   if(!supabaseClient){
-    return;
+    loginScreen?.classList.add("auth-ready");
+    return false;
   }
-
-  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
-
-  if(userError || !userData?.user){
-    return;
-  }
-
-  currentUser = userData.user;
 
   try{
 
+    const { data: userData, error: userError } =
+      await supabaseClient.auth.getUser();
+
+    if(userError || !userData?.user){
+
+      currentUser = null;
+      adminApp?.classList.add("hidden");
+      loginScreen?.classList.add("auth-ready");
+
+      return false;
+    }
+
+    currentUser = userData.user;
+
     await checkAdminAccess();
+
+    /* checkAdminAccess() menampilkan Admin Center jika role valid. */
+    loginScreen?.classList.remove("auth-ready");
+
+    return true;
 
   }catch(error){
 
@@ -1844,12 +1867,16 @@ async function checkSession(){
       error
     );
 
+    adminApp?.classList.add("hidden");
+    loginScreen?.classList.add("auth-ready");
+
     showNotice(
       error?.message ||
       "Session admin tidak valid.",
       "error"
     );
 
+    return false;
   }
 
 }
@@ -3424,6 +3451,7 @@ document.addEventListener(
 
   if(!ready){
 
+    document.getElementById("loginScreen")?.classList.add("auth-ready");
     return;
 
   }
@@ -3450,8 +3478,8 @@ document.addEventListener(
             .getElementById(
               "loginScreen"
             )
-            .classList.remove(
-              "hidden"
+            .classList.add(
+              "auth-ready"
             );
 
         }
