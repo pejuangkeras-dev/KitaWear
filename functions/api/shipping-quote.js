@@ -37,7 +37,7 @@ export async function onRequestPost(context){
 
     const addresses=await sb(url,key,`/rest/v1/buyer_addresses?select=id,recipient_name,phone,address_line,city,province,postal_code&user_id=eq.${encodeURIComponent(buyer.id)}&id=eq.${encodeURIComponent(addressId)}&limit=1`);
     const address=addresses?.[0]; if(!address)return json({error:"Alamat pengiriman tidak ditemukan."},400);
-    if(!/^\\d{5}$/.test(String(address.postal_code||"")))return json({error:"Kode pos alamat buyer harus 5 digit."},400);
+    if(!/^\d{5}$/.test(String(address.postal_code||"")))return json({error:"Kode pos alamat buyer harus 5 digit."},400);
 
     const groups=new Map();
     for(const raw of rawItems){
@@ -47,7 +47,7 @@ export async function onRequestPost(context){
       const p=rows?.[0]; if(!p)throw new Error("Produk checkout tidak ditemukan.");
       const stores=await sb(url,key,`/rest/v1/stores?select=id,name,owner_id,pickup_name,pickup_phone,pickup_address,pickup_postal_code,pickup_latitude,pickup_longitude,pickup_note&status=eq.active&id=eq.${encodeURIComponent(p.store_id)}&limit=1`);
       const store=stores?.[0]; if(!store)throw new Error("Toko produk tidak ditemukan.");
-      if(!store.pickup_name||!store.pickup_phone||!store.pickup_address||!/^\\d{5}$/.test(String(store.pickup_postal_code||""))){
+      if(!store.pickup_name||!store.pickup_phone||!store.pickup_address||!/^\d{5}$/.test(String(store.pickup_postal_code||""))){
         throw new Error(`Alamat pickup toko "${store.name||"seller"}" belum lengkap. Seller harus melengkapi alamat pickup dan kode pos.`);
       }
       if(!groups.has(String(store.id)))groups.set(String(store.id),{store,items:[]});
