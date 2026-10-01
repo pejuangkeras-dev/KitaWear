@@ -2519,6 +2519,15 @@ function setupMarketKitaChatRealtime(){
 }
 
 async function initMarketKitaAuth(){
+  // Expose auth handlers immediately so inline HTML handlers work even if
+  // the async Supabase initialization later encounters a configuration error.
+  window.marketKitaOpenAccountFallback=marketKitaOpenAccountFallback;
+  window.openAccount=openAccount;
+  window.closeAccount=closeAccount;
+  window.setAuthMode=setAuthMode;
+  window.submitAuth=submitAuth;
+  window.sendPasswordReset=sendPasswordReset;
+  window.updateForgottenPassword=updateForgottenPassword;
   try{
     const response=await fetch("/api/public-config",{cache:"no-store"});
     const cfg=await response.json();
