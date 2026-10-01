@@ -17,9 +17,9 @@ async function user(context,url,anon){
   const r=await fetch(url+"/auth/v1/user",{headers:{apikey:anon,Authorization:h}});
   if(!r.ok)return null; const d=await r.json().catch(()=>null); return d?.id?d:null;
 }
-function biteshipKey(env){return String(env.BITESHIP_API_KEY||"").trim();}
+function biteshipKey(env){return String(env.RAJAONGKIR_API_KEY||"").trim();}
 async function biteship(env,path,body){
-  const key=biteshipKey(env); if(!key) throw new Error("BITESHIP_API_KEY belum dipasang di Cloudflare.");
+  const key=biteshipKey(env); if(!key) throw new Error("RAJAONGKIR_API_KEY belum dipasang di Cloudflare.");
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),12000);
   let r;
