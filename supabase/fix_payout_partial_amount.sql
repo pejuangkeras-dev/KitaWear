@@ -1,6 +1,9 @@
 -- MarketKita: allow seller payout requests that partially consume eligible payout ledger rows.
 -- Fixes arbitrary payout amounts such as Rp100.000 when eligible ledger rows are Rp75.000 + Rp65.000.
 
+-- One order item may now be split between an eligible remainder and a paid payout allocation.
+alter table public.seller_payouts drop constraint if exists seller_payouts_order_item_id_key;
+
 create or replace function public.admin_review_payout_request(p_request_id uuid,p_decision text,p_admin_note text default null)
 returns jsonb language plpgsql security definer set search_path=''
 as $function$
