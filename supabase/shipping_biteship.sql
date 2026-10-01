@@ -22,11 +22,6 @@ alter table public.products
   add constraint products_shipping_dimensions_chk
   check (weight_gram > 0 and length_cm > 0 and width_cm > 0 and height_cm > 0);
 
-alter table public.orders
-  add column if not exists shipping_quote_id uuid references public.shipping_quotes(id),
-  add column if not exists shipping_postal_code text,
-  add column if not exists shipping_selections jsonb not null default '[]'::jsonb;
-
 create table if not exists public.shipping_quotes (
   id uuid primary key default gen_random_uuid(),
   buyer_id uuid not null references auth.users(id) on delete cascade,
@@ -60,6 +55,12 @@ create table if not exists public.shipping_shipments (
   last_webhook_at timestamptz,
   raw_response jsonb not null default '{}'::jsonb
 );
+
+
+alter table public.orders
+  add column if not exists shipping_quote_id uuid references public.shipping_quotes(id),
+  add column if not exists shipping_postal_code text,
+  add column if not exists shipping_selections jsonb not null default '[]'::jsonb;
 
 
 create index if not exists shipping_quotes_buyer_idx on public.shipping_quotes(buyer_id, created_at desc);
