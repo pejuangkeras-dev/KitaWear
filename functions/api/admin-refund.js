@@ -105,14 +105,9 @@ export async function onRequestPost(context){
     if(!orders?.length)return json({error:"Order sengketa tidak ditemukan."},404);
     const order=orders[0];
 
-    if(order.payment_status!=="paid"){
-      return json({error:"Order belum berstatus paid sehingga tidak dapat direfund melalui Midtrans."},400);
-    }
-
-    const midtransId=String(order.midtrans_order_id||order.midtrans_transaction_id||"").trim();
-    if(!midtransId)return json({error:"Order belum memiliki ID transaksi Midtrans."},400);
-
-    // Idempotency: do not call Midtrans again for an already submitted request.
+    // Idempotency must be checked before payment_status because the
+    // first successful refund request may already have moved the order
+    // to refunded while the provider confirmation is still pending.
     if(["requested","pending_confirmation","succeeded"].includes(String(request.status||""))){
       return json({
         ok:true,
@@ -123,6 +118,13 @@ export async function onRequestPost(context){
         already_requested:true
       });
     }
+
+    if(order.payment_status!=="paid"){
+      return json({error:"Order belum berstatus paid sehingga tidak dapat direfund melalui Midtrans."},400);
+    }
+
+    const midtransId=String(order.midtrans_order_id||order.midtrans_transaction_id||"").trim();
+    if(!midtransId)return json({error:"Order belum memiliki ID transaksi Midtrans."},400);
 
     const endpoint=production
       ? `https://api.midtrans.com/v2/${encodeURIComponent(midtransId)}/refund`
