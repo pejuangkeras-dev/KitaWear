@@ -7,408 +7,113 @@ function json(data,status=200){
     }
   })
 }
-
-function baseUrl(v){
-  return String(v||"").trim().replace(/\/+$/,"")
-}
-
-function sbHeaders(key,token){
-  return {
-    apikey:key,
-    Authorization:`Bearer ${token||key}`,
-    "Content-Type":"application/json"
-  }
-}
-
-async function sbFetch(url,key,path,opts={}){
-  const r=await fetch(`${url}${path}`,{
-    ...opts,
-    headers:{
-      ...sbHeaders(key,opts.token),
-      ...(opts.headers||{})
-    }
-  })
-
+function baseUrl(v){return String(v||"").trim().replace(/\/+$/,"")}
+function headers(key,token){return {apikey:key,Authorization:`Bearer ${token||key}`,"Content-Type":"application/json"}}
+async function fetchSb(url,key,path,opts={}){
+  const r=await fetch(url+path,{...opts,headers:{...headers(key,opts.token),...(opts.headers||{})}})
   const text=await r.text()
   let data=null
-
-  try{
-    data=text?JSON.parse(text):null
-  }catch{
-    data={raw:text}
-  }
-
-  if(!r.ok){
-    throw new Error(
-      data?.message||
-      data?.details||
-      data?.hint||
-      data?.error||
-      `Supabase HTTP ${r.status}`
-    )
-  }
-
+  try{data=text?JSON.parse(text):null}catch{data={raw:text}}
+  if(!r.ok)throw new Error(data?.message||data?.details||data?.hint||data?.error||`Supabase HTTP ${r.status}`)
   return data
 }
-
 async function getUser(url,anon,token){
-  const r=await fetch(`${url}/auth/v1/user`,{
-    headers:{
-      apikey:anon,
-      Authorization:`Bearer ${token}`
-    }
-  })
-
-  if(!r.ok)return null
-
-  return await r.json()
+  const r=await fetch(url+"/auth/v1/user",{headers:{apikey:anon,Authorization:`Bearer ${token}`}})
+  return r.ok?await r.json():null
+}
+async function rpcAsUser(url,anon,token,name,args){
+  return fetchSb(url,anon,"/rest/v1/rpc/"+name,{method:"POST",token,body:JSON.stringify(args)})
+}
+function reviewerName(profile,email){
+  return String(profile?.full_name||email?.split("@")[0]||"Pembeli")
 }
 
 export async function onRequestGet({request,env}){
   try{
     const url=baseUrl(env.SUPABASE_URL)
-    const key=String(env.SUPABASE_SERVICE_ROLE_KEY||"").trim()
+    const service=String(env.SUPABASE_SERVICE_ROLE_KEY||"").trim()
     const anon=String(env.SUPABASE_ANON_KEY||"").trim()
-
-    if(!url||!key){
-      return json({
-        error:"Konfigurasi Supabase server belum lengkap."
-      },500)
-    }
+    if(!url||!service||!anon)return json({error:"Konfigurasi Supabase server belum lengkap."},500)
 
     const q=new URL(request.url).searchParams
+    const type=q.get("type")==="seller"?"seller":"product"
+    const storeId=String(q.get("store_id")||"").trim()
+    const productId=String(q.get("product_id")||"").trim()
+    if(!storeId && type==="seller")return json({reviews:[],summary:{rating:0,count:0},canReview:false})
 
-    const type=q.get("type")||"seller"
-    const storeId=q.get("store_id")||""
-    const productId=q.get("product_id")||""
-    const productName=q.get("product_name")||""
+    let path="/rest/v1/product_reviews?select=id,order_id,order_item_id,product_id,buyer_id,store_id,rating,review_text,seller_reply,seller_replied_at,created_at&order=created_at.desc&limit=100"
+    if(type==="product" && productId) path+="&product_id=eq."+encodeURIComponent(productId)
+    if(type==="seller" && storeId) path+="&store_id=eq."+encodeURIComponent(storeId)
 
-    const auth=String(
-      request.headers.get("Authorization")||""
-    )
-
-    const token=auth
-      .replace(/^Bearer\s+/i,"")
-      .trim()
-
-    if(type==="seller"&&!storeId){
-      return json({
-        reviews:[],
-        summary:{rating:0,count:0},
-        canReview:false
-      })
+    const rows=Array.isArray(await fetchSb(url,service,path))?await fetchSb(url,service,path):[]
+    // Avoid a second identical request by replacing the above fetch with one cached below.
+    const raw=await fetchSb(url,service,path)
+    const reviews=Array.isArray(raw)?raw:[]
+    const buyerIds=[...new Set(reviews.map(x=>x.buyer_id).filter(Boolean))]
+    let names=new Map()
+    if(buyerIds.length){
+      const profiles=await fetchSb(url,service,"/rest/v1/profiles?select=id,full_name&id=in.("+buyerIds.join(",")+")")
+      names=new Map((Array.isArray(profiles)?profiles:[]).map(x=>[String(x.id),x.full_name]))
     }
-
-    let path=""
-
-    if(type==="product"){
-
-      if(!productId&&!productName){
-        return json({
-          reviews:[],
-          summary:{rating:0,count:0},
-          canReview:false
-        })
-      }
-
-      const filters=[]
-
-      if(productId){
-        filters.push(
-          `product_id=eq.${encodeURIComponent(productId)}`
-        )
-      }
-
-      if(productName){
-        filters.push(
-          `product_name=eq.${encodeURIComponent(productName)}`
-        )
-      }
-
-      path=
-        `/rest/v1/product_reviews`+
-        `?select=id,rating,comment,reviewer_name,created_at,product_id,product_name`+
-        `&${filters.join("&")}`+
-        `&order=created_at.desc&limit=100`
-
-    }else{
-
-      path=
-        `/rest/v1/seller_reviews`+
-        `?select=id,rating,comment,reviewer_name,created_at,store_id`+
-        `&store_id=eq.${encodeURIComponent(storeId)}`+
-        `&order=created_at.desc&limit=100`
-    }
-
-    const reviews=await sbFetch(
-      url,
-      key,
-      path
-    )
-
-    const rows=Array.isArray(reviews)
-      ? reviews
-      : []
-
-    const rating=rows.length
-      ? rows.reduce(
-          (a,x)=>a+Number(x.rating||0),
-          0
-        )/rows.length
-      : 0
+    const decorated=reviews.map(x=>({...x,reviewer_name:names.get(String(x.buyer_id))||"Pembeli",comment:x.review_text||""}))
+    const rating=decorated.length?decorated.reduce((a,x)=>a+Number(x.rating||0),0)/decorated.length:0
 
     let canReview=false
-
-    if(storeId && anon && token){
-      const user=await getUser(url,anon,token)
-      if(user?.email){
-        const orders=await sbFetch(url,key,
-          `/rest/v1/orders?select=id,status,customer_email&customer_email=eq.${encodeURIComponent(user.email)}&status=in.(delivered,completed)&limit=100`)
-        const orderIds=(Array.isArray(orders)?orders:[]).map(x=>x.id).filter(Boolean)
-        if(orderIds.length){
-          const itemPath=
-            `/rest/v1/order_items?select=id,order_id,store_id,product_id,product_name&store_id=eq.${encodeURIComponent(storeId)}`+
-            (type==="product" ? `&product_id=eq.${encodeURIComponent(productId)}` : "")+
-            `&order_id=in.(${orderIds.join(",")})&limit=500`
-          const items=await sbFetch(url,key,itemPath)
-          const matches=(Array.isArray(items)?items:[]).filter(x=>type==="seller" || (productId && x.product_id===productId))
-          if(matches.length){
-            const existingPath=type==="product"
-              ? `/rest/v1/product_reviews?select=id,order_id&reviewer_id=eq.${encodeURIComponent(user.id)}&product_id=eq.${encodeURIComponent(productId)}&order_id=in.(${orderIds.join(",")})&limit=100`
-              : `/rest/v1/seller_reviews?select=id,order_id&reviewer_id=eq.${encodeURIComponent(user.id)}&store_id=eq.${encodeURIComponent(storeId)}&order_id=in.(${orderIds.join(",")})&limit=100`
-            const existing=await sbFetch(url,key,existingPath)
-            const reviewed=new Set((Array.isArray(existing)?existing:[]).map(x=>x.order_id).filter(Boolean))
-            canReview=matches.some(x=>!reviewed.has(x.order_id))
-          }
+    let user=null
+    const auth=String(request.headers.get("Authorization")||"")
+    const token=auth.replace(/^Bearer\s+/i,"").trim()
+    if(token){
+      user=await getUser(url,anon,token)
+      if(user?.id && storeId){
+        const orders=await fetchSb(url,service,"/rest/v1/orders?select=id&buyer_id=eq."+encodeURIComponent(user.id)+"&status=eq.completed&payment_status=eq.paid&limit=100")
+        const ids=(Array.isArray(orders)?orders:[]).map(x=>x.id).filter(Boolean)
+        if(ids.length){
+          let itemPath="/rest/v1/order_items?select=id,order_id,product_id,store_id&store_id=eq."+encodeURIComponent(storeId)+"&order_id=in.("+ids.join(",")+")"
+          if(productId)itemPath+="&product_id=eq."+encodeURIComponent(productId)
+          const items=await fetchSb(url,service,itemPath)
+          canReview=(Array.isArray(items)?items:[]).some(x=>!reviews.some(r=>r.order_item_id===x.id&&r.buyer_id===user.id))
         }
       }
     }
-    return json({
-      reviews:rows,
-      summary:{
-        rating:Number(rating.toFixed(1)),
-        count:rows.length
-      },
-      canReview
-    })
-
+    return json({reviews:decorated,summary:{rating:Number(rating.toFixed(1)),count:decorated.length},canReview})
   }catch(e){
-
-    return json({
-      reviews:[],
-      summary:{rating:0,count:0},
-      canReview:false,
-      error:e.message||"Gagal mengambil ulasan."
-    },200)
+    return json({reviews:[],summary:{rating:0,count:0},canReview:false,error:e.message||"Gagal mengambil ulasan."},200)
   }
 }
 
 export async function onRequestPost({request,env}){
   try{
-
     const url=baseUrl(env.SUPABASE_URL)
-
-    const anon=String(
-      env.SUPABASE_ANON_KEY||""
-    ).trim()
-
-    const key=String(
-      env.SUPABASE_SERVICE_ROLE_KEY||""
-    ).trim()
-
-    const auth=String(
-      request.headers.get("Authorization")||""
-    )
-
-    const token=auth
-      .replace(/^Bearer\s+/i,"")
-      .trim()
-
-    if(!url||!anon||!key){
-      return json({
-        error:"Konfigurasi Supabase server belum lengkap."
-      },500)
-    }
-
-    if(!token){
-      return json({
-        error:"Silakan login terlebih dahulu untuk memberi ulasan."
-      },401)
-    }
-
-    const user=await getUser(
-      url,
-      anon,
-      token
-    )
-
-    if(!user?.id||!user.email){
-      return json({
-        error:"Sesi login tidak valid."
-      },401)
-    }
+    const anon=String(env.SUPABASE_ANON_KEY||"").trim()
+    if(!url||!anon)return json({error:"Konfigurasi Supabase server belum lengkap."},500)
+    const token=String(request.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"").trim()
+    if(!token)return json({error:"Silakan login terlebih dahulu untuk memberi ulasan."},401)
+    const user=await getUser(url,anon,token)
+    if(!user?.id)return json({error:"Sesi login tidak valid."},401)
 
     const body=await request.json()
-
-    const type=
-      body?.type==="product"
-      ? "product"
-      : "seller"
-
-    const storeId=
-      String(body?.store_id||"").trim()
-
-    const productId=
-      String(body?.product_id||"").trim()
-
-    const productName=
-      String(body?.product_name||"").trim()
-
+    const productId=String(body?.product_id||"").trim()
+    const storeId=String(body?.store_id||"").trim()
+    const productName=String(body?.product_name||"").trim()
     const rating=Number(body?.rating)
+    const comment=String(body?.comment||"").trim()
+    if(!storeId||!Number.isInteger(rating)||rating<1||rating>5||comment.length<3||comment.length>2000)
+      return json({error:"Rating atau ulasan belum valid."},400)
 
-    const comment=
-      String(body?.comment||"").trim()
-
-    if(
-      !storeId||
-      !Number.isInteger(rating)||
-      rating<1||
-      rating>5||
-      comment.length<3||
-      comment.length>1000
-    ){
-      return json({
-        error:"Rating atau ulasan belum valid."
-      },400)
+    let item=null
+    if(productId){
+      const rows=await fetchSb(url,String(env.SUPABASE_SERVICE_ROLE_KEY||"").trim(),"/rest/v1/order_items?select=id,order_id,product_id,store_id&buyer_id=eq."+encodeURIComponent(user.id)+"&product_id=eq."+encodeURIComponent(productId)+"&store_id=eq."+encodeURIComponent(storeId)+"&limit=100")
+      item=(Array.isArray(rows)?rows:[])[0]||null
+    }else{
+      const rows=await fetchSb(url,String(env.SUPABASE_SERVICE_ROLE_KEY||"").trim(),"/rest/v1/order_items?select=id,order_id,product_id,store_id&buyer_id=eq."+encodeURIComponent(user.id)+"&store_id=eq."+encodeURIComponent(storeId)+"&limit=100")
+      item=(Array.isArray(rows)?rows:[])[0]||null
     }
+    if(!item)return json({error:"Belum ada item pesanan yang sesuai untuk diberi ulasan."},403)
 
-    const orders=await sbFetch(
-      url,
-      key,
-      `/rest/v1/orders`+
-      `?select=id,status,customer_email`+
-      `&customer_email=eq.${encodeURIComponent(user.email)}`+
-      `&status=in.(delivered,completed)`+
-      `&limit=100`
-    )
-
-    const orderIds=
-      (Array.isArray(orders)?orders:[])
-      .map(x=>x.id)
-      .filter(Boolean)
-
-    if(!orderIds.length){
-      return json({
-        error:"Ulasan hanya tersedia setelah pesanan selesai."
-      },403)
-    }
-
-    const items=await sbFetch(
-      url,
-      key,
-      `/rest/v1/order_items`+
-      `?select=id,order_id,store_id,product_name`+
-      `&store_id=eq.${encodeURIComponent(storeId)}`+
-      `&order_id=in.(${orderIds.join(",")})`+
-      `&limit=500`
-    )
-
-    const matches=
-      (Array.isArray(items)?items:[])
-      .filter(
-        x=>
-          type==="seller"||
-          (
-            productName &&
-            x.product_name===productName
-          )
-      )
-
-    if(!matches.length){
-      return json({
-        error:
-          "Akun ini belum memiliki pesanan selesai untuk seller/produk tersebut."
-      },403)
-    }
-
-    const orderId=matches[0].order_id
-
-    const table=
-      type==="product"
-      ? "product_reviews"
-      : "seller_reviews"
-
-    const existingPath=
-      type==="product"
-      ?
-        `/rest/v1/product_reviews`+
-        `?select=id`+
-        `&reviewer_id=eq.${encodeURIComponent(user.id)}`+
-        `&product_name=eq.${encodeURIComponent(productName)}`+
-        `&order_id=eq.${encodeURIComponent(orderId)}`+
-        `&limit=1`
-      :
-        `/rest/v1/seller_reviews`+
-        `?select=id`+
-        `&reviewer_id=eq.${encodeURIComponent(user.id)}`+
-        `&store_id=eq.${encodeURIComponent(storeId)}`+
-        `&order_id=eq.${encodeURIComponent(orderId)}`+
-        `&limit=1`
-
-    const existing=
-      await sbFetch(
-        url,
-        key,
-        existingPath
-      )
-
-    if(
-      Array.isArray(existing)&&
-      existing.length
-    ){
-      return json({
-        error:"Anda sudah memberi ulasan untuk pesanan ini."
-      },409)
-    }
-
-    const row={
-      reviewer_id:user.id,
-      reviewer_name:
-        String(
-          user.user_metadata?.full_name||
-          user.email.split("@")[0]||
-          "Pembeli"
-        ),
-      order_id:orderId,
-      store_id:storeId,
-      rating,
-      comment
-    }
-
-    if(type==="product"){
-      row.product_id=productId||null
-      row.product_name=productName||""
-    }
-
-    await sbFetch(
-      url,
-      key,
-      `/rest/v1/${table}`,
-      {
-        method:"POST",
-        headers:{
-          Prefer:"return=minimal"
-        },
-        body:JSON.stringify(row)
-      }
-    )
-
-    return json({ok:true})
-
+    const result=await rpcAsUser(url,anon,token,"submit_product_review",{p_order_item_id:item.id,p_rating:rating,p_review_text:comment})
+    return json({ok:true,result})
   }catch(e){
-
-    return json({
-      error:e.message||"Gagal menyimpan ulasan."
-    },500)
+    const msg=e.message||"Gagal menyimpan ulasan."
+    return json({error:msg},msg.includes("sudah direview")?409:500)
   }
 }
