@@ -22,12 +22,37 @@ export async function onRequestPost(context){
   if(body.courier_type)patch.courier_type=body.courier_type;
   if(body.courier_link)patch.tracking_url=body.courier_link;
   await sb(u,k,`/rest/v1/shipping_shipments?id=eq.${encodeURIComponent(shipment.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(patch)});
-  await sb(u,k,`/rest/v1/order_sellers?id=eq.${encodeURIComponent(shipment.order_seller_id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({shipping_status:marketStatus,tracking_number:waybill||null,seller_status:marketStatus})});
-  if(marketStatus==="shipped")await sb(u,k,`/rest/v1/orders?id=eq.${encodeURIComponent(shipment.order_id)}&status=eq.paid`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"shipped",shipping_status:"shipped",shipped_at:new Date().toISOString()})});
-  if(marketStatus==="delivered"){
-    const sellers=await sb(u,k,`/rest/v1/order_sellers?select=shipping_status&order_id=eq.${encodeURIComponent(shipment.order_id)}`);
-    const allDelivered=(sellers||[]).length>0&&(sellers||[]).every(x=>["delivered","completed"].includes(String(x.shipping_status)));
-    if(allDelivered)await sb(u,k,`/rest/v1/orders?id=eq.${encodeURIComponent(shipment.order_id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"delivered",shipping_status:"delivered",delivered_at:new Date().toISOString()})});
+  const sellerPatch={
+    shipping_status:marketStatus,
+    tracking_number:waybill||null
+  };
+  if(["processing","shipped","delivered","cancelled"].includes(marketStatus)){
+    sellerPatch.seller_status=marketStatus==="delivered"?"completed":marketStatus;
+  }
+  await sb(u,k,`/rest/v1/order_sellers?id=eq.${encodeURIComponent(shipment.order_seller_id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(sellerPatch)});
+
+  const sellers=await sb(
+    u,k,
+    `/rest/v1/order_sellers?select=id,seller_status,shipping_status&order_id=eq.${encodeURIComponent(shipment.order_id)}`
+  );
+  const sellerRows=Array.isArray(sellers)?sellers:[];
+  const allShipped=sellerRows.length>0 && sellerRows.every(x=>["shipped","delivered","completed"].includes(String(x.shipping_status||"")));
+  const allDelivered=sellerRows.length>0 && sellerRows.every(x=>["delivered"].includes(String(x.shipping_status||"")));
+
+  if(marketStatus==="shipped" && allShipped){
+    await sb(u,k,`/rest/v1/orders?id=eq.${encodeURIComponent(shipment.order_id)}&status=eq.paid`,{
+      method:"PATCH",
+      headers:{Prefer:"return=minimal"},
+      body:JSON.stringify({status:"shipped",shipping_status:"shipped",shipped_at:new Date().toISOString()})
+    });
+  }
+
+  if(marketStatus==="delivered" && allDelivered){
+    await sb(u,k,`/rest/v1/orders?id=eq.${encodeURIComponent(shipment.order_id)}&status=eq.shipped`,{
+      method:"PATCH",
+      headers:{Prefer:"return=minimal"},
+      body:JSON.stringify({status:"delivered",shipping_status:"delivered",delivered_at:new Date().toISOString()})
+    });
   }
   return json({ok:true,event,market_status:marketStatus});
  }catch(e){console.error("MarketKita Biteship webhook:",e?.message||e);return json({error:e?.message||"Webhook gagal diproses."},500);}
