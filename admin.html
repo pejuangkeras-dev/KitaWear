@@ -2149,16 +2149,58 @@ async function loadDisputes(){
 
 let pendingRefundDisputeId = null;
 
-function openRefundReasonModal(id){
+async function openRefundReasonModal(id){
   pendingRefundDisputeId = id;
   const input = document.getElementById("refundReasonInput");
+  const button = document.getElementById("confirmRefundReasonBtn");
   input.value = "";
+  button.disabled = false;
+  button.textContent = "Kirim Refund";
   document.getElementById("refundReasonModal").classList.add("show");
-  setTimeout(()=>input.focus(),50);
+
+  // If this dispute already has a refund request, never ask the admin
+  // to submit a second refund. This also handles an order already marked
+  // refunded while the provider confirmation is still pending.
+  try{
+    const {data,error}=await supabaseClient
+      .from("refund_requests")
+      .select("status,refund_key,amount,midtrans_status_code,midtrans_refund_chargeback_id")
+      .eq("dispute_id",id)
+      .maybeSingle();
+
+    if(!error && data && ["requested","pending_confirmation","succeeded"].includes(String(data.status||""))){
+      const label =
+        data.status==="succeeded"
+          ? "Refund Sudah Terkonfirmasi"
+          : "Refund Sudah Dikirim";
+
+      button.disabled = true;
+      button.textContent = label;
+
+      input.value =
+        data.status==="succeeded"
+          ? "Refund ini sudah dikonfirmasi oleh payment provider."
+          : "Refund sudah dikirim ke Midtrans dan sedang menunggu konfirmasi payment provider.";
+
+      input.readOnly = true;
+    }else{
+      input.readOnly = false;
+      setTimeout(()=>input.focus(),50);
+    }
+  }catch(error){
+    input.readOnly = false;
+    setTimeout(()=>input.focus(),50);
+  }
 }
 
 function closeRefundReasonModal(){
   pendingRefundDisputeId = null;
+  const input=document.getElementById("refundReasonInput");
+  const button=document.getElementById("confirmRefundReasonBtn");
+  input.readOnly=false;
+  input.value="";
+  button.disabled=false;
+  button.textContent="Kirim Refund";
   document.getElementById("refundReasonModal").classList.remove("show");
 }
 
