@@ -2808,7 +2808,8 @@ function showAccountSection(section){
   if(nav) nav.classList.add("active");
   if(section==="orders") loadBuyerOrders();
   if(section==="address") loadBuyerAddresses();
-  if(section==="alerts") loadNotifications();
+  if(section==="alerts"){ loadNotifications(); ensureNotificationRealtime(); }
+  if(section==="notifications") loadNotificationPreferences();
   if(section==="messages") loadBuyerChats();
   if(section==="voucher") loadVouchers();
   if(section==="disputes") loadBuyerDisputes();
@@ -3483,6 +3484,7 @@ async function logoutAccount(){
     const result=await kwSupabase.auth.signOut();
     if(result.error) throw result.error;
 
+    if(marketKitaNotificationChannel&&kwSupabase){try{await kwSupabase.removeChannel(marketKitaNotificationChannel);}catch(e){}} marketKitaNotificationChannel=null;
     kwCurrentUser=null;
     kwCurrentProfile=null;
     updateAccountButton(null,null);
@@ -3500,6 +3502,17 @@ async function logoutAccount(){
 }
 
 
+let marketKitaNotificationChannel=null;
+function ensureNotificationRealtime(){
+  if(!kwSupabase||!kwCurrentUser||marketKitaNotificationChannel)return;
+  marketKitaNotificationChannel=kwSupabase.channel("marketkita-notifications-"+kwCurrentUser.id)
+    .on("postgres_changes",{event:"*",schema:"public",table:"notifications",filter:"user_id=eq."+kwCurrentUser.id},()=>{
+      refreshNotificationUnread();
+      const alerts=document.getElementById("accountSection-alerts");
+      if(alerts?.classList.contains("active")) loadNotifications();
+    })
+    .subscribe();
+}
 async function refreshNotificationUnread(){
   if(!kwSupabase||!kwCurrentUser)return;
   const badge=document.getElementById("notificationUnreadBadge");
@@ -3539,8 +3552,8 @@ async function loadNotificationPreferences(){
   const {data,error}=await kwSupabase.from("notification_preferences").select("*").eq("user_id",kwCurrentUser.id).maybeSingle();
   if(error){console.warn("notification preferences:",error.message);return;}
   const p=data||{};
-  const map={order:"notifPrefOrder",chat:"notifPrefChat",payout:"notifPrefPayout",dispute:"notifPrefDispute",promotion:"notifPrefPromotion",system:"notifPrefSystem"};
-  for(const [key,id] of Object.entries(map)){const el=document.getElementById(id);if(el)el.checked=p[key+"_updates"]===undefined?p[key]!==false:p[key+"_updates"]!==false;}
+  const map={order:["notifPrefOrder","order_updates"],chat:["notifPrefChat","chat_messages"],payout:["notifPrefPayout","payout_updates"],dispute:["notifPrefDispute","dispute_updates"],promotion:["notifPrefPromotion","promotions"],system:["notifPrefSystem","system_updates"]};
+  for(const key of Object.keys(map)){const [id,column]=map[key];const el=document.getElementById(id);if(el)el.checked=p[column]!==false;}
 }
 async function saveNotificationPreferences(){
   if(!kwSupabase||!kwCurrentUser)return;
