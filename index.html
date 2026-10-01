@@ -1278,6 +1278,7 @@ function closeSearch(e){
   if(e&&e.target!==modal)return;modal.classList.remove("show");modal.setAttribute("aria-hidden","true");
 }
 const MARKET_WISHLIST_KEY="marketkita_wishlist_v1";
+const MARKET_WISHLIST_OWNER_KEY="marketkita_wishlist_owner_v1";
 let marketFilters={query:"",category:"",store:"",min:"",max:"",sort:"default"};
 let wishlistIds=new Set();
 function loadWishlist(){try{const v=JSON.parse(localStorage.getItem(MARKET_WISHLIST_KEY)||"[]");wishlistIds=new Set(Array.isArray(v)?v.map(String):[]);}catch(e){wishlistIds=new Set();}}
@@ -1289,11 +1290,13 @@ async function syncWishlistFromAccount(){
   try{
     const q=await kwSupabase.from("wishlists").select("product_id").eq("user_id",kwCurrentUser.id);
     if(q.error)throw q.error;
+    const previousOwner=String(localStorage.getItem(MARKET_WISHLIST_OWNER_KEY)||"");
     const serverIds=new Set((q.data||[]).map(x=>String(x.product_id)));
-    const localIds=Array.from(wishlistIds);
+    const localIds=previousOwner && previousOwner!==String(kwCurrentUser.id) ? [] : Array.from(wishlistIds);
     localIds.forEach(id=>serverIds.add(id));
     wishlistIds=serverIds;
     localStorage.setItem(MARKET_WISHLIST_KEY,JSON.stringify(Array.from(wishlistIds)));
+    localStorage.setItem(MARKET_WISHLIST_OWNER_KEY,String(kwCurrentUser.id));
     const rows=localIds.filter(id=>products.some(p=>String(p.id)===String(id))).map(id=>({user_id:kwCurrentUser.id,product_id:id}));
     if(rows.length) await kwSupabase.from("wishlists").upsert(rows,{onConflict:"user_id,product_id"});
     updateWishlistCount();render();renderRecommendations();
