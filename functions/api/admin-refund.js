@@ -52,20 +52,25 @@ export async function onRequestPost(context){
 
     const body=await context.request.json();
     const disputeId=String(body?.dispute_id||"").trim();
-    const reason=String(body?.reason||"Sengketa MarketKita").trim().slice(0,255);
+    const reason=String(body?.reason||"Refund sengketa MarketKita").trim().slice(0,255);
     if(!disputeId)return json({error:"dispute_id wajib diisi."},400);
 
-    const disputes=await supabaseRequest(
+    const begin=await supabaseRequest(
       supabaseUrl,serviceKey,
-      `/rest/v1/disputes?select=id,order_id,buyer_id,status,reason,description& id=eq.${encodeURIComponent(disputeId)}&limit=1`.replace("%20","")
+      "/rest/v1/rpc/admin_begin_dispute_refund",
+      {method:"POST",body:JSON.stringify({p_dispute_id:disputeId,p_reason:reason})}
     );
-    if(!disputes?.length)return json({error:"Sengketa tidak ditemukan."},404);
-    const dispute=disputes[0];
-    if(!["open","reviewing"].includes(String(dispute.status)))return json({error:"Sengketa sudah diproses."},409);
+
+    const request=Array.isArray(begin)?begin[0]:begin;
+    const refundKey=String(request?.refund_key||"").trim();
+    const amount=Number(request?.amount||0);
+    if(!refundKey||!Number.isFinite(amount)||amount<=0){
+      return json({error:"Refund request tidak valid."},500);
+    }
 
     const orders=await supabaseRequest(
       supabaseUrl,serviceKey,
-      `/rest/v1/orders?select=id,order_number,midtrans_order_id,midtrans_transaction_id,total,payment_status,status&id=eq.${encodeURIComponent(dispute.order_id)}&limit=1`
+      `/rest/v1/orders?select=id,order_number,midtrans_order_id,midtrans_transaction_id,total,payment_status,status&id=eq.${encodeURIComponent(String(request.order_id))}&limit=1`
     );
     if(!orders?.length)return json({error:"Order sengketa tidak ditemukan."},404);
     const order=orders[0];
@@ -74,11 +79,21 @@ export async function onRequestPost(context){
     const midtransId=String(order.midtrans_order_id||order.midtrans_transaction_id||"").trim();
     if(!midtransId)return json({error:"Order belum memiliki ID transaksi Midtrans."},400);
 
+    if(["requested","pending_confirmation","succeeded"].includes(String(request.status||""))){
+      return json({
+        ok:true,
+        dispute_id:disputeId,
+        order_id:order.id,
+        refund_key:refundKey,
+        status:request.status,
+        already_requested:true
+      });
+    }
+
     const endpoint=production
       ? `https://api.midtrans.com/v2/${encodeURIComponent(midtransId)}/refund`
       : `https://api.sandbox.midtrans.com/v2/${encodeURIComponent(midtransId)}/refund`;
 
-    const refundKey=`MK-REFUND-${disputeId}`;
     const refundResponse=await fetch(endpoint,{
       method:"POST",
       headers:{
@@ -88,7 +103,7 @@ export async function onRequestPost(context){
       },
       body:JSON.stringify({
         refund_key:refundKey,
-        amount:Number(order.total),
+        amount,
         reason
       })
     });
@@ -96,8 +111,46 @@ export async function onRequestPost(context){
     let refundData=null;
     try{refundData=refundText?JSON.parse(refundText):null}catch{refundData={raw:refundText};}
 
-    if(!refundResponse.ok){
+    const midtransStatus=String(refundData?.transaction_status||"").toLowerCase();
+    const midtransCode=String(refundData?.status_code||"").trim();
+
+    if(!refundResponse.ok || !["refund","partial_refund"].includes(midtransStatus)){
+      await supabaseRequest(
+        supabaseUrl,serviceKey,
+        "/rest/v1/rpc/service_update_refund_request",
+        {method:"POST",body:JSON.stringify({
+          p_refund_key:refundKey,
+          p_status:"failed",
+          p_status_code:midtransCode||String(refundResponse.status),
+          p_status_message:String(refundData?.status_message||refundData?.message||"Midtrans menolak request refund."),
+          p_raw_response:refundData||{},
+          p_error_message:String(refundData?.status_message||refundData?.message||"Midtrans menolak request refund.")
+        })}
+      );
       return json({
+        error:refundData?.status_message||refundData?.message||"Midtrans menolak request refund.",
+        midtrans:refundData
+      },502);
+    }
+
+    const fullRefund=midtransStatus==="refund" && Number(refundData?.refund_amount||0)>=amount;
+    await supabaseRequest(
+      supabaseUrl,serviceKey,
+      "/rest/v1/rpc/service_update_refund_request",
+      {method:"POST",body:JSON.stringify({
+        p_refund_key:refundKey,
+        p_status:fullRefund?"pending_confirmation":"pending_confirmation",
+        p_status_code:midtransCode||"200",
+        p_status_message:String(refundData?.status_message||"Refund request diterima Midtrans."),
+        p_refund_chargeback_id:refundData?.refund_chargeback_id!=null?String(refundData.refund_chargeback_id):null,
+        p_refund_amount:Number(refundData?.refund_amount||0)||null,
+        p_midtrans_transaction_id:String(refundData?.transaction_id||order.midtrans_transaction_id||"")||null,
+        p_raw_response:refundData||{},
+        p_error_message:null
+      })}
+    );
+
+    return json({
         error:refundData?.status_message||refundData?.message||"Midtrans menolak request refund.",
         midtrans:refundData
       },502);
