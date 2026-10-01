@@ -17,7 +17,7 @@ export async function onRequestPost(context){
   const items=await sb(u,k,`/rest/v1/order_items?select=product_id,store_id,product_name,size,quantity,unit_price,line_total&order_id=eq.${encodeURIComponent(order.id)}`);
   const results=[];
   for(const seller of (os||[])){
-   const existing=await sb(u,k,`/rest/v1/shipping_shipments?select=id,provider_order_id,waybill_id&id=eq.${encodeURIComponent(seller.id)}&limit=1`);
+   const existing=await sb(u,k,`/rest/v1/shipping_shipments?select=id,provider_order_id,waybill_id&order_seller_id=eq.${encodeURIComponent(seller.id)}&limit=1`);
    if(existing?.length){results.push(existing[0]);continue;}
    const choice=selected.find(x=>String(x.store_id)===String(seller.store_id));
    if(!choice)throw new Error("Pilihan kurir seller tidak ditemukan.");
