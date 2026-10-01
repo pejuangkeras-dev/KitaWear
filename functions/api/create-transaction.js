@@ -331,6 +331,9 @@ export async function onRequestPost(context) {
     if (!/^\d{5}$/.test(String(shippingAddress.postal_code || ""))) {
       return json({ error: "Kode pos alamat pengiriman harus 5 digit." }, 400);
     }
+    if (!/^[0-9+][0-9 ()-]{7,19}$/.test(String(shippingAddress.phone || ""))) {
+      return json({ error: "Nomor WhatsApp pada alamat pengiriman tidak valid." }, 400);
+    }
 
     // The saved address is the source of truth. Client-entered checkout fields cannot
     // silently replace the address snapshot stored with the order.
