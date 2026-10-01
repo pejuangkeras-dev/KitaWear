@@ -83,6 +83,18 @@ function bindAddressChange(){
  select.addEventListener("change",()=>scheduleQuote());
  select.__mkShippingBound=true;
 }
-setInterval(()=>{wrap();bindAddressChange();},300);
-document.addEventListener("DOMContentLoaded",()=>{wrap();bindAddressChange();});
+function bindCheckoutObserver(){
+ const modal=document.getElementById("checkoutModal");
+ if(!modal||modal.__mkShippingObserved)return;
+ const observer=new MutationObserver(()=>{
+  if(modal.classList.contains("show")){
+   bindAddressChange();
+   scheduleQuote();
+  }
+ });
+ observer.observe(modal,{attributes:true,attributeFilter:["class"]});
+ modal.__mkShippingObserved=true;
+}
+setInterval(()=>{wrap();bindAddressChange();bindCheckoutObserver();},300);
+document.addEventListener("DOMContentLoaded",()=>{wrap();bindAddressChange();bindCheckoutObserver();});
 })();
