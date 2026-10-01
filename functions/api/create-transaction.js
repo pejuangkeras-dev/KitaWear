@@ -486,6 +486,35 @@ export async function onRequestPost(context) {
     }
 
     const quoteGroups = Array.isArray(shippingQuote.selections) ? shippingQuote.selections : [];
+    const quoteStoreIds = new Set(quoteGroups.map(g => String(g?.store_id || "").trim()).filter(Boolean));
+    const currentStoreIds = new Set(groups.map(g => String(g.store_id)));
+    if (quoteStoreIds.size !== currentStoreIds.size || [...quoteStoreIds].some(id => !currentStoreIds.has(id))) {
+      return json({ error: "Keranjang berubah setelah ongkir dihitung. Silakan hitung ulang ongkir." }, 409);
+    }
+
+    // Bind the quote to the exact cart snapshot used to calculate shipping.
+    // This prevents reusing a valid quote for a different cart with the same seller set.
+    const quoteItems = Array.isArray(shippingQuote?.request_snapshot?.items)
+      ? shippingQuote.request_snapshot.items
+      : [];
+    const canonicalItem = item => [
+      String(item?.product_id || ""),
+      String(item?.size || "").trim().toUpperCase(),
+      Number(item?.quantity || 0)
+    ].join("|");
+    const currentItemKeys = items
+      .map(item => canonicalItem(item))
+      .sort();
+    const quotedItemKeys = quoteItems
+      .map(item => canonicalItem(item))
+      .sort();
+    if (
+      currentItemKeys.length !== quotedItemKeys.length ||
+      currentItemKeys.some((key, index) => key !== quotedItemKeys[index])
+    ) {
+      return json({ error: "Isi keranjang berubah setelah ongkir dihitung. Silakan hitung ulang ongkir." }, 409);
+    }
+
     const selectedByStore = new Map();
     for (const selected of shippingSelections) {
       const storeId = String(selected?.store_id || "").trim();
@@ -507,6 +536,9 @@ export async function onRequestPost(context) {
       if (!selectedByStore.has(String(group.store_id))) {
         return json({ error: `Pilih layanan kurir untuk toko ${group.store_name}.` }, 400);
       }
+    }
+    if (selectedByStore.size !== groups.length || [...selectedByStore.keys()].some(id => !currentStoreIds.has(String(id)))) {
+      return json({ error: "Pilihan kurir tidak sesuai dengan seller di keranjang." }, 400);
     }
 
     const shippingFee = [...selectedByStore.values()].reduce((sum, x) => sum + safeInteger(x.price, 0), 0);
