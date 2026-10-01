@@ -36,7 +36,7 @@ begin
   if not exists(select 1 from public.profiles where id=v_user and role='seller') then raise exception 'SELLER_REQUIRED'; end if;
   if p_from > p_to then raise exception 'INVALID_DATE_RANGE'; end if;
   return query
-  select (o.paid_at at time zone 'Asia/Jakarta')::date,
+  select (coalesce(o.paid_at,o.updated_at,o.created_at) at time zone 'Asia/Jakarta')::date,
          count(distinct o.id),
          coalesce(sum(os.subtotal + os.shipping_fee),0)::bigint,
          coalesce(sum(os.platform_fee),0)::bigint,
