@@ -5,8 +5,8 @@ const rp=v=>"Rp"+Number(v||0).toLocaleString("id-ID");
 function box(){let x=document.getElementById("mkShippingBox");if(x)return x;const ref=document.getElementById("buyerAddress");if(!ref)return null;x=document.createElement("div");x.id="mkShippingBox";x.style.cssText="margin:12px 0;padding:14px;border:1px solid #ded9cf;border-radius:14px;background:#fffdf9";ref.closest(".field")?.after(x);return x;}
 function render(){
  const x=box();if(!x)return;
- if(state.loading){x.innerHTML="<strong>🚚 Menghitung ongkir…</strong><div style='font-size:11px;color:#777;margin-top:5px'>Mengambil tarif kurir dari Biteship.</div>";return;}
- if(!state.sellers.length){x.innerHTML="<strong>🚚 Pengiriman otomatis</strong><div style='font-size:11px;color:#777;margin-top:5px'>Pilih alamat tersimpan untuk menghitung pilihan kurir.</div>";return;}
+ if(state.loading){x.innerHTML="<strong>🚚 Menghitung ongkir…</strong><div style='font-size:11px;color:#777;margin-top:5px'>Mengambil tarif kurir dari Biteship.</div>";updateShippingSummary("Menghitung…");updatePayState();return;}
+ if(!state.sellers.length){x.innerHTML="<strong>🚚 Pengiriman otomatis</strong><div style='font-size:11px;color:#777;margin-top:5px'>Pilih alamat tersimpan untuk menghitung pilihan kurir.</div>";updateShippingSummary("Menunggu alamat");updatePayState();return;}
  let total=0;
  const html=state.sellers.map(g=>{
   const sel=state.selected[g.store_id]; total+=Number(sel?.price||0);
@@ -20,7 +20,21 @@ function render(){
  x.querySelectorAll("[data-mkship]").forEach(el=>el.addEventListener("change",()=>{const [store,company,type]=el.dataset.mkship.split("|");const g=state.sellers.find(x=>String(x.store_id)===store);const o=g?.options.find(x=>x.courier_company===company&&x.courier_type===type);if(o)state.selected[store]={...o,store_id:store,store_name:g.store_name};render();updateTotal(totalShipping());}));
 }
 function totalShipping(){return Object.values(state.selected).reduce((a,x)=>a+Number(x.price||0),0);}
-function updateTotal(ship=totalShipping()){const base=((typeof cart!=="undefined"?cart:[])||[]).reduce((s,x)=>s+Number(x.price||0)*Number(x.quantity||0),0);const el=document.getElementById("checkoutTotal");if(el)el.textContent=rp(base+ship);}
+function updateShippingSummary(message,amount=null){
+ const el=document.getElementById("checkoutShippingSummary");if(!el)return;
+ el.innerHTML=amount!=null?"<span>Ongkir</span><strong>"+rp(amount)+"</strong>":"<span>Ongkir</span><strong>"+esc(message||"Menunggu perhitungan")+"</strong>";
+}
+function updatePayState(){
+ const btn=document.getElementById("payButton");if(!btn)return;
+ const ready=Boolean(state.quoteId&&state.sellers.length&&Object.keys(state.selected).length===state.sellers.length);
+ btn.disabled=!ready;
+ btn.title=ready?"":"Pilih alamat dan tunggu ongkir tersedia.";
+}
+function updateTotal(ship=totalShipping()){
+ const base=((typeof cart!=="undefined"?cart:[])||[]).reduce((s,x)=>s+Number(x.price||0)*Number(x.quantity||0),0);
+ const el=document.getElementById("checkoutTotal");if(el)el.textContent=rp(base+ship);
+ updateShippingSummary(null,ship);updatePayState();
+}
 async function sessionToken(){try{const s=(typeof kwSupabase!=="undefined"&&kwSupabase?.auth)?await kwSupabase.auth.getSession():null;return s?.data?.session?.access_token||"";}catch{return"";}}
 async function quote(){
  const select=document.getElementById("buyerAddressSelect"),id=select?.value;if(!id||!Array.isArray(typeof cart!=="undefined"?cart:null)||!window.cart.length){state={quoteId:null,sellers:[],selected:{},loading:false};render();return;}
@@ -31,8 +45,8 @@ async function quote(){
   const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Gagal menghitung ongkir.");
   state.quoteId=d.quote_id;state.sellers=d.sellers||[];state.selected={};
   for(const g of state.sellers){const o=g.options?.[0];if(o)state.selected[g.store_id]={...o,store_id:g.store_id,store_name:g.store_name};}
-  state.loading=false;render();updateTotal();
- }catch(e){state.loading=false;state.sellers=[];state.selected={};render();const x=box();if(x)x.innerHTML="<strong>⚠️ Ongkir belum tersedia</strong><div style='font-size:11px;color:#777;margin-top:5px'>"+esc(e.message||"Periksa alamat dan data pickup seller.")+"</div>";const t=document.getElementById("checkoutTotal");if(t)t.textContent=rp(((typeof cart!=="undefined"?cart:[])||[]).reduce((s,x)=>s+Number(x.price||0)*Number(x.quantity||0),0));}
+  state.loading=false;render();updateTotal();updatePayState();
+ }catch(e){state.loading=false;state.sellers=[];state.selected={};render();const x=box();if(x)x.innerHTML="<strong>⚠️ Ongkir belum tersedia</strong><div style='font-size:11px;color:#777;margin-top:5px'>"+esc(e.message||"Periksa alamat dan data pickup seller.")+"</div>";updateShippingSummary(e.message||"Tidak tersedia");const t=document.getElementById("checkoutTotal");if(t)t.textContent=rp(((typeof cart!=="undefined"?cart:[])||[]).reduce((s,x)=>s+Number(x.price||0)*Number(x.quantity||0),0));updatePayState();}
 }
 const originalFetch=window.fetch.bind(window);
 window.fetch=async function(input,init){
