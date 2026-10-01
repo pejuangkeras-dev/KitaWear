@@ -254,7 +254,8 @@ export async function onRequestPost(context) {
     const shouldIgnore =
       currentPayment === "refunded" ||
       (currentPayment === "paid" && ["pending", "failed", "expired"].includes(incomingPayment)) ||
-      (["failed", "expired"].includes(currentPayment) && ["pending", "paid"].includes(incomingPayment));
+      (["failed", "expired"].includes(currentPayment) && ["pending", "paid"].includes(incomingPayment)) ||
+      (String(order.status || "").toLowerCase() === "cancelled" && incomingPayment === "paid");
 
     if (shouldIgnore) {
       await supabaseRequest(
@@ -341,7 +342,11 @@ await supabaseRequest(
 
       // If a paid order is fully refunded, restore its stock exactly once.
     // restore_order_stock is idempotent via orders.stock_restored_at.
-    if (mapped.paymentStatus === "refunded" && String(body?.transaction_status || "").toLowerCase() === "refund") {
+    const refundStatus = String(body?.transaction_status || "").toLowerCase();
+    const refundAmount = Number(body?.refund_amount);
+    const isFullRefund = refundStatus === "refund" && Number.isFinite(refundAmount) && refundAmount >= orderAmount;
+
+    if (mapped.paymentStatus === "refunded" && isFullRefund) {
       await supabaseRequest(
         supabaseUrl,
         serviceRoleKey,
