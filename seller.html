@@ -331,7 +331,11 @@ Memuat...
 <span id="payoutRequestMsg" class="msg" style="margin:0"></span>
 </div>
 <div id="payoutRequestList"></div>
+<div style="margin-top:18px">
+<h3 style="margin:0 0 10px">Riwayat Payout</h3>
+<div class="notice" style="margin-bottom:12px">Riwayat berasal langsung dari ledger payout seller.</div>
 <div id="payoutList" class="empty">Memuat...</div>
+</div>
 </div>
 
 </div>
@@ -1297,80 +1301,20 @@ async function requestSellerPayout(){
 }
 
 async function loadPayouts(){
-
-const q=await sb
-.from('seller_payouts')
-.select('*')
-.eq('seller_id',user.id)
-.order('created_at',{ascending:false});
-
-if(q.error)throw q.error;
-
-const rows=q.data||[];
-
-$('sPayout').textContent=
-money(
-rows
-.filter(x=>['eligible','paid'].includes(x.status))
-.reduce(
-(a,x)=>a+(x.net_amount||0),
-0
-)
-);
-
-$('payoutList').innerHTML=
-rows.length
-?
-`
-<div class="tablewrap">
-
-<table class="table">
-
-<thead>
-
-<tr>
-<th>Order</th>
-<th>Gross</th>
-<th>Fee</th>
-<th>Net</th>
-<th>Status</th>
-</tr>
-
-</thead>
-
-<tbody>
-
-${rows.map(x=>`
-
-<tr>
-
-<td>${esc(x.order_id)}</td>
-
-<td>${money(x.gross_amount)}</td>
-
-<td>${money(x.platform_fee)}</td>
-
-<td>
-<strong>${money(x.net_amount)}</strong>
-</td>
-
-<td>${pill(x.status)}</td>
-
-</tr>
-
-`).join('')}
-
-</tbody>
-
-</table>
-
-</div>
-`
-:
-'Belum ada payout.'
-
+  const q=await sb.from('seller_payouts')
+    .select('id,order_id,order_item_id,gross_amount,platform_fee,net_amount,status,paid_at,created_at')
+    .eq('seller_id',user.id).order('created_at',{ascending:false});
+  if(q.error)throw q.error;
+  const rows=q.data||[];
+  $('sPayout').textContent=money(rows.filter(x=>['eligible','paid'].includes(x.status)).reduce((a,x)=>a+(Number(x.net_amount)||0),0));
+  const labels={eligible:'Siap dicairkan',paid:'Sudah dibayar',pending:'Menunggu',refunded:'Dikembalikan'};
+  const classes={eligible:'green',paid:'green',pending:'amber',refunded:'red'};
+  $('payoutList').innerHTML=rows.length
+    ? '<div class="tablewrap"><table class="table"><thead><tr><th>Order</th><th>Gross</th><th>Fee</th><th>Net</th><th>Status</th><th>Waktu</th></tr></thead><tbody>'+
+      rows.map(x=>'<tr><td><strong>'+esc(String(x.order_id||'').slice(0,8))+'</strong><br><small>Item '+esc(String(x.order_item_id||'').slice(0,8))+'</small></td><td>'+money(x.gross_amount)+'</td><td>'+money(x.platform_fee)+'</td><td><strong>'+money(x.net_amount)+'</strong></td><td><span class="pill '+(classes[x.status]||'')+'">'+esc(labels[x.status]||x.status)+'</span></td><td>'+esc(x.paid_at?new Date(x.paid_at).toLocaleString('id-ID'):new Date(x.created_at).toLocaleString('id-ID'))+'</td></tr>').join('')+
+      '</tbody></table></div>'
+    : '<div class="notice">Belum ada riwayat payout.</div>';
 }
-
 $('sellerOrderSearch')
 .addEventListener(
 'input',
