@@ -17,21 +17,31 @@ async function user(context,url,anon){
   const r=await fetch(url+"/auth/v1/user",{headers:{apikey:anon,Authorization:h}});
   if(!r.ok)return null; const d=await r.json().catch(()=>null); return d?.id?d:null;
 }
-function biteshipKey(env){return String(env.RAJAONGKIR_API_KEY||"").trim();}
-async function biteship(env,path,body){
-  const key=biteshipKey(env); if(!key) throw new Error("RAJAONGKIR_API_KEY belum dipasang di Cloudflare.");
+function rajaKey(env){return String(env.RAJAONGKIR_API_KEY||"").trim();}
+async function raja(env,path,method="GET",body=null){
+  const key=rajaKey(env);
+  if(!key) throw new Error("RAJAONGKIR_API_KEY belum dipasang di Cloudflare.");
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),12000);
   let r;
   try{
-    r=await fetch("https://api.biteship.com"+path,{method:"POST",headers:{authorization:key,"content-type":"application/json"},body:JSON.stringify(body),signal:controller.signal});
+    const headers={key,"Content-Type":"application/x-www-form-urlencoded"};
+    r=await fetch("https://rajaongkir.komerce.id/api/v1"+path,{method,headers,body,signal:controller.signal});
   }catch(error){
-    if(error?.name==="AbortError")throw new Error("Biteship tidak merespons dalam 12 detik. Coba hitung ongkir lagi.");
-    throw new Error("Gagal terhubung ke Biteship: "+(error?.message||"network error"));
+    if(error?.name==="AbortError")throw new Error("RajaOngkir tidak merespons dalam 12 detik.");
+    throw new Error("Gagal terhubung ke RajaOngkir: "+(error?.message||"network error"));
   }finally{clearTimeout(timer);}
   const t=await r.text(); let d={}; try{d=t?JSON.parse(t):{};}catch{d={};}
-  if(!r.ok||d?.success===false) throw new Error(d?.message||d?.error||("Biteship gagal (HTTP "+r.status+")."));
+  if(!r.ok||d?.meta?.status!=="success")throw new Error(d?.meta?.message||d?.message||("RajaOngkir gagal (HTTP "+r.status+")."));
   return d;
+}
+async function rajaDestination(env,postal){
+  const d=await raja(env,"/destination/domestic-destination?search="+encodeURIComponent(postal)+"&limit=20&offset=0");
+  const rows=Array.isArray(d?.data)?d.data:[];
+  const exact=rows.find(x=>String(x.zip_code||"")===String(postal));
+  const row=exact||rows[0];
+  if(!row?.id)throw new Error("Kode pos "+postal+" tidak ditemukan di RajaOngkir.");
+  return row;
 }
 export async function onRequestPost(context){
   try{
@@ -65,20 +75,27 @@ export async function onRequestPost(context){
       });
     }
 
-    const courierList=String(body.couriers||"jne,jnt,sicepat,anteraja,wahana,tiki").trim();
+    const courierList=String(body.couriers||"jne:sicepat:jnt:ninja:tiki:lion:anteraja:pos:wahana").trim().replace(/,/g,":");
     const selections=[];
     const sellerQuotes=[];
     for(const [storeId,g] of groups){
-      const payload={origin_postal_code:Number(g.store.pickup_postal_code),destination_postal_code:Number(address.postal_code),couriers:courierList,items:g.items};
-      if(g.store.pickup_latitude!=null&&g.store.pickup_longitude!=null){payload.origin_latitude=Number(g.store.pickup_latitude);payload.origin_longitude=Number(g.store.pickup_longitude);}
-      const rate=await biteship(env,"/v1/rates/couriers",payload);
-      const pricing=Array.isArray(rate?.pricing)?rate.pricing:[];
-      if(!pricing.length)throw new Error(`Tidak ada layanan kurir tersedia untuk toko ${g.store.name||storeId}.`);
+      const origin=await rajaDestination(env,String(g.store.pickup_postal_code));
+      const destination=await rajaDestination(env,String(address.postal_code));
+      const weight=Math.max(1,Math.ceil(g.items.reduce((sum,item)=>sum+Number(item.weight||500)*Number(item.quantity||1),0)));
+      const form=new URLSearchParams();
+      form.set("origin",String(origin.id));
+      form.set("destination",String(destination.id));
+      form.set("weight",String(weight));
+      form.set("courier",courierList);
+      form.set("price","lowest");
+      const rate=await raja(env,"/calculate/domestic-cost","POST",form.toString());
+      const pricing=Array.isArray(rate?.data)?rate.data:[];
+      if(!pricing.length)throw new Error("Tidak ada layanan kurir tersedia untuk toko "+(g.store.name||storeId)+".");
       const options=pricing.map(x=>({
-        courier_company:x.company||x.courier_code,courier_name:x.courier_name||x.company,courier_type:x.type||x.courier_service_code,
-        service_code:x.courier_service_code||x.type,service_name:x.courier_service_name||x.courier_service_code,
-        price:Number(x.price||0),shipping_fee:Number(x.shipping_fee||x.price||0),duration:x.duration||null,
-        collection_methods:x.available_collection_method||["pickup"]
+        courier_company:x.code||x.name,courier_name:x.name||x.code,courier_type:x.service||x.code,
+        service_code:x.service||x.code,service_name:x.service||x.code,
+        price:Number(x.cost||0),shipping_fee:Number(x.cost||0),duration:x.etd||null,
+        collection_methods:["pickup"]
       })).filter(x=>x.price>0);
       sellerQuotes.push({store_id:storeId,store_name:g.store.name,options});
     }
