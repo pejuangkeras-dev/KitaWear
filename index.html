@@ -3495,14 +3495,18 @@ async function loadVouchers(){
   if(!root||!kwSupabase)return;
   const {data,error}=await kwSupabase.from("vouchers").select("*").eq("active",true).order("created_at",{ascending:false});
   if(error){root.textContent=error.message;return;}
-  const claimed=kwCurrentUser ? (await kwSupabase.from("user_vouchers").select("voucher_id").eq("user_id",kwCurrentUser.id)).data||[] : [];
-  const claimedSet=new Set(claimed.map(x=>String(x.voucher_id)));
+  const claimedRows=kwCurrentUser ? (await kwSupabase.from("user_vouchers").select("voucher_id,used_at").eq("user_id",kwCurrentUser.id)).data||[] : [];
+  const claimedMap=new Map(claimedRows.map(x=>[String(x.voucher_id),x]));
   if(!data?.length){root.innerHTML="Belum ada voucher aktif.";return;}
   root.className="";
   root.innerHTML=data.map(v=>{
     const desc=(v.discount_type==="percent"?v.discount_value+"%":"Rp"+Number(v.discount_value||0).toLocaleString("id-ID"))+" OFF";
-    const claimed=claimedSet.has(String(v.id));
-    return '<div class="voucher-item"><strong>'+escDetail(v.code)+' · '+escDetail(v.title)+'</strong><p>'+desc+' · Min. transaksi '+rupiah(v.min_order_amount)+'</p><p>Berlaku sampai '+(v.expires_at?new Date(v.expires_at).toLocaleDateString("id-ID"):"tanpa batas")+'</p><button '+(claimed?"disabled":"")+' onclick="claimVoucher(\''+v.id+'\')">'+(claimed?"Sudah Diklaim":"Klaim Voucher")+'</button></div>';
+    const claim=claimedMap.get(String(v.id));
+    const claimed=Boolean(claim);
+    const used=Boolean(claim?.used_at);
+    const statusLabel=used?"Sudah Digunakan":claimed?"Sudah Diklaim":"Tersedia";
+    const actionLabel=used?"Sudah Digunakan":claimed?"Sudah Diklaim":"Klaim Voucher";
+    return '<div class="voucher-item"><strong>'+escDetail(v.code)+' · '+escDetail(v.title)+'</strong><p>'+desc+' · Min. transaksi '+rupiah(v.min_order_amount)+'</p><p>Berlaku sampai '+(v.expires_at?new Date(v.expires_at).toLocaleDateString("id-ID"):"tanpa batas")+'</p><p style="font-weight:800">'+statusLabel+'</p><button '+(claimed?"disabled":"")+' onclick="claimVoucher(\''+v.id+'\')">'+actionLabel+'</button></div>';
   }).join("");
 }
 async function claimVoucher(id){
