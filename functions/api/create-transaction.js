@@ -303,6 +303,8 @@ export async function onRequestPost(context) {
       String(customer.address || "").trim();
 
     const voucherId = String(body?.voucher_id || "").trim();
+    const shippingQuoteId = String(body?.shipping_quote_id || "").trim();
+    const shippingSelections = Array.isArray(body?.shipping_selections) ? body.shipping_selections : [];
 
     if (!name || !email || !phone || !address) {
       return json({
@@ -422,14 +424,52 @@ export async function onRequestPost(context) {
       }, 400);
     }
 
-    /*
-     * Untuk tahap awal marketplace:
-     * ongkir dan platform fee tetap 0.
-     * Nanti akan kita kembangkan menjadi
-     * per-seller shipping + commission.
-     */
+    if (!buyerUser?.id) {
+      return json({ error: "Login diperlukan untuk checkout dengan pengiriman otomatis." }, 401);
+    }
+    if (!shippingQuoteId || !shippingSelections.length) {
+      return json({ error: "Pilih layanan kurir untuk setiap toko sebelum melanjutkan pembayaran." }, 400);
+    }
 
-    const shippingFee = 0;
+    const quoteRows = await supabaseRequest(
+      supabaseUrl,
+      serviceRoleKey,
+      `/rest/v1/shipping_quotes?select=id,buyer_id,status,expires_at,selections&buyer_id=eq.${encodeURIComponent(buyerUser.id)}&id=eq.${encodeURIComponent(shippingQuoteId)}&limit=1`,
+      { method: "GET" }
+    );
+    const shippingQuote = Array.isArray(quoteRows) ? quoteRows[0] : null;
+    if (!shippingQuote || shippingQuote.status !== "active") {
+      return json({ error: "Quote ongkir sudah tidak tersedia. Silakan hitung ulang." }, 400);
+    }
+    if (new Date(shippingQuote.expires_at).getTime() <= Date.now()) {
+      return json({ error: "Quote ongkir sudah kedaluwarsa. Silakan hitung ulang." }, 400);
+    }
+
+    const quoteGroups = Array.isArray(shippingQuote.selections) ? shippingQuote.selections : [];
+    const selectedByStore = new Map();
+    for (const selected of shippingSelections) {
+      const storeId = String(selected?.store_id || "").trim();
+      const company = String(selected?.courier_company || "").trim().toLowerCase();
+      const type = String(selected?.courier_type || "").trim().toLowerCase();
+      if (!storeId || !company || !type || selectedByStore.has(storeId)) {
+        return json({ error: "Pilihan kurir tidak valid." }, 400);
+      }
+      const group = quoteGroups.find(g => String(g.store_id) === storeId);
+      const option = group?.options?.find(o =>
+        String(o.courier_company).toLowerCase() === company &&
+        String(o.courier_type).toLowerCase() === type
+      );
+      if (!option) return json({ error: "Pilihan kurir sudah berubah. Silakan hitung ongkir ulang." }, 409);
+      selectedByStore.set(storeId, { ...option, store_id: storeId, store_name: group.store_name });
+    }
+
+    for (const group of groups) {
+      if (!selectedByStore.has(String(group.store_id))) {
+        return json({ error: `Pilih layanan kurir untuk toko ${group.store_name}.` }, 400);
+      }
+    }
+
+    const shippingFee = [...selectedByStore.values()].reduce((sum, x) => sum + safeInteger(x.price, 0), 0);
     const platformFee = 0;
 
     let discountAmount = 0;
@@ -513,7 +553,7 @@ export async function onRequestPost(context) {
               orderNumber,
 
             buyer_id:
-              buyerUser?.id || null,
+              buyerUser.id,
 
             customer_name:
               name,
@@ -541,6 +581,9 @@ export async function onRequestPost(context) {
 
             shipping_fee:
               shippingFee,
+
+            shipping_quote_id:
+              shippingQuoteId,
 
             total:
               total,
@@ -658,10 +701,10 @@ export async function onRequestPost(context) {
           0,
 
         shipping_fee:
-          0,
+          safeInteger(selectedByStore.get(String(group.store_id))?.price, 0),
 
         total:
-          group.subtotal,
+          group.subtotal + safeInteger(selectedByStore.get(String(group.store_id))?.price, 0),
 
         seller_status:
           "pending",
