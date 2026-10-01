@@ -31,6 +31,9 @@ begin
     raise exception 'Belum semua pengiriman seller berstatus barang sampai.';
   end if;
 
+  -- Ensure every paid order item has a payout ledger before making it eligible.
+  perform public.create_order_payouts(p_order_id);
+
   update public.orders
   set status='completed'::public.order_status, delivered_at=coalesce(delivered_at,now()),
       completed_at=coalesce(completed_at,now()), shipping_status='delivered', updated_at=now()
@@ -61,7 +64,8 @@ begin
     '?account=orders');
 
   return jsonb_build_object('ok',true,'order_id',p_order_id,'status','completed',
-    'payout_rows_eligible',v_payout_count);
+    'payout_rows_eligible',v_payout_count,
+    'payout_rows_total',(select count(*) from public.seller_payouts where order_id=p_order_id));
 end;
 $function$;
 
