@@ -1432,80 +1432,27 @@ async function initSupabase(){
 
   try{
 
-    const response = await fetch(
-      "/api/public-config",
-      {
-        method:"GET",
-        cache:"no-store",
-        headers:{
-          "Accept":"application/json"
-        }
-      }
-    );
-
-    const raw = await response.text();
-
-    let config = null;
-
-    try{
-
-      config = JSON.parse(raw);
-
-    }catch(error){
-
-      console.error(
-        "Public config response:",
-        raw.slice(0,500)
-      );
-
-      throw new Error(
-        "Endpoint konfigurasi tidak mengembalikan JSON yang valid."
-      );
-
+    /*
+      Gunakan client yang dibuat oleh auth-guard.js.
+      auth-guard.js memakai cookie storage yang sama di seluruh
+      MarketKita sehingga session dari homepage/login tetap tersedia
+      saat admin.html dibuka.
+    */
+    if(!window.KWAuth || typeof window.KWAuth.getClient !== "function"){
+      throw new Error("Auth guard MarketKita belum siap.");
     }
 
-    if(!response.ok || config?.error){
+    supabaseClient = await window.KWAuth.getClient();
 
-      throw new Error(
-        config?.error ||
-        `Gagal memuat konfigurasi (${response.status}).`
-      );
+    const { data, error } = await supabaseClient.auth.getUser();
 
+    if(error && error.message){
+      console.warn("Supabase auth check:", error.message);
     }
 
-    SUPABASE_URL =
-      String(
-        config?.supabaseUrl || ""
-      ).trim();
-
-    SUPABASE_ANON_KEY =
-      String(
-        config?.supabaseAnonKey || ""
-      ).trim();
-
-    if(
-      !SUPABASE_URL ||
-      !SUPABASE_ANON_KEY
-    ){
-
-      throw new Error(
-        "Konfigurasi Supabase belum lengkap di Cloudflare Environment Variables."
-      );
-
+    if(data?.user){
+      currentUser = data.user;
     }
-
-    supabaseClient =
-      window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY,
-        {
-          auth:{
-            autoRefreshToken:true,
-            persistSession:true,
-            detectSessionInUrl:true
-          }
-        }
-      );
 
     return true;
 
@@ -1518,7 +1465,7 @@ async function initSupabase(){
 
     showNotice(
       error?.message ||
-      "Gagal memuat konfigurasi Supabase.",
+      "Gagal memuat autentikasi Supabase.",
       "error"
     );
 
