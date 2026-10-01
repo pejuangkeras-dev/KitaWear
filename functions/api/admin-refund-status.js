@@ -70,7 +70,7 @@ export async function onRequestPost(context){
 
     const refunds=await supabaseRequest(
       supabaseUrl,serviceKey,
-      `/rest/v1/refund_requests?select=id,dispute_id,order_id,refund_key,amount,status,midtrans_status_code,midtrans_status_message,midtrans_refund_chargeback_id,refund_amount,midtrans_transaction_id,bank_confirmed_at,error_message&dispute_id=eq.${encodeURIComponent(disputeId)}&limit=1`
+      `/rest/v1/refund_requests?select=id,dispute_id,order_id,refund_key,amount,status,midtrans_status_code,midtrans_status_message,midtrans_refund_chargeback_id,midtrans_refund_amount,midtrans_transaction_id,bank_confirmed_at,error_message&dispute_id=eq.${encodeURIComponent(disputeId)}&limit=1`
     );
     if(!refunds?.length)return json({error:"Refund request belum dibuat untuk sengketa ini."},404);
 
