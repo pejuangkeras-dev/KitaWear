@@ -20,9 +20,17 @@ async function user(context,url,anon){
 function biteshipKey(env){return String(env.BITESHIP_API_KEY||"").trim();}
 async function biteship(env,path,body){
   const key=biteshipKey(env); if(!key) throw new Error("BITESHIP_API_KEY belum dipasang di Cloudflare.");
-  const r=await fetch("https://api.biteship.com"+path,{method:"POST",headers:{authorization:key,"content-type":"application/json"},body:JSON.stringify(body)});
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),12000);
+  let r;
+  try{
+    r=await fetch("https://api.biteship.com"+path,{method:"POST",headers:{authorization:key,"content-type":"application/json"},body:JSON.stringify(body),signal:controller.signal});
+  }catch(error){
+    if(error?.name==="AbortError")throw new Error("Biteship tidak merespons dalam 12 detik. Coba hitung ongkir lagi.");
+    throw new Error("Gagal terhubung ke Biteship: "+(error?.message||"network error"));
+  }finally{clearTimeout(timer);}
   const t=await r.text(); let d={}; try{d=t?JSON.parse(t):{};}catch{d={};}
-  if(!r.ok||d?.success===false) throw new Error(d?.message||d?.error||"Biteship gagal menghitung ongkir.");
+  if(!r.ok||d?.success===false) throw new Error(d?.message||d?.error||("Biteship gagal (HTTP "+r.status+")."));
   return d;
 }
 export async function onRequestPost(context){
