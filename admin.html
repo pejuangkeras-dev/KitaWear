@@ -1385,7 +1385,8 @@ tr:last-child td{
       <textarea id="refundReasonInput" class="search" style="width:100%;min-height:110px;padding:12px;resize:vertical;margin-top:8px" maxlength="500" placeholder="Contoh: Barang rusak dan sengketa disetujui untuk refund buyer."></textarea>
       <div class="muted" style="margin-top:7px">Alasan ini dicatat pada permintaan refund.</div>
       <div class="modal-actions">
-        <button id="cancelRefundReasonBtn" class="btn" type="button">Batal</button>
+        <button id="cancelRefundReasonBtn" class="btn" type="button">Tutup</button>
+        <button id="refundStatusBtn" class="btn" type="button" style="display:none">Cek Status Midtrans</button>
         <button id="confirmRefundReasonBtn" class="btn btn-dark" type="button">Kirim Refund</button>
       </div>
     </div>
@@ -2169,6 +2170,7 @@ async function openRefundReasonModal(id){
       .maybeSingle();
 
     if(!error && data && ["requested","pending_confirmation","succeeded"].includes(String(data.status||""))){
+      const statusBtn=document.getElementById("refundStatusBtn");
       const label =
         data.status==="succeeded"
           ? "Refund Sudah Terkonfirmasi"
@@ -2176,20 +2178,68 @@ async function openRefundReasonModal(id){
 
       button.disabled = true;
       button.textContent = label;
-
-      input.value =
-        data.status==="succeeded"
-          ? "Refund ini sudah dikonfirmasi oleh payment provider."
-          : "Refund sudah dikirim ke Midtrans dan sedang menunggu konfirmasi payment provider.";
-
       input.readOnly = true;
+
+      if(data.status==="pending_confirmation" || data.status==="requested"){
+        statusBtn.style.display="inline-flex";
+        statusBtn.disabled=false;
+        statusBtn.textContent="Cek Status Midtrans";
+        input.value="Refund sudah dikirim ke Midtrans dan sedang menunggu konfirmasi payment provider.";
+      }else{
+        statusBtn.style.display="none";
+        input.value="Refund ini sudah dikonfirmasi oleh payment provider.";
+      }
     }else{
+      document.getElementById("refundStatusBtn").style.display="none";
       input.readOnly = false;
       setTimeout(()=>input.focus(),50);
     }
   }catch(error){
+    document.getElementById("refundStatusBtn").style.display="none";
     input.readOnly = false;
     setTimeout(()=>input.focus(),50);
+  }
+}
+
+async function checkRefundStatus(){
+  const id=pendingRefundDisputeId;
+  if(!id)return;
+  const btn=document.getElementById("refundStatusBtn");
+  const input=document.getElementById("refundReasonInput");
+  btn.disabled=true;
+  btn.textContent="Mengecek...";
+  try{
+    const sessionResult=await supabaseClient.auth.getSession();
+    const token=sessionResult?.data?.session?.access_token;
+    if(!token)throw new Error("Session admin tidak ditemukan.");
+
+    const response=await fetch("/api/admin-refund-status",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+token
+      },
+      body:JSON.stringify({dispute_id:id})
+    });
+    const data=await response.json().catch(()=>null);
+    if(!response.ok)throw new Error(data?.error||"Gagal mengecek status refund.");
+
+    if(data?.status==="succeeded"){
+      input.value="Refund sudah dikonfirmasi oleh Midtrans/payment provider.";
+      btn.style.display="none";
+      document.getElementById("confirmRefundReasonBtn").textContent="Refund Sudah Terkonfirmasi";
+      showNotice("Refund sudah dikonfirmasi Midtrans.","success");
+      await loadDisputes();
+      await loadOrders();
+    }else{
+      input.value="Refund masih menunggu konfirmasi payment provider. Belum ada bank_confirmed_at.";
+      showNotice("Refund masih pending confirmation di Midtrans.","info");
+    }
+  }catch(e){
+    showNotice(e.message||"Gagal mengecek status refund.","error");
+  }finally{
+    btn.disabled=false;
+    btn.textContent="Cek Status Midtrans";
   }
 }
 
@@ -2197,10 +2247,14 @@ function closeRefundReasonModal(){
   pendingRefundDisputeId = null;
   const input=document.getElementById("refundReasonInput");
   const button=document.getElementById("confirmRefundReasonBtn");
+  const statusBtn=document.getElementById("refundStatusBtn");
   input.readOnly=false;
   input.value="";
   button.disabled=false;
   button.textContent="Kirim Refund";
+  statusBtn.disabled=false;
+  statusBtn.style.display="none";
+  statusBtn.textContent="Cek Status Midtrans";
   document.getElementById("refundReasonModal").classList.remove("show");
 }
 
@@ -3304,6 +3358,7 @@ document.getElementById("refreshSellerApplicationsBtn").addEventListener("click"
 document.getElementById("closeRefundReasonBtn").addEventListener("click",closeRefundReasonModal);
 document.getElementById("cancelRefundReasonBtn").addEventListener("click",closeRefundReasonModal);
 document.getElementById("confirmRefundReasonBtn").addEventListener("click",submitRefundReason);
+document.getElementById("refundStatusBtn").addEventListener("click",checkRefundStatus);
 document.getElementById("refundReasonModal").addEventListener("click",event=>{
   if(event.target.id==="refundReasonModal") closeRefundReasonModal();
 });
