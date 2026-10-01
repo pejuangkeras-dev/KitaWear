@@ -807,6 +807,19 @@ ${(p.product_sizes||[])
 
 }
 
+async function loadShipmentStatus(orderIds){
+  const ids=[...new Set((orderIds||[]).filter(Boolean))];
+  if(!ids.length)return new Map();
+  const q=await sb.from('shipping_shipments')
+    .select('order_id,provider,courier_company,courier_type,waybill_id,provider_tracking_id,status,tracking_url,updated_at')
+    .in('order_id',ids)
+    .order('updated_at',{ascending:false});
+  if(q.error)throw q.error;
+  const map=new Map();
+  (q.data||[]).forEach(x=>{ if(!map.has(String(x.order_id))) map.set(String(x.order_id),x); });
+  return map;
+}
+
 async function loadOrders(){
 
   const q = await sb.rpc(
@@ -832,6 +845,7 @@ async function loadOrders(){
     seller_status: x.seller_status,
     shipping_status: x.shipping_status,
     tracking_number: x.tracking_number,
+    shipment: null,
     seller_note: x.seller_note,
     admin_note: x.admin_note,
     orders: {
@@ -849,6 +863,9 @@ async function loadOrders(){
       created_at: x.created_at
     }
   }));
+
+  const shipmentMap = await loadShipmentStatus(rows.map(x=>x.order_id));
+  rows.forEach(x=>{ x.shipment = shipmentMap.get(String(x.order_id)) || null; });
 
   window.sellerOrderRows = rows;
 
@@ -953,7 +970,7 @@ ${pill(status)}
 <br>
 ${pill(o.payment_status)}
 </td>
-<td>${esc(x.tracking_number||'—')}</td>
+<td>${x.tracking_number ? `<strong>${esc(x.tracking_number)}</strong>` : '—'}${x.shipment ? `<br><small>${esc(x.shipment.courier_company||x.shipment.provider||'Kurir')} · ${esc(x.shipment.status||'diproses')}</small>` : ''}</td>
 <td>
 <button class="btn light" onclick="openOrderModal('${x.order_id}')">Detail</button>
 ${sellerStatusActions(status,x.order_id)}
