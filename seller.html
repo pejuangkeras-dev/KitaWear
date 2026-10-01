@@ -1407,7 +1407,7 @@ closeOrderModal()
 }
 );
 
-init();
+init().then(()=>loadPhase3Business()).catch(()=>{});
 
 async function loadPhase3Business(){
   try{
