@@ -837,6 +837,21 @@ export async function onRequestPost(context) {
           `${item.product_name} - ${item.store_name} - Size ${item.size}`
       }));
 
+    // Midtrans requires gross_amount to equal the exact sum of item_details.
+    // Shipping is part of the order total, so represent each seller's
+    // selected shipping charge as its own line item.
+    for (const selected of selectedByStore.values()) {
+      const price = safeInteger(selected?.price, 0);
+      if (price > 0) {
+        itemDetails.push({
+          id: `SHIPPING-${selected.store_id}`,
+          price,
+          quantity: 1,
+          name: `Ongkir ${selected.store_name} - ${selected.service_name || selected.courier_type || "Pengiriman"}`
+        });
+      }
+    }
+
     if (discountAmount > 0) {
       itemDetails.push({
         id: "VOUCHER-" + (voucherRow?.code || "DISCOUNT"),
