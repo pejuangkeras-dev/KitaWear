@@ -997,8 +997,7 @@ body{background:var(--bg);color:var(--ink)}
             <div class="profile-form narrow-form">
               <div class="profile-row"><label>Password Baru</label><div><input id="accountNewPassword" type="password" minlength="6" autocomplete="new-password"></div></div>
               <div class="profile-row"><label>Ulangi Password</label><div><input id="accountNewPasswordConfirm" type="password" minlength="6" autocomplete="new-password"></div></div>
-              <div class="profile-actions"><button class="profile-save" type="button" onclick="changeAccountPassword()">Simpan Password</button><span id="passwordMessage"></span></div>
-            </div>
+              <div class="profile-actions"><button class="profile-save" type="button" onclick="changeAccountPassword()">Simpan Password</button><span id="passwordMessage"></span></div>            </div>
           </div>
 
           <div id="accountSection-orders" class="account-section"><div class="account-page-head"><div><h3>Pesanan Saya</h3><p>Riwayat pesanan dan status pengiriman Anda.</p></div><button type="button" class="orders-refresh" onclick="loadBuyerOrders()">↻ Muat Ulang</button></div><div class="order-filter-row"><button class="order-filter active" data-order-filter="all" onclick="filterBuyerOrders('all')">Semua</button><button class="order-filter" data-order-filter="pending_payment" onclick="filterBuyerOrders('pending_payment')">Belum Bayar</button><button class="order-filter" data-order-filter="processing" onclick="filterBuyerOrders('processing')">Diproses</button><button class="order-filter" data-order-filter="shipped" onclick="filterBuyerOrders('shipped')">Dikirim</button><button class="order-filter" data-order-filter="completed" onclick="filterBuyerOrders('completed')">Selesai</button></div><div id="buyerOrdersList" class="buyer-orders-list"><div class="account-empty">Memuat pesanan...</div></div></div>
@@ -1998,7 +1997,6 @@ function showKwNotice(message,title=t("notice_required")){
   const messageEl=document.getElementById("kwNoticeMessage");
   const button=document.getElementById("kwNoticeButton");
   if(!overlay || !titleEl || !messageEl || !button) return;
-
   titleEl.textContent=title;
   messageEl.textContent=message;
   button.textContent=t("notice_understood");
@@ -2998,7 +2996,6 @@ function buyerOrderStatusLabel(status){
 function buyerOrderStatusClass(status){
   return String(status||"pending").replace(/[^a-z_]/g,"");
 }
-
 function filterBuyerOrders(filter){
   buyerOrderFilter=filter||"all";
   document.querySelectorAll(".order-filter").forEach(btn=>{
