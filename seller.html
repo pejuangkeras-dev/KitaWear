@@ -1538,6 +1538,15 @@ async function p14SellerAction(id,status){
   toast("Status retur diperbarui.");await loadP14SellerReturns();
  }catch(e){toast(e.message||"Gagal memperbarui retur.")}
 }
+async function p14OpenEvidence(id){
+ const paths=window.p14EvidenceMap?.[id]||[];if(!paths.length){toast("Tidak ada bukti.");return}
+ try{
+  for(const path of paths){
+   const s=await sb.storage.from("return-evidence").createSignedUrl(path,300);
+   if(s.error)throw s.error;if(s.data?.signedUrl)window.open(s.data.signedUrl,"_blank","noopener,noreferrer");
+  }
+ }catch(e){toast(e.message||"Bukti tidak dapat dibuka.")}
+}
 async function loadP14SellerReturns(){
  const root=$("p14SellerReturnsList");if(!root||!store)return;
  root.textContent="Memuat retur...";
@@ -1545,6 +1554,7 @@ async function loadP14SellerReturns(){
   const status=String($("p14SellerReturnFilter")?.value||"");
   let q=sb.from("return_requests").select("id,order_id,order_item_id,type,reason,description,evidence_urls,status,requested_amount,approved_amount,resolution_note,return_tracking_number,replacement_tracking_number,seller_note,requested_at,approved_at,resolved_at").eq("seller_id",user.id).order("created_at",{ascending:false}).limit(100);
   if(status)q=q.eq("status",status);const r=await q;if(r.error)throw r.error;const rows=r.data||[];
+  window.p14EvidenceMap={};rows.forEach(x=>window.p14EvidenceMap[x.id]=Array.isArray(x.evidence_urls)?x.evidence_urls:[]);
   if(!rows.length){root.innerHTML='<div class="notice">Belum ada pengajuan retur.</div>';return}
   root.innerHTML='<div class="tablewrap"><table class="table"><thead><tr><th>Pengajuan</th><th>Jenis</th><th>Alasan</th><th>Status</th><th>Nominal</th><th>Aksi</th></tr></thead><tbody>'+rows.map(x=>{
    let actions="";
@@ -1553,7 +1563,7 @@ async function loadP14SellerReturns(){
    else if(x.status==="shipping_back")actions='<button class="btn green" type="button" onclick="p14SellerAction(\''+x.id+'\',\'received\')">Tandai Diterima</button>';
    else if(x.status==="received")actions='<span class="pill amber">Menunggu penyelesaian admin</span>';
    else if(x.status==="resolved")actions='<span class="pill green">Selesai</span>';
-   return '<tr><td><strong>'+esc(x.id.slice(0,8))+'</strong><br><small>'+new Date(x.requested_at).toLocaleString("id-ID")+'</small></td><td>'+esc(x.type==="replacement"?"Penggantian":"Retur & Refund")+'</td><td>'+esc(x.reason)+'<br><small>'+esc(x.description||"")+'</small></td><td>'+pill(x.status)+'</td><td>'+money(x.approved_amount||x.requested_amount||0)+'</td><td><div class="order-actions">'+actions+'</div></td></tr>'
+   return '<tr><td><strong>'+esc(x.id.slice(0,8))+'</strong><br><small>'+new Date(x.requested_at).toLocaleString("id-ID")+'</small></td><td>'+esc(x.type==="replacement"?"Penggantian":"Retur & Refund")+'</td><td>'+esc(x.reason)+'<br><small>'+esc(x.description||"")+'</small>'+(Array.isArray(x.evidence_urls)&&x.evidence_urls.length?'<br><button class="btn light" type="button" style="margin-top:6px" onclick="p14OpenEvidence(\''+x.id+'\')">Lihat bukti ('+x.evidence_urls.length+')</button>':'')+'</td><td>'+pill(x.status)+'</td><td>'+money(x.approved_amount||x.requested_amount||0)+'</td><td><div class="order-actions">'+actions+'</div></td></tr>'
   }).join("")+'</tbody></table></div>';
  }catch(e){root.innerHTML='<div class="notice">'+esc(e.message||"Gagal memuat retur.")+'</div>'}
 }
