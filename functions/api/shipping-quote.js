@@ -57,7 +57,14 @@ export async function onRequestPost(context){
       address_line:String(manualRaw.address_line||"").trim(),
       city:String(manualRaw.city||"").trim(),
       province:String(manualRaw.province||"").trim(),
-      postal_code:String(manualRaw.postal_code||"").trim()
+      district:String(manualRaw.district||"").trim(),
+      subdistrict:String(manualRaw.subdistrict||"").trim(),
+      postal_code:String(manualRaw.postal_code||"").trim(),
+      destination_id:String(body.location?.destination_id||body.destination_id||"").trim(),
+      province_id:String(body.location?.province_id||"").trim(),
+      city_id:String(body.location?.city_id||"").trim(),
+      district_id:String(body.location?.district_id||"").trim(),
+      subdistrict_id:String(body.location?.subdistrict_id||"").trim()
     };
     const hasManual=Boolean(manualAddress.address_line||manualAddress.city||manualAddress.province||manualAddress.postal_code);
     const rawItems=Array.isArray(body.items)?body.items:[];
