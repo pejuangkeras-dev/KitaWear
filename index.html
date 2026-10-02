@@ -2305,7 +2305,7 @@ function applyCheckoutAddress(id){
   const name=document.getElementById('buyerName'); if(name&&a.recipient_name)name.value=a.recipient_name;
   const phone=document.getElementById('buyerPhone'); if(phone&&a.phone)phone.value=a.phone;
 }
-async async function loadCheckoutProvinces(){
+async function loadCheckoutProvinces(){
   const select=document.getElementById("buyerManualProvince"); if(!select)return;
   select.innerHTML='<option value="">Memuat provinsi...</option>';
   try{
@@ -2316,7 +2316,7 @@ async async function loadCheckoutProvinces(){
     select.onchange=()=>loadCheckoutCities(select.value);
   }catch(e){select.innerHTML='<option value="">Gagal memuat provinsi</option>';console.warn(e);}
 }
-async async function loadCheckoutCities(provinceId){
+async function loadCheckoutCities(provinceId){
   const select=document.getElementById("buyerManualCity"); if(!select)return;
   select.disabled=true; select.innerHTML='<option value="">Memuat kota/kabupaten...</option>';
   if(!provinceId){select.innerHTML='<option value="">Pilih provinsi terlebih dahulu</option>'; return;}
