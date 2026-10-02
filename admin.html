@@ -3770,16 +3770,27 @@ async function setAdminStoreStatus(storeId,status){
 async function loadAdminReviews(){
   const root=$('adminReviewsContainer');if(!root)return;
   try{
-    const [p,s]=await Promise.all([
-      supabaseClient.from('product_reviews').select('id,product_id,store_id,rating,review_text,seller_reply,created_at').order('created_at',{ascending:false}).limit(100),
-      supabaseClient.from('seller_reviews').select('id,store_id,rating,comment,reviewer_name,created_at').order('created_at',{ascending:false}).limit(100)
-    ]);
-    if(p.error)throw p.error;if(s.error)throw s.error;
-    window.adminProductReviews=p.data||[];window.adminSellerReviews=s.data||[];
-    const pa=window.adminProductReviews.reduce((a,x)=>a+Number(x.rating||0),0),sa=window.adminSellerReviews.reduce((a,x)=>a+Number(x.rating||0),0);
-    $('adminProductReviewCount').textContent=String(window.adminProductReviews.length);$('adminSellerReviewCount').textContent=String(window.adminSellerReviews.length);
-    $('adminProductAvgRating').textContent=window.adminProductReviews.length?(pa/window.adminProductReviews.length).toFixed(1)+' ★':'0';$('adminSellerAvgRating').textContent=window.adminSellerReviews.length?(sa/window.adminSellerReviews.length).toFixed(1)+' ★':'0';
-    root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Jenis</th><th>Rating</th><th>Isi</th><th>Reply Seller</th><th>Waktu</th></tr></thead><tbody>'+window.adminProductReviews.map(x=>'<tr><td>Produk</td><td><strong>'+escapeHtml(x.rating)+' ★</strong></td><td style="max-width:420px">'+escapeHtml(x.review_text||'—')+'</td><td>'+escapeHtml(x.seller_reply||'—')+'</td><td>'+escapeHtml(formatDate(x.created_at))+'</td></tr>').join('')+window.adminSellerReviews.map(x=>'<tr><td>Seller</td><td><strong>'+escapeHtml(x.rating)+' ★</strong></td><td style="max-width:420px">'+escapeHtml(x.comment||'—')+'</td><td>'+escapeHtml(x.reviewer_name||'—')+'</td><td>'+escapeHtml(formatDate(x.created_at))+'</td></tr>').join('')+'</tbody></table></div>';
+    const q=await supabaseClient.from('product_reviews')
+      .select('id,product_id,store_id,rating,review_text,seller_reply,created_at')
+      .order('created_at',{ascending:false}).limit(100);
+    if(q.error)throw q.error;
+    window.adminProductReviews=q.data||[];
+
+    const rows=window.adminProductReviews;
+    const totalRating=rows.reduce((a,x)=>a+Number(x.rating||0),0);
+    const stores=new Set(rows.map(x=>x.store_id).filter(Boolean));
+    const storeRating=rows.length?totalRating/rows.length:0;
+
+    $('adminProductReviewCount').textContent=String(rows.length);
+    $('adminSellerReviewCount').textContent=String(stores.size);
+    $('adminProductAvgRating').textContent=rows.length?(totalRating/rows.length).toFixed(1)+' ★':'0';
+    $('adminSellerAvgRating').textContent=rows.length?storeRating.toFixed(1)+' ★':'0';
+
+    root.innerHTML=rows.length
+      ? '<div class="table-wrap"><table><thead><tr><th>Jenis</th><th>Rating</th><th>Isi</th><th>Reply Seller</th><th>Waktu</th></tr></thead><tbody>'+
+        rows.map(x=>'<tr><td>Produk / Toko</td><td><strong>'+escapeHtml(x.rating)+' ★</strong></td><td style="max-width:420px">'+escapeHtml(x.review_text||'—')+'</td><td>'+escapeHtml(x.seller_reply||'—')+'</td><td>'+escapeHtml(formatDate(x.created_at))+'</td></tr>').join('')+
+        '</tbody></table></div>'
+      : '<div class="empty">Belum ada ulasan pembeli.</div>';
   }catch(e){root.innerHTML='<div class="error">'+escapeHtml(e.message||'Gagal memuat review.')+'</div>';}
 }
 async function loadAdminShipping(){
