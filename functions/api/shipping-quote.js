@@ -44,6 +44,7 @@ async function rajaDestination(env,postal){
   return row;
 }
 export async function onRequestPost(context){
+  let recentCachedQuote=null;
   try{
     const env=context.env, url=String(env.SUPABASE_URL||"").trim().replace(/\/+$/,""), key=String(env.SUPABASE_SERVICE_ROLE_KEY||"").trim(), anon=String(env.SUPABASE_ANON_KEY||"").trim();
     if(!url||!key)return json({error:"Konfigurasi Supabase server belum lengkap."},500);
@@ -95,7 +96,7 @@ export async function onRequestPost(context){
       quantity:Number(item.quantity||0)
     })).sort((a,b)=>(a.product_id+a.size).localeCompare(b.product_id+b.size));
     try{
-      const cachePath="/rest/v1/shipping_quotes?select=id,total_fee,expires_at,selections,request_snapshot&buyer_id=eq."+encodeURIComponent(buyer.id)+"&status=eq.active&expires_at=gt."+encodeURIComponent(new Date().toISOString())+"&request_snapshot->>postal_code=eq."+encodeURIComponent(String(address.postal_code))+"&order=created_at.desc&limit=10";
+      const cachePath="/rest/v1/shipping_quotes?select=id,total_fee,expires_at,selections,request_snapshot,created_at&buyer_id=eq."+encodeURIComponent(buyer.id)+"&request_snapshot->>postal_code=eq."+encodeURIComponent(String(address.postal_code))+"&created_at=gte."+encodeURIComponent(new Date(Date.now()-24*60*60*1000).toISOString())+"&order=created_at.desc&limit=20";
       const cached=await sb(url,key,cachePath);
       const hit=(Array.isArray(cached)?cached:[]).find(q=>{
         const snap=q.request_snapshot||{};
@@ -106,7 +107,8 @@ export async function onRequestPost(context){
         })).sort((a,b)=>(a.product_id+a.size).localeCompare(b.product_id+b.size)):[];
         return JSON.stringify(items)===JSON.stringify(normalizedItems);
       });
-      if(hit?.selections){
+      recentCachedQuote=hit||null;
+      if(hit?.selections&&new Date(hit.expires_at||0)>new Date()){
         return json({quote_id:hit.id,expires_at:hit.expires_at,total_fee:Number(hit.total_fee||0),sellers:hit.selections,cached:true},200);
       }
     }catch(cacheError){
@@ -183,6 +185,9 @@ export async function onRequestPost(context){
     console.error("MarketKita shipping quote error:",error?.message||error);
     const message=String(error?.message||"Gagal menghitung ongkir.");
     const daily=/daily limit|limit exceeded|rate limit|quota/i.test(message);
-    return json({error:daily?"Batas penggunaan API ongkir hari ini sudah tercapai. Silakan gunakan kembali setelah kuota RajaOngkir tersedia.":message,code:daily?"SHIPPING_PROVIDER_QUOTA":"SHIPPING_QUOTE_ERROR"},daily?429:500);
+    if(daily&&recentCachedQuote?.selections){
+      return json({quote_id:recentCachedQuote.id,expires_at:recentCachedQuote.expires_at,total_fee:Number(recentCachedQuote.total_fee||0),sellers:recentCachedQuote.selections,cached:true,stale:true,warning:"Menggunakan tarif ongkir terakhir yang berhasil diperoleh karena kuota provider sedang tercapai."},200);
+    }
+    return json({error:daily?"Batas penggunaan API ongkir hari ini sudah tercapai dan belum ada tarif tersimpan untuk kombinasi alamat/keranjang ini.":message,code:daily?"SHIPPING_PROVIDER_QUOTA":"SHIPPING_QUOTE_ERROR"},daily?429:500);
   }
 }
