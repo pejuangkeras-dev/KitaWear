@@ -739,7 +739,7 @@ body{background:var(--bg);color:var(--ink)}
           <div class="field kw-checkout-full"><label for="buyerManualAddressLine">Alamat jalan</label><textarea id="buyerManualAddressLine" placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan..."></textarea></div>
           <div class="field"><label for="buyerManualProvince">Provinsi</label><select id="buyerManualProvince"><option value="">Memuat provinsi...</option></select></div>
           <div class="field"><label for="buyerManualCity">Kota / Kabupaten</label><select id="buyerManualCity" disabled><option value="">Pilih provinsi terlebih dahulu</option></select></div>
-          <div class="field"><label for="buyerManualPostalCode">Kode pos</label><input id="buyerManualPostalCode" inputmode="numeric" maxlength="5" placeholder="Contoh: 29444"></div>
+          <div class="field"><label for="buyerManualPostalCode">Kode pos</label><select id="buyerManualPostalCode" disabled><option value="">Pilih kota terlebih dahulu</option></select></div>
         </div>
       </div>
 
@@ -2338,9 +2338,40 @@ async function loadCheckoutCities(provinceId){
     const rows=Array.isArray(data.data)?data.data:[];
     select.innerHTML='<option value="">Pilih kota/kabupaten</option>'+rows.map(x=>'<option value="'+escDetail(x.name)+'" data-id="'+escDetail(x.id)+'">'+escDetail(x.name)+'</option>').join('');
     select.disabled=false;
-    select.onchange=()=>calculateCheckoutShipping();
-    calculateCheckoutShipping();
+    select.onchange=async()=>{await loadCheckoutPostalCodes(select.value);updateManualCheckoutAddressSummary();};
+    await loadCheckoutPostalCodes(select.value);
+    updateManualCheckoutAddressSummary();
   }catch(e){select.innerHTML='<option value="">Gagal memuat kota/kabupaten</option>';console.warn(e);}
+}
+async function loadCheckoutPostalCodes(cityName){
+  const postal=document.getElementById("buyerManualPostalCode"); if(!postal)return;
+  postal.disabled=true; postal.innerHTML='<option value="">Memuat kode pos...</option>';
+  if(!cityName){postal.innerHTML='<option value="">Pilih kota terlebih dahulu</option>';return;}
+  try{
+    const res=await fetch("/api/location-postal?search="+encodeURIComponent(cityName),{cache:"no-store"});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(data.error||"Gagal memuat kode pos.");
+    const province=String(document.getElementById("buyerManualProvince")?.selectedOptions?.[0]?.textContent||"").trim().toLowerCase();
+    const city=String(cityName).trim().toLowerCase();
+    const rows=(Array.isArray(data.data)?data.data:[]).filter(x=>{
+      const p=String(x.province_name||x.province||"").trim().toLowerCase();
+      const c=String(x.city_name||x.city||x.name||"").trim().toLowerCase();
+      return (!p||!province||p===province)&&(!c||c===city);
+    });
+    const unique=[...new Map(rows.filter(x=>/^\d{5}$/.test(String(x.zip_code||""))).map(x=>[String(x.zip_code),x])).values()];
+    postal.innerHTML='<option value="">Pilih kode pos</option>'+unique.map(x=>'<option value="'+escDetail(x.zip_code)+'">'+escDetail(x.zip_code)+(x.district_name?' — '+escDetail(x.district_name):"")+'</option>').join("");
+    postal.disabled=unique.length===0;
+    postal.onchange=()=>{updateManualCheckoutAddressSummary();calculateCheckoutShipping();};
+    if(unique.length===1){postal.value=String(unique[0].zip_code);postal.disabled=false;updateManualCheckoutAddressSummary();calculateCheckoutShipping();}
+  }catch(e){postal.innerHTML='<option value="">Kode pos gagal dimuat</option>';postal.disabled=true;console.warn(e);}
+}
+function updateManualCheckoutAddressSummary(){
+  const address=document.getElementById("buyerAddress"); if(!address)return;
+  const line=String(document.getElementById("buyerManualAddressLine")?.value||"").trim();
+  const city=String(document.getElementById("buyerManualCity")?.value||"").trim();
+  const province=String(document.getElementById("buyerManualProvince")?.selectedOptions?.[0]?.textContent||"").trim();
+  const postal=String(document.getElementById("buyerManualPostalCode")?.value||"").trim();
+  address.value=[line,city,province,postal].filter(Boolean).join(", ");
 }
 function refreshManualLocationSelection(){
   const p=document.getElementById("buyerManualProvince"), c=document.getElementById("buyerManualCity");
@@ -2348,7 +2379,7 @@ function refreshManualLocationSelection(){
 }
 function toggleManualCheckoutAddress(mode){
   const isManual=String(mode)==='manual';
-  if(isManual)refreshManualLocationSelection();
+  if(isManual){refreshManualLocationSelection();bindManualCheckoutAddressEvents();}
   const box=document.getElementById('manualCheckoutAddressFields');if(box)box.style.display=isManual?'block':'none';
   const address=document.getElementById('buyerAddress');
   const select=document.getElementById('buyerAddressSelect');
@@ -2358,7 +2389,17 @@ function toggleManualCheckoutAddress(mode){
   }else if(select?.value){ applyCheckoutAddress(select.value); }
   calculateCheckoutShipping();
 }
-async function validateCheckoutVoucher(){
+async function bindManualCheckoutAddressEvents(){
+  const line=document.getElementById("buyerManualAddressLine");
+  const province=document.getElementById("buyerManualProvince");
+  const city=document.getElementById("buyerManualCity");
+  const postal=document.getElementById("buyerManualPostalCode");
+  if(line&&!line.dataset.bound){line.dataset.bound="1";line.addEventListener("input",updateManualCheckoutAddressSummary);}
+  if(province&&!province.dataset.bound){province.dataset.bound="1";province.addEventListener("change",()=>loadCheckoutCities(province.value));}
+  if(city&&!city.dataset.bound){city.dataset.bound="1";city.addEventListener("change",()=>loadCheckoutPostalCodes(city.value));}
+  if(postal&&!postal.dataset.bound){postal.dataset.bound="1";postal.addEventListener("change",()=>{updateManualCheckoutAddressSummary();calculateCheckoutShipping();});}
+}
+function validateCheckoutVoucher(){
   const code=String(document.getElementById("checkoutVoucher")?.value||"").trim().toUpperCase();
   const msg=document.getElementById("checkoutVoucherMessage");
   if(!code){window.marketCheckoutVoucherId=null;if(msg)msg.textContent="Masukkan kode voucher.";return;}
@@ -4463,5 +4504,9 @@ function setCheckoutAddressMode(mode){
   if(typeof toggleManualCheckoutAddress==="function")toggleManualCheckoutAddress(mode);
 }
 </script>
-</body>
+<style id="kw-checkout-scroll-fix">
+.kw-checkout-modal{padding:12px!important;align-items:center!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch}
+.kw-checkout-box{max-height:calc(100vh - 24px)!important;height:auto!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+@media(max-width:560px){.kw-checkout-modal{padding:0!important;align-items:flex-start!important}.kw-checkout-box{max-height:100vh!important;min-height:100vh!important;border-radius:0!important}}
+</style></body>
 </html>
