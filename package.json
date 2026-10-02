@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "node -e \"console.log('MarketKita Cloudflare Pages build: static root + Functions')\"",
-    "test:admin": "npx --yes playwright test tests/admin.spec.mjs"
+    "test:admin": "npx --yes playwright test tests/admin.spec.mjs",
+    "test:shipping": "npx --yes playwright test tests/shipping.spec.mjs"
   }
 }
