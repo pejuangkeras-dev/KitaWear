@@ -64,7 +64,8 @@ export async function onRequestPost(context){
       province_id:String(body.location?.province_id||"").trim(),
       city_id:String(body.location?.city_id||"").trim(),
       district_id:String(body.location?.district_id||body.district_id||"").trim(),
-      subdistrict_id:String(body.location?.subdistrict_id||"").trim()
+      subdistrict_id:String(body.location?.subdistrict_id||"").trim(),
+      district_id_for_calc:String(body.location?.district_id||"").trim()
     };
     const hasManual=Boolean(manualAddress.address_line||manualAddress.city||manualAddress.province||manualAddress.postal_code);
     const rawItems=Array.isArray(body.items)?body.items:[];
@@ -112,16 +113,17 @@ export async function onRequestPost(context){
       let destination=address.destination_id
         ? {id:address.destination_id,zip_code:address.postal_code}
         : await rajaDestination(env,String(address.postal_code));
+      const districtIdForCalc=String(address.district_id_for_calc||"").trim();
       const weight=Math.max(1,Math.ceil(g.items.reduce((sum,item)=>sum+Number(item.weight||500)*Number(item.quantity||1),0)));
       const makeCostForm=(dest)=>{const form=new URLSearchParams();form.set("origin",String(origin.id));form.set("destination",String(dest.id));form.set("weight",String(weight));form.set("courier",courierList);form.set("price","lowest");return form.toString();};
       let rate;
       try{
         rate=await raja(env,"/calculate/domestic-cost","POST",makeCostForm(destination));
       }catch(firstError){
-        if(address.destination_id && address.district_id){
+        if(address.destination_id && districtIdForCalc){
           const districtForm=new URLSearchParams();
           districtForm.set("origin",String(origin.id));
-          districtForm.set("destination",String(address.district_id));
+          districtForm.set("destination",districtIdForCalc);
           districtForm.set("weight",String(weight));
           districtForm.set("courier",courierList);
           districtForm.set("price","lowest");
