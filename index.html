@@ -723,8 +723,8 @@ body{background:var(--bg);color:var(--ink)}
     </div>
     <div id="manualCheckoutAddressFields" style="display:none">
       <div class="field"><label for="buyerManualAddressLine">Alamat lengkap</label><textarea id="buyerManualAddressLine" placeholder="Jalan, nomor rumah, RT/RW, kelurahan..." style="width:100%;min-height:84px;border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical"></textarea></div>
-      <div class="field"><label for="buyerManualCity">Kota/Kabupaten</label><input id="buyerManualCity" placeholder="Contoh: Batam"></div>
-      <div class="field"><label for="buyerManualProvince">Provinsi</label><input id="buyerManualProvince" placeholder="Contoh: Kepulauan Riau"></div>
+      <div class="field"><label for="buyerManualCity">Kota/Kabupaten</label><select id="buyerManualCity" disabled><option value="">Pilih provinsi terlebih dahulu</option></select></div>
+      <div class="field"><label for="buyerManualProvince">Provinsi</label><select id="buyerManualProvince"><option value="">Memuat provinsi...</option></select></div>
       <div class="field"><label for="buyerManualPostalCode">Kode Pos</label><input id="buyerManualPostalCode" inputmode="numeric" maxlength="5" placeholder="5 digit"></div>
       <small style="display:block;margin:-4px 0 12px;color:#77736c">Kode pos wajib 5 digit agar RajaOngkir dapat menghitung ongkir.</small>
     </div>
@@ -2255,8 +2255,38 @@ function applyCheckoutAddress(id){
   const name=document.getElementById('buyerName'); if(name&&a.recipient_name)name.value=a.recipient_name;
   const phone=document.getElementById('buyerPhone'); if(phone&&a.phone)phone.value=a.phone;
 }
+async function loadCheckoutProvinces(){
+  const select=document.getElementById("buyerManualProvince"); if(!select)return;
+  select.innerHTML='<option value="">Memuat provinsi...</option>';
+  try{
+    const res=await fetch("/api/location-provinces"); const data=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(data.error||"Gagal memuat provinsi.");
+    const rows=Array.isArray(data.data)?data.data:[];
+    select.innerHTML='<option value="">Pilih provinsi</option>'+rows.map(x=>'<option value="'+escDetail(x.id)+'">'+escDetail(x.name)+'</option>').join('');
+    select.onchange=()=>loadCheckoutCities(select.value);
+  }catch(e){select.innerHTML='<option value="">Gagal memuat provinsi</option>';console.warn(e);}
+}
+async function loadCheckoutCities(provinceId){
+  const select=document.getElementById("buyerManualCity"); if(!select)return;
+  select.disabled=true; select.innerHTML='<option value="">Memuat kota/kabupaten...</option>';
+  if(!provinceId){select.innerHTML='<option value="">Pilih provinsi terlebih dahulu</option>'; return;}
+  try{
+    const res=await fetch("/api/location-cities/"+encodeURIComponent(provinceId)); const data=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(data.error||"Gagal memuat kota/kabupaten.");
+    const rows=Array.isArray(data.data)?data.data:[];
+    select.innerHTML='<option value="">Pilih kota/kabupaten</option>'+rows.map(x=>'<option value="'+escDetail(x.name)+'" data-id="'+escDetail(x.id)+'">'+escDetail(x.name)+'</option>').join('');
+    select.disabled=false;
+    select.onchange=()=>calculateCheckoutShipping();
+    calculateCheckoutShipping();
+  }catch(e){select.innerHTML='<option value="">Gagal memuat kota/kabupaten</option>';console.warn(e);}
+}
+function refreshManualLocationSelection(){
+  const p=document.getElementById("buyerManualProvince"), c=document.getElementById("buyerManualCity");
+  if(p&&!p.dataset.loaded){p.dataset.loaded="1";loadCheckoutProvinces();}
+}
 function toggleManualCheckoutAddress(mode){
   const isManual=String(mode)==='manual';
+  if(isManual)refreshManualLocationSelection();
   const box=document.getElementById('manualCheckoutAddressFields');if(box)box.style.display=isManual?'block':'none';
   const address=document.getElementById('buyerAddress');
   const select=document.getElementById('buyerAddressSelect');
