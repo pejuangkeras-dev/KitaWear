@@ -50,14 +50,36 @@ export async function onRequestPost(context){
     const buyer=await user(context,url,anon); if(!buyer)return json({error:"Silakan login untuk menghitung ongkir."},401);
     const body=await context.request.json().catch(()=>({}));
     const addressId=String(body.address_id||"").trim();
+    const manualRaw=body.manual_address&&typeof body.manual_address==="object"?body.manual_address:{};
+    const manualAddress={
+      recipient_name:String(manualRaw.recipient_name||"").trim(),
+      phone:String(manualRaw.phone||"").trim(),
+      address_line:String(manualRaw.address_line||"").trim(),
+      city:String(manualRaw.city||"").trim(),
+      province:String(manualRaw.province||"").trim(),
+      postal_code:String(manualRaw.postal_code||"").trim()
+    };
+    const hasManual=Boolean(manualAddress.address_line||manualAddress.city||manualAddress.province||manualAddress.postal_code);
     const rawItems=Array.isArray(body.items)?body.items:[];
-    if(!addressId||!rawItems.length)return json({error:"Alamat dan keranjang wajib dipilih."},400);
+    if((!addressId&&!hasManual)||!rawItems.length)return json({error:"Alamat dan keranjang wajib diisi."},400);
+    if(addressId&&hasManual)return json({error:"Pilih alamat tersimpan atau isi alamat manual, bukan keduanya."},400);
 
-    const addresses=await sb(url,key,`/rest/v1/buyer_addresses?select=id,recipient_name,phone,address_line,city,province,postal_code&user_id=eq.${encodeURIComponent(buyer.id)}&id=eq.${encodeURIComponent(addressId)}&limit=1`);
-    const address=addresses?.[0]; if(!address)return json({error:"Alamat pengiriman tidak ditemukan."},400);
-    if(!/^\d{5}$/.test(String(address.postal_code||"")))return json({error:"Kode pos alamat buyer harus 5 digit."},400);
+    let address=null;
+    if(addressId){
+      const addresses=await sb(url,key,`/rest/v1/buyer_addresses?select=id,recipient_name,phone,address_line,city,province,postal_code&user_id=eq.${encodeURIComponent(buyer.id)}&id=eq.${encodeURIComponent(addressId)}&limit=1`);
+      address=addresses?.[0];
+      if(!address)return json({error:"Alamat pengiriman tidak ditemukan."},400);
+    }else{
+      address={...manualAddress};
+    }
+    if(!address.address_line||!address.city||!address.province||!/^\d{5}$/.test(String(address.postal_code||""))){
+      return json({error:"Alamat manual wajib berisi alamat lengkap, kota, provinsi, dan kode pos 5 digit."},400);
+    }
+    if(address.phone&&!/^[0-9+][0-9 ()-]{7,19}$/.test(String(address.phone))){
+      return json({error:"Nomor WhatsApp alamat tidak valid."},400);
+    }
 
-    const groups=new Map();
+        const groups=new Map();
     for(const raw of rawItems){
       const pid=String(raw.product_id||"").trim(), size=String(raw.size||"").trim().toUpperCase(), qty=Number(raw.quantity);
       if(!pid||!size||!Number.isInteger(qty)||qty<1||qty>99)throw new Error("Data item checkout tidak valid.");
@@ -106,7 +128,8 @@ export async function onRequestPost(context){
       const totalFee=sellerQuotes.reduce((sum,seller)=>sum+Math.min(...(seller.options||[]).map(o=>Number(o.price||0)).filter(Number.isFinite)),0);
       const snapshot={
         buyer_id:buyer.id,
-        address_id:addressId,
+        address_id:addressId||null,
+        manual_address:addressId?null:{recipient_name:String(address.recipient_name||""),phone:String(address.phone||""),address_line:String(address.address_line||""),city:String(address.city||""),province:String(address.province||""),postal_code:String(address.postal_code||"")},
         postal_code:String(address.postal_code||""),
         items:rawItems.map(item=>({
           product_id:String(item.product_id||""),
