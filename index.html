@@ -2453,9 +2453,36 @@ function closeLocationPicker(e){if(e&&e.target!==e.currentTarget)return;const m=
 async function selectLocationPickerRow(index){
   const rows=locationRowsForLevel(),x=rows[index];if(!x)return;
   try{
+    // Search results must continue the same four-step flow instead of
+    // treating every search hit as a completed address.
     if(kwLocationPicker.searchMode){
-      kwLocationPicker.province={id:x.province_id,name:x.province_name};kwLocationPicker.city={id:x.city_id,name:x.city_name};kwLocationPicker.district={id:x.district_id,name:x.district_name};kwLocationPicker.subdistrict={id:x.id,name:x.subdistrict_name||x.name};kwLocationPicker.postal=String(x.postal_code||x.zip_code||"");await applyPickedLocation();return;
+      const level=kwLocationPicker.level;
+      kwLocationPicker.searchMode=false;
+      kwLocationPicker.searchRows=[];
+      const q=document.getElementById("locationPickerSearch");if(q)q.value="";
+      if(level==="province"){
+        kwLocationPicker.province={id:x.id,name:x.name};
+        kwLocationPicker.city=null;kwLocationPicker.district=null;kwLocationPicker.subdistrict=null;kwLocationPicker.postal="";
+        kwLocationPicker.cityRows=await locationPickerFetch("/api/location-cities/"+encodeURIComponent(x.id));
+        kwLocationPicker.level="city";
+      }else if(level==="city"){
+        kwLocationPicker.city={id:x.id,name:x.name};
+        kwLocationPicker.district=null;kwLocationPicker.subdistrict=null;kwLocationPicker.postal="";
+        kwLocationPicker.districtRows=await locationPickerFetch("/api/location-districts/"+encodeURIComponent(x.id));
+        kwLocationPicker.level="district";
+      }else if(level==="district"){
+        kwLocationPicker.district={id:x.id,name:x.name};
+        kwLocationPicker.subdistrict=null;kwLocationPicker.postal="";
+        kwLocationPicker.subdistrictRows=await locationPickerFetch("/api/location-subdistricts/"+encodeURIComponent(x.id));
+        kwLocationPicker.level="postal";
+      }else{
+        kwLocationPicker.subdistrict={id:x.id,name:x.subdistrict_name||x.name};
+        kwLocationPicker.postal=String(x.postal_code||x.zip_code||"");
+        await applyPickedLocation();return;
+      }
+      renderLocationPicker();return;
     }
+
     if(kwLocationPicker.level==="province"){
       kwLocationPicker.province={id:x.id,name:x.name};kwLocationPicker.city=null;kwLocationPicker.district=null;kwLocationPicker.subdistrict=null;kwLocationPicker.postal="";
       kwLocationPicker.cityRows=await locationPickerFetch("/api/location-cities/"+encodeURIComponent(x.id));kwLocationPicker.level="city";
@@ -2466,10 +2493,15 @@ async function selectLocationPickerRow(index){
       kwLocationPicker.district={id:x.id,name:x.name};kwLocationPicker.subdistrict=null;kwLocationPicker.postal="";
       kwLocationPicker.subdistrictRows=await locationPickerFetch("/api/location-subdistricts/"+encodeURIComponent(x.id));kwLocationPicker.level="postal";
     }else{
-      kwLocationPicker.subdistrict={id:x.id,name:x.name||x.subdistrict_name};kwLocationPicker.postal=String(x.postal_code||x.zip_code||"");await applyPickedLocation();return;
+      kwLocationPicker.subdistrict={id:x.id,name:x.name||x.subdistrict_name};
+      kwLocationPicker.postal=String(x.postal_code||x.zip_code||"");
+      await applyPickedLocation();return;
     }
     renderLocationPicker();
-  }catch(e){const list=document.getElementById("locationPickerList");if(list)list.innerHTML='<div class="kw-location-empty">'+escDetail(e.message)+'</div>';}
+  }catch(e){
+    const list=document.getElementById("locationPickerList");
+    if(list)list.innerHTML='<div class="kw-location-empty">'+escDetail(e.message)+'</div>';
+  }
 }
 async function filterLocationPicker(value){
   const q=String(value||"").trim().toLowerCase();
