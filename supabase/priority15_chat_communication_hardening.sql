@@ -67,8 +67,12 @@ drop trigger if exists trg_chat_thread_updated_at on public.chat_messages;
 create trigger trg_chat_thread_updated_at after insert on public.chat_messages
 for each row execute function public.touch_chat_thread_on_message();
 
-alter table public.chat_messages
- add constraint chat_messages_body_length_check check(char_length(trim(body)) between 1 and 2000);
+do $ begin
+ if not exists(select 1 from pg_constraint where conname='chat_messages_body_length_check') then
+   alter table public.chat_messages add constraint chat_messages_body_length_check
+   check(char_length(trim(body)) between 1 and 2000);
+ end if;
+end $;
 
 create index if not exists chat_messages_thread_created_idx on public.chat_messages(thread_id,created_at desc);
 create index if not exists chat_threads_seller_updated_idx on public.chat_threads(seller_id,updated_at desc);
