@@ -2205,7 +2205,7 @@ function updateCheckoutShippingSelection(){
   const total=document.getElementById("checkoutTotal");
   if(total)total.textContent=rupiah(base+fee);
 }
-async async function calculateCheckoutShipping(){
+async function calculateCheckoutShipping(){
   const root=document.getElementById("checkoutShippingOptions");
   window.marketCheckoutShippingQuoteId=null; window.marketCheckoutShippingSelections=[]; window.marketCheckoutShippingFee=0;
   const province=document.getElementById("buyerManualProvince")?.selectedOptions?.[0]?.textContent?.trim()||"";
