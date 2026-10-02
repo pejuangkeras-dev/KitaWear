@@ -7,7 +7,7 @@
     "test:admin": "npx --yes playwright test tests/admin.spec.mjs",
     "test:shipping": "npx --yes playwright test tests/shipping.spec.mjs",
     "test:priority10": "npx --yes playwright test tests/priority10.spec.mjs",
-    "test:all": "npx --yes playwright test tests/admin.spec.mjs tests/shipping.spec.mjs tests/priority10.spec.mjs tests/priority12.spec.mjs tests/priority13.spec.mjs tests/priority14.spec.mjs tests/priority15.spec.mjs tests/priority16.spec.mjs tests/priority17.spec.mjs tests/priority18.spec.mjs tests/priority19.spec.mjs tests/priority20.spec.mjs tests/priority21.spec.mjs tests/priority22.spec.mjs tests/priority23.spec.mjs tests/priority24.spec.mjs tests/priority25.spec.mjs tests/priority26.spec.mjs tests/priority27.spec.mjs tests/priority28.spec.mjs tests/priority29.spec.mjs tests/priority30.spec.mjs tests/priority31.spec.mjs tests/priority32.spec.mjs",
+    "test:all": "npx --yes playwright test tests/admin.spec.mjs tests/shipping.spec.mjs tests/priority10.spec.mjs tests/priority12.spec.mjs tests/priority13.spec.mjs tests/priority14.spec.mjs tests/priority15.spec.mjs tests/priority16.spec.mjs tests/priority17.spec.mjs tests/priority18.spec.mjs tests/priority19.spec.mjs tests/priority20.spec.mjs tests/priority21.spec.mjs tests/priority22.spec.mjs tests/priority23.spec.mjs tests/priority24.spec.mjs tests/priority25.spec.mjs tests/priority26.spec.mjs tests/priority27.spec.mjs tests/priority28.spec.mjs tests/priority29.spec.mjs tests/priority30.spec.mjs tests/priority31.spec.mjs tests/priority32.spec.mjs tests/priority33.spec.mjs",
     "test:priority12": "npx --yes playwright test tests/priority12.spec.mjs",
     "test:priority13": "npx --yes playwright test tests/priority13.spec.mjs",
     "test:priority14": "npx --yes playwright test tests/priority14.spec.mjs",
@@ -25,7 +25,8 @@
     "test:priority29": "npx --yes playwright test tests/priority29.spec.mjs",
     "test:priority30": "npx --yes playwright test tests/priority30.spec.mjs",
     "test:priority31": "npx --yes playwright test tests/priority31.spec.mjs",
-    "test:priority32": "npx --yes playwright test tests/priority32.spec.mjs"
+    "test:priority32": "npx --yes playwright test tests/priority32.spec.mjs",
+    "test:priority33": "npx --yes playwright test tests/priority33.spec.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0"
