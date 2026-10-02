@@ -44,7 +44,7 @@ async function raja(env,path,method="GET",body=null){
 }
 async function rajaDestination(env,postal){
   const normalized=String(postal||"").trim();
-  if(!/^\\d{5}$/.test(normalized))throw new Error("Kode pos "+normalized+" tidak valid.");
+  if(!/^\d{5}$/.test(normalized))throw new Error("Kode pos "+normalized+" tidak valid.");
   // Destination records are reference data, so cache them at the Cloudflare
   // edge. Repeated checkout/address edits must not consume Shipping Cost HITs.
   const cacheKey=new Request("https://marketkita.invalid/raja-destination/"+normalized);
