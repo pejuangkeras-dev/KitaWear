@@ -3778,13 +3778,23 @@ async function loadAdminReviews(){
 
     const rows=window.adminProductReviews;
     const totalRating=rows.reduce((a,x)=>a+Number(x.rating||0),0);
-    const stores=new Set(rows.map(x=>x.store_id).filter(Boolean));
-    const storeRating=rows.length?totalRating/rows.length:0;
+    const storeStats=new Map();
+    rows.forEach(x=>{
+      const key=String(x.store_id||'');
+      if(!key)return;
+      const z=storeStats.get(key)||{sum:0,count:0};
+      z.sum+=Number(x.rating||0); z.count++;
+      storeStats.set(key,z);
+    });
+    const sellerAverages=[...storeStats.values()].map(z=>z.sum/z.count);
+    const sellerRating=sellerAverages.length
+      ? sellerAverages.reduce((a,v)=>a+v,0)/sellerAverages.length
+      : 0;
 
     $('adminProductReviewCount').textContent=String(rows.length);
     $('adminSellerReviewCount').textContent=String(stores.size);
     $('adminProductAvgRating').textContent=rows.length?(totalRating/rows.length).toFixed(1)+' ★':'0';
-    $('adminSellerAvgRating').textContent=rows.length?storeRating.toFixed(1)+' ★':'0';
+    $('adminSellerAvgRating').textContent=sellerAverages.length?sellerRating.toFixed(1)+' ★':'0';
 
     root.innerHTML=rows.length
       ? '<div class="table-wrap"><table><thead><tr><th>Jenis</th><th>Rating</th><th>Isi</th><th>Reply Seller</th><th>Waktu</th></tr></thead><tbody>'+
