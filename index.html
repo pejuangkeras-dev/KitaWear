@@ -2471,6 +2471,21 @@ async function selectLocationPickerRow(index){
     // Search results must continue the same four-step flow instead of
     // treating every search hit as a completed address.
     if(kwLocationPicker.searchMode){
+      // When the customer searches from the District step, resolve the
+      // district's city/regency and province automatically.
+      if(kwLocationPicker.searchMode==="global-district" && kwLocationPicker.level==="district"){
+        const province=x._province,city=x._city;
+        if(!province||!city)return;
+        kwLocationPicker.province={id:province.id,name:province.name};
+        kwLocationPicker.city={id:city.id,name:city.name};
+        kwLocationPicker.district={id:x.id,name:x.name};
+        kwLocationPicker.subdistrict=null;kwLocationPicker.postal="";
+        kwLocationPicker.searchMode=false;kwLocationPicker.searchRows=[];
+        const q=document.getElementById("locationPickerSearch");if(q)q.value="";
+        kwLocationPicker.subdistrictRows=await locationPickerFetch("/api/location-subdistricts/"+encodeURIComponent(x.id));
+        kwLocationPicker.level="postal";
+        renderLocationPicker();return;
+      }
       // When the customer searches from the Province step, search city/regency
       // names across Indonesia and show the province alongside each match.
       if(kwLocationPicker.searchMode==="global-city" && kwLocationPicker.level==="province"){
@@ -2563,6 +2578,43 @@ async function filterLocationPicker(value){
         kwLocationPicker.searchMode="global-city";
         if(list && !rows.length){
           list.innerHTML='<div class="kw-location-empty">Kota/kabupaten tidak ditemukan.</div>';
+          return;
+        }
+        renderLocationPicker();return;
+      }
+      // District search can resolve its parent city/regency + province even
+      // before the customer has manually selected the city.
+      if(kwLocationPicker.level==="district"){
+        if(!kwLocationPicker.provinceRows.length){
+          kwLocationPicker.provinceRows=await locationPickerFetch("/api/location-provinces");
+        }
+        list&&(list.innerHTML='<div class="kw-location-loading">Mencari kecamatan dan kota/kabupaten...</div>');
+        const out=[];
+        const provinces=kwLocationPicker.provinceRows;
+        for(let pi=0;pi<provinces.length;pi+=8){
+          const batch=provinces.slice(pi,pi+8);
+          const cityGroups=await Promise.all(batch.map(async p=>{
+            const cities=await locationPickerFetch("/api/location-cities/"+encodeURIComponent(p.id));
+            const groups=await Promise.all(cities.map(async city=>{
+              const districts=await locationPickerFetch("/api/location-districts/"+encodeURIComponent(city.id));
+              return districts.map(d=>({...d,_province:{id:p.id,name:p.name},_city:{id:city.id,name:city.name},province_name:p.name,city_name:city.name}));
+            }));
+            return groups.flat();
+          }));
+          out.push(...cityGroups.flat());
+          const matches=out.filter(x=>{
+            const hay=[x.name,x.city_name,x.province_name].filter(Boolean).join(" ").toLowerCase();
+            return hay.includes(q);
+          }).slice(0,80);
+          if(matches.length>=80)break;
+        }
+        kwLocationPicker.searchRows=out.filter(x=>{
+          const hay=[x.name,x.city_name,x.province_name].filter(Boolean).join(" ").toLowerCase();
+          return hay.includes(q);
+        }).slice(0,80);
+        kwLocationPicker.searchMode="global-district";
+        if(list && !kwLocationPicker.searchRows.length){
+          list.innerHTML='<div class="kw-location-empty">Kecamatan tidak ditemukan.</div>';
           return;
         }
         renderLocationPicker();return;
