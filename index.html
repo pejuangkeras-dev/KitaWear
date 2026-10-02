@@ -2343,7 +2343,7 @@ async function loadCheckoutCities(provinceId){
     updateManualCheckoutAddressSummary();
   }catch(e){select.innerHTML='<option value="">Gagal memuat kota/kabupaten</option>';console.warn(e);}
 }
-async function loadCheckoutPostalCodes(cityName){
+async async function loadCheckoutPostalCodes(cityName){
   const postal=document.getElementById("buyerManualPostalCode"); if(!postal)return;
   postal.disabled=true; postal.innerHTML='<option value="">Memuat kode pos...</option>';
   if(!cityName){postal.innerHTML='<option value="">Pilih kota terlebih dahulu</option>';return;}
