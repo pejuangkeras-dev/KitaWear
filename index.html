@@ -2358,7 +2358,7 @@ function renderLocationPicker(){
   if(!rows.length){list.innerHTML='<div class="kw-location-empty">Lokasi tidak ditemukan.</div>';return;}
   list.innerHTML=rows.map((x,i)=>{
     const name=x.name||x.city_name||x.district_name||x.subdistrict_name||"Lokasi";
-    const detail=x.label||[x.province_name,x.city_name,x.district_name,x.subdistrict_name,x.zip_code].filter(Boolean).join(" · ");
+    const detail=x.label||[x.province_name,x.city_name,x.district_name,x.subdistrict_name,x.postal_code||x.zip_code].filter(Boolean).join(" · ");
     return '<button class="kw-location-item" type="button" onclick="selectLocationPickerRow('+i+')"><strong>'+escDetail(name)+'</strong><small>'+escDetail(detail)+'</small></button>';
   }).join("");
   const sel=document.getElementById("locationPickerSelected");if(sel){const p=kwLocationPicker;sel.innerHTML=p.subdistrict?'<strong>'+escDetail([p.subdistrict.name,p.district?.name,p.city?.name,p.province?.name,p.postal].filter(Boolean).join(", "))+'</strong>':"Belum ada lokasi dipilih.";}
@@ -2398,7 +2398,7 @@ async function selectLocationPickerRow(index){
   const rows=locationRowsForLevel(),x=rows[index];if(!x)return;
   try{
     if(kwLocationPicker.searchMode){
-      kwLocationPicker.province={id:x.province_id,name:x.province_name};kwLocationPicker.city={id:x.city_id,name:x.city_name};kwLocationPicker.district={id:x.district_id,name:x.district_name};kwLocationPicker.subdistrict={id:x.id,name:x.subdistrict_name||x.name};kwLocationPicker.postal=String(x.zip_code||"");await applyPickedLocation();return;
+      kwLocationPicker.province={id:x.province_id,name:x.province_name};kwLocationPicker.city={id:x.city_id,name:x.city_name};kwLocationPicker.district={id:x.district_id,name:x.district_name};kwLocationPicker.subdistrict={id:x.id,name:x.subdistrict_name||x.name};kwLocationPicker.postal=String(x.postal_code||x.zip_code||"");await applyPickedLocation();return;
     }
     if(kwLocationPicker.level==="province"){
       kwLocationPicker.province={id:x.id,name:x.name};kwLocationPicker.city=null;kwLocationPicker.district=null;kwLocationPicker.subdistrict=null;kwLocationPicker.postal="";
@@ -2410,7 +2410,7 @@ async function selectLocationPickerRow(index){
       kwLocationPicker.district={id:x.id,name:x.name};kwLocationPicker.subdistrict=null;kwLocationPicker.postal="";
       kwLocationPicker.subdistrictRows=await locationPickerFetch("/api/location-subdistricts/"+encodeURIComponent(x.id));kwLocationPicker.level="postal";
     }else{
-      kwLocationPicker.subdistrict={id:x.id,name:x.name||x.subdistrict_name};kwLocationPicker.postal=String(x.zip_code||"");await applyPickedLocation();return;
+      kwLocationPicker.subdistrict={id:x.id,name:x.name||x.subdistrict_name};kwLocationPicker.postal=String(x.postal_code||x.zip_code||"");await applyPickedLocation();return;
     }
     renderLocationPicker();
   }catch(e){const list=document.getElementById("locationPickerList");if(list)list.innerHTML='<div class="kw-location-empty">'+escDetail(e.message)+'</div>';}
