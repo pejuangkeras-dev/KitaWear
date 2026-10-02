@@ -1038,19 +1038,62 @@ body{background:var(--bg);color:var(--ink)}
           <div id="accountSection-bank" class="account-section"><div class="account-page-head"><h3>Bank &amp; Kartu</h3><p>Simpan metode pembayaran untuk penggunaan berikutnya.</p></div><div class="account-empty">Belum ada kartu atau rekening yang ditambahkan.</div></div>
           <div id="accountSection-address" class="account-section">
             <div class="account-page-head"><div><h3>Alamat</h3><p>Simpan beberapa alamat pengiriman dan tentukan alamat utama untuk checkout.</p></div><button type="button" class="orders-refresh" onclick="openBuyerAddressForm()">＋ Tambah Alamat</button></div>
-            <div id="buyerAddressForm" class="buyer-address-form" style="display:none">
-              <div class="buyer-address-grid">
-                <div><label for="addressLabel">Label</label><input id="addressLabel" value="Rumah" maxlength="40"></div>
-                <div><label for="addressRecipient">Nama Penerima</label><input id="addressRecipient" maxlength="100" autocomplete="name"></div>
-                <div><label for="addressPhone">Nomor WhatsApp</label><input id="addressPhone" type="tel" maxlength="30" autocomplete="tel"></div>
-                <div><label for="addressPostal">Kode Pos</label><input id="addressPostal" maxlength="10" inputmode="numeric"></div>
-                <div class="full"><label for="addressLine">Alamat Lengkap</label><input id="addressLine" maxlength="300" placeholder="Jalan, nomor rumah, RT/RW, kelurahan"></div>
-                <div><label for="addressCity">Kota / Kabupaten</label><input id="addressCity" maxlength="100"></div>
-                <div><label for="addressProvince">Provinsi</label><input id="addressProvince" maxlength="100"></div>
+            <div id="buyerAddressForm" class="buyer-address-form kw-address-editor" style="display:none" aria-label="Form alamat pengiriman">
+              <div class="kw-address-editor-head">
+                <div>
+                  <span class="kw-address-kicker">ALAMAT PENGIRIMAN</span>
+                  <h4 id="buyerAddressFormTitle">Tambah alamat baru</h4>
+                  <p>Isi alamat yang akan digunakan untuk menerima pesanan Anda.</p>
+                </div>
+                <button class="kw-address-close" type="button" onclick="closeBuyerAddressForm()" aria-label="Tutup">×</button>
               </div>
-              <label class="buyer-address-check"><input id="addressDefault" type="checkbox"> Jadikan alamat utama</label>
-              <div class="buyer-address-form-actions"><button class="save" type="button" onclick="saveBuyerAddress()">Simpan Alamat</button><button class="cancel" type="button" onclick="closeBuyerAddressForm()">Batal</button></div>
-              <div id="buyerAddressMessage" style="margin-top:10px;font-size:11px;color:#77736c"></div>
+
+              <div class="kw-address-steps" aria-hidden="true">
+                <span class="active"><b>1</b> Penerima</span><i></i>
+                <span><b>2</b> Lokasi</span><i></i>
+                <span><b>3</b> Alamat</span>
+              </div>
+
+              <div class="kw-address-section">
+                <div class="kw-address-section-title"><b>👤</b><div><strong>Data penerima</strong><small>Siapa yang akan menerima pesanan?</small></div></div>
+                <div class="kw-address-grid">
+                  <div class="full"><label for="addressRecipient">Nama lengkap <em>Wajib</em></label><input id="addressRecipient" maxlength="100" autocomplete="name" placeholder="Contoh: Ahmad Riyadi"></div>
+                  <div><label for="addressPhone">Nomor WhatsApp <em>Wajib</em></label><input id="addressPhone" type="tel" maxlength="30" autocomplete="tel" placeholder="08xxxxxxxxxx"></div>
+                </div>
+              </div>
+
+              <div class="kw-address-section">
+                <div class="kw-address-section-title"><b>📍</b><div><strong>Lokasi pengiriman</strong><small>Pilih provinsi dan kota/kabupaten agar ongkir lebih akurat.</small></div></div>
+                <div class="kw-address-grid">
+                  <div><label for="addressProvince">Provinsi <em>Wajib</em></label><select id="addressProvince"><option value="">Pilih provinsi</option></select></div>
+                  <div><label for="addressCity">Kota / Kabupaten <em>Wajib</em></label><select id="addressCity" disabled><option value="">Pilih provinsi terlebih dahulu</option></select></div>
+                  <div><label for="addressPostal">Kode pos <em>Wajib</em></label><input id="addressPostal" maxlength="5" inputmode="numeric" placeholder="Contoh: 29444"></div>
+                </div>
+              </div>
+
+              <div class="kw-address-section">
+                <div class="kw-address-section-title"><b>🏠</b><div><strong>Detail alamat</strong><small>Semakin lengkap, semakin mudah kurir menemukan lokasi Anda.</small></div></div>
+                <div class="kw-address-grid">
+                  <div class="full"><label for="addressLine">Alamat utama <em>Wajib</em></label><textarea id="addressLine" maxlength="300" placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan"></textarea></div>
+                </div>
+              </div>
+
+              <div class="kw-address-section kw-address-label-section">
+                <div class="kw-address-section-title"><b>🏷️</b><div><strong>Simpan sebagai</strong><small>Contoh: Rumah, Kantor, Kos.</small></div></div>
+                <div class="kw-label-options" role="radiogroup" aria-label="Label alamat">
+                  <button type="button" class="kw-label-option active" data-label="Rumah" onclick="selectBuyerAddressLabel('Rumah')">Rumah</button>
+                  <button type="button" class="kw-label-option" data-label="Kantor" onclick="selectBuyerAddressLabel('Kantor')">Kantor</button>
+                  <button type="button" class="kw-label-option" data-label="Lainnya" onclick="selectBuyerAddressLabel('Lainnya')">Lainnya</button>
+                </div>
+                <input id="addressLabel" class="kw-address-hidden-label" value="Rumah" maxlength="40" aria-hidden="true" tabindex="-1">
+                <label class="buyer-address-check kw-address-default"><input id="addressDefault" type="checkbox"> <span><strong>Jadikan alamat utama</strong><small>Alamat ini akan dipilih otomatis saat checkout.</small></span></label>
+              </div>
+
+              <div id="buyerAddressMessage" class="kw-address-message" role="status"></div>
+              <div class="buyer-address-form-actions kw-address-actions">
+                <button class="cancel" type="button" onclick="closeBuyerAddressForm()">Batal</button>
+                <button class="save" type="button" onclick="saveBuyerAddress()">Simpan alamat</button>
+              </div>
             </div>
             <div id="buyerAddressesList" class="buyer-address-list"><div class="account-empty">Memuat alamat...</div></div>
           </div>
@@ -4180,5 +4223,167 @@ async function enhanceP14BuyerOrders(){
 }
 const p14OriginalRenderBuyerOrders=window.renderBuyerOrders;
 window.renderBuyerOrders=async function(){p14OriginalRenderBuyerOrders();await enhanceP14BuyerOrders()}
-</script></body>
+</script><style id="kw-address-usability-v2">
+.kw-address-editor{background:#fffdf9!important;border:1px solid var(--line)!important;border-radius:22px!important;padding:0!important;overflow:hidden;box-shadow:0 18px 50px rgba(23,24,23,.08)}
+.kw-address-editor-head{display:flex;justify-content:space-between;gap:18px;padding:22px 22px 16px;border-bottom:1px solid var(--line);background:#fff}
+.kw-address-kicker{display:block;font-size:9px;letter-spacing:.14em;font-weight:900;color:#77736c;margin-bottom:5px}
+.kw-address-editor-head h4{margin:0;font-size:22px;letter-spacing:-.035em}
+.kw-address-editor-head p{margin:5px 0 0;color:#77736c;font-size:12px;line-height:1.5}
+.kw-address-close{width:36px;height:36px;border:1px solid var(--line);border-radius:50%;background:#f7f5f0;font-size:21px;line-height:1}
+.kw-address-steps{display:flex;align-items:center;padding:13px 22px;background:#faf8f3;border-bottom:1px solid var(--line);font-size:10px;color:#8a877f;font-weight:800}
+.kw-address-steps span{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.kw-address-steps span.active{color:#171817}
+.kw-address-steps b{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#e9e5dc;font-size:10px}
+.kw-address-steps .active b{background:#171817;color:#fff}
+.kw-address-steps i{height:1px;background:#d8d3c9;flex:1;margin:0 9px}
+.kw-address-section{padding:18px 22px;border-bottom:1px solid var(--line)}
+.kw-address-section-title{display:flex;gap:10px;align-items:flex-start;margin-bottom:13px}
+.kw-address-section-title>b{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:#f1eee7;font-size:15px}
+.kw-address-section-title strong{display:block;font-size:13px}
+.kw-address-section-title small{display:block;color:#85817a;font-size:10px;margin-top:3px;line-height:1.4}
+.kw-address-grid{display:grid!important;grid-template-columns:1fr 1fr;gap:11px!important}
+.kw-address-grid .full{grid-column:1/-1}
+.kw-address-grid label{display:block;font-size:11px;font-weight:850;margin:0 0 6px}
+.kw-address-grid label em{font-style:normal;color:#9a3f34;font-size:9px;font-weight:800;margin-left:4px}
+.kw-address-grid input,.kw-address-grid select,.kw-address-grid textarea{width:100%;height:44px;border:1px solid #dcd7ce;border-radius:11px;background:#fff;padding:0 12px;color:#171817;outline:none;transition:border-color .15s,box-shadow .15s}
+.kw-address-grid textarea{height:82px;padding:11px 12px;resize:vertical;line-height:1.45}
+.kw-address-grid input:focus,.kw-address-grid select:focus,.kw-address-grid textarea:focus{border-color:#8e8a82;box-shadow:0 0 0 3px rgba(23,24,23,.05)}
+.kw-address-grid select:disabled{background:#f2f0eb;color:#9a978f}
+.kw-address-label-section{background:#fcfbf8}
+.kw-label-options{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.kw-label-option{height:38px;padding:0 15px;border:1px solid #dcd7ce;border-radius:999px;background:#fff;color:#555;font-size:11px;font-weight:800}
+.kw-label-option.active{border-color:#171817;background:#171817;color:#fff}
+.kw-address-hidden-label{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
+.kw-address-default{display:flex!important;align-items:flex-start;gap:9px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;cursor:pointer}
+.kw-address-default input{margin-top:2px}
+.kw-address-default span{display:block}
+.kw-address-default strong{display:block;font-size:11px}
+.kw-address-default small{display:block;color:#888;font-size:10px;margin-top:2px}
+.kw-address-message{min-height:18px;padding:12px 22px 0;color:#8b4b43;font-size:11px;line-height:1.45}
+.kw-address-actions{padding:14px 22px 20px!important;margin-top:0!important;border-top:0!important;display:flex;justify-content:flex-end;gap:8px}
+.kw-address-actions button{height:44px;min-width:120px;border-radius:11px;font-weight:850}
+.kw-address-actions .cancel{border:1px solid var(--line);background:#fff;color:#444}
+.kw-address-actions .save{border:0;background:#171817;color:#fff}
+@media(max-width:560px){
+  .kw-address-editor-head{padding:18px 16px 14px}.kw-address-section{padding:16px}.kw-address-steps{padding:11px 16px}.kw-address-grid{grid-template-columns:1fr!important}.kw-address-grid .full{grid-column:auto}.kw-address-actions{padding:13px 16px 17px!important}.kw-address-actions button{flex:1;min-width:0}.kw-address-editor-head h4{font-size:19px}
+}
+</style>
+<script id="kw-address-usability-v2-script">
+let kwAddressProvinceRows=[];
+let kwAddressEditingSnapshot=null;
+
+function selectBuyerAddressLabel(label){
+  const hidden=document.getElementById("addressLabel");
+  if(hidden)hidden.value=label;
+  document.querySelectorAll(".kw-label-option").forEach(btn=>btn.classList.toggle("active",btn.dataset.label===label));
+}
+
+async function loadBuyerAddressProvinces(selectedName=""){
+  const select=document.getElementById("addressProvince"); if(!select)return;
+  select.innerHTML='<option value="">Memuat provinsi...</option>'; select.disabled=true;
+  try{
+    const res=await fetch("/api/location-provinces",{cache:"no-store"});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(data.error||"Gagal memuat provinsi.");
+    kwAddressProvinceRows=Array.isArray(data.data)?data.data:[];
+    select.innerHTML='<option value="">Pilih provinsi</option>'+kwAddressProvinceRows.map(x=>'<option value="'+escDetail(x.id)+'">'+escDetail(x.name)+'</option>').join("");
+    select.disabled=false;
+    select.onchange=async()=>{await loadBuyerAddressCities(select.value);};
+    const match=kwAddressProvinceRows.find(x=>String(x.name).trim().toLowerCase()===String(selectedName).trim().toLowerCase());
+    if(match){select.value=String(match.id);await loadBuyerAddressCities(match.id,kwAddressEditingSnapshot?.city||"");}
+  }catch(e){
+    select.innerHTML='<option value="">Provinsi gagal dimuat</option>'; select.disabled=true;
+    const msg=document.getElementById("buyerAddressMessage");if(msg)msg.textContent=e.message||"Gagal memuat provinsi.";
+  }
+}
+
+async function loadBuyerAddressCities(provinceId,selectedCity=""){
+  const select=document.getElementById("addressCity"); if(!select)return;
+  select.disabled=true; select.innerHTML='<option value="">Memuat kota/kabupaten...</option>';
+  if(!provinceId){select.innerHTML='<option value="">Pilih provinsi terlebih dahulu</option>';return;}
+  try{
+    const res=await fetch("/api/location-cities/"+encodeURIComponent(provinceId),{cache:"no-store"});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(data.error||"Gagal memuat kota/kabupaten.");
+    const rows=Array.isArray(data.data)?data.data:[];
+    select.innerHTML='<option value="">Pilih kota/kabupaten</option>'+rows.map(x=>'<option value="'+escDetail(x.name)+'" data-id="'+escDetail(x.id)+'">'+escDetail(x.name)+'</option>').join("");
+    select.disabled=false;
+    const match=rows.find(x=>String(x.name).trim().toLowerCase()===String(selectedCity).trim().toLowerCase());
+    if(match)select.value=String(match.name);
+  }catch(e){
+    select.innerHTML='<option value="">Kota/kabupaten gagal dimuat</option>'; select.disabled=true;
+    const msg=document.getElementById("buyerAddressMessage");if(msg)msg.textContent=e.message||"Gagal memuat kota/kabupaten.";
+  }
+}
+
+function resetBuyerAddressFormV2(){
+  ["addressRecipient","addressPhone","addressPostal","addressLine"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+  const label=document.getElementById("addressLabel");if(label)label.value="Rumah";
+  selectBuyerAddressLabel("Rumah");
+  const def=document.getElementById("addressDefault");if(def)def.checked=buyerAddressCache.length===0;
+  const msg=document.getElementById("buyerAddressMessage");if(msg)msg.textContent="";
+  const city=document.getElementById("addressCity");if(city){city.disabled=true;city.innerHTML='<option value="">Pilih provinsi terlebih dahulu</option>';}
+  const province=document.getElementById("addressProvince");if(province){province.innerHTML='<option value="">Pilih provinsi</option>';province.value="";}
+  kwAddressEditingSnapshot=null;
+}
+
+async function openBuyerAddressForm(address=null){
+  if(!kwCurrentUser)return;
+  const form=document.getElementById("buyerAddressForm");if(!form)return;
+  form.style.display="block"; buyerAddressEditingId=address?.id||null; kwAddressEditingSnapshot=address||null;
+  const title=document.getElementById("buyerAddressFormTitle");if(title)title.textContent=address?"Edit alamat pengiriman":"Tambah alamat baru";
+  const values={
+    addressRecipient:address?.recipient_name||getMarketKitaDisplayName(kwCurrentUser,kwCurrentProfile),
+    addressPhone:address?.phone||kwCurrentProfile?.phone||"",
+    addressPostal:address?.postal_code||"",
+    addressLine:address?.address_line||""
+  };
+  Object.entries(values).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.value=value;});
+  const def=document.getElementById("addressDefault");if(def)def.checked=address?!!address.is_default:buyerAddressCache.length===0;
+  selectBuyerAddressLabel(address?.label||"Rumah");
+  const msg=document.getElementById("buyerAddressMessage");if(msg)msg.textContent="";
+  await loadBuyerAddressProvinces(address?.province||"");
+  form.scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+async function saveBuyerAddress(){
+  if(!kwSupabase||!kwCurrentUser)return;
+  const get=id=>String(document.getElementById(id)?.value||"").trim();
+  const provinceSelect=document.getElementById("addressProvince");
+  const citySelect=document.getElementById("addressCity");
+  const payload={
+    label:get("addressLabel")||"Rumah",
+    recipient_name:get("addressRecipient"),
+    phone:get("addressPhone").replace(/[^0-9+]/g,""),
+    postal_code:get("addressPostal").replace(/\D/g,""),
+    address_line:get("addressLine"),
+    city:String(citySelect?.selectedOptions?.[0]?.textContent||"").trim(),
+    province:String(provinceSelect?.selectedOptions?.[0]?.textContent||"").trim(),
+    is_default:false
+  };
+  const msg=document.getElementById("buyerAddressMessage");
+  if(!payload.recipient_name||payload.recipient_name.length<2){if(msg)msg.textContent="Masukkan nama lengkap penerima.";return;}
+  if(!/^\+?[0-9]{8,19}$/.test(payload.phone)){if(msg)msg.textContent="Nomor WhatsApp belum valid. Contoh: 081234567890.";return;}
+  if(!/^\d{5}$/.test(payload.postal_code)){if(msg)msg.textContent="Kode pos harus tepat 5 digit.";return;}
+  if(payload.address_line.length<5){if(msg)msg.textContent="Masukkan alamat lengkap, termasuk nama jalan dan nomor rumah.";return;}
+  if(payload.city.length<2||payload.province.length<2){if(msg)msg.textContent="Pilih provinsi dan kota/kabupaten terlebih dahulu.";return;}
+  const wantDefault=!!document.getElementById("addressDefault")?.checked;
+  const button=document.querySelector("#buyerAddressForm .save");if(button){button.disabled=true;button.textContent="Menyimpan...";}
+  try{
+    let result;
+    if(buyerAddressEditingId)result=await kwSupabase.from("buyer_addresses").update(payload).eq("id",buyerAddressEditingId).eq("user_id",kwCurrentUser.id).select().single();
+    else result=await kwSupabase.from("buyer_addresses").insert({user_id:kwCurrentUser.id,...payload}).select().single();
+    if(result.error)throw result.error;
+    const saved=result.data;
+    if(wantDefault){const d=await kwSupabase.rpc("set_default_buyer_address",{p_address_id:saved.id});if(d.error)throw d.error;}
+    else{
+      const {count}=await kwSupabase.from("buyer_addresses").select("id",{count:"exact",head:true}).eq("user_id",kwCurrentUser.id);
+      if(Number(count)===1){const d=await kwSupabase.rpc("set_default_buyer_address",{p_address_id:saved.id});if(d.error)throw d.error;}
+    }
+    await loadBuyerAddresses(); closeBuyerAddressForm();
+  }catch(error){if(msg)msg.textContent=error.message||"Gagal menyimpan alamat."}
+  finally{if(button){button.disabled=false;button.textContent="Simpan alamat";}}
+}
+</script>
+</body>
 </html>
