@@ -16,16 +16,6 @@ function norm(row){
     label:[subdistrict,district,city,province,zip].filter(Boolean).join(" · ")
   };
 }
-async function raja(env,q){
-  const key=String(env.RAJAONGKIR_API_KEY||"").trim();
-  if(!key)return [];
-  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),9000);
-  try{
-    const r=await fetch("https://rajaongkir.komerce.id/api/v1/destination/domestic-destination?search="+encodeURIComponent(q)+"&limit=50&offset=0",{headers:{key},signal:controller.signal});
-    const d=await r.json().catch(()=>({}));
-    return r.ok&&d?.meta?.status==="success"&&Array.isArray(d.data)?d.data:[];
-  }catch{return []}finally{clearTimeout(timer);}
-}
 async function osm(q){
   try{
     const u=new URL("https://nominatim.openstreetmap.org/search");
@@ -39,24 +29,37 @@ async function osm(q){
   }catch{return []}
 }
 export async function onRequestGet(context){
-  const q=clean(new URL(context.request.url).searchParams.get("search"));
+  const u=new URL(context.request.url);
+  const q=clean(u.searchParams.get("search")).toLowerCase();
   if(q.length<2)return json({ok:true,data:[]});
+  // Global location search must never consume RajaOngkir Shipping Cost HITs.
+  // RajaOngkir is reserved for the final shipping-rate calculation.
+  const cacheKey=new Request("https://marketkita.invalid/location-search/"+encodeURIComponent(q));
   try{
-    const [rRows,oRows]=await Promise.all([raja(context.env,q),osm(q)]);
+    const cached=await caches.default.match(cacheKey);
+    if(cached)return cached;
+  }catch{}
+  try{
+    const oRows=await osm(q);
     const map=new Map();
-    for(const raw of [...rRows,...oRows]){
-      const x=norm(raw);const key=[x.subdistrict_name,x.district_name,x.city_name,x.province_name,x.zip_code].join("|").toLowerCase();
+    for(const raw of oRows){
+      const x=norm(raw);
+      const key=[x.subdistrict_name,x.district_name,x.city_name,x.province_name,x.zip_code].join("|").toLowerCase();
       if(!key||map.has(key))continue;
       map.set(key,x);
     }
     const data=[...map.values()].sort((a,b)=>{
-      const qn=q.toLowerCase().replace(/[^a-z0-9]/g,"");
+      const qn=q.replace(/[^a-z0-9]/g,"");
       const score=x=>{
         const vals=[x.subdistrict_name,x.district_name,x.city_name,x.province_name].map(v=>String(v||"").toLowerCase().replace(/[^a-z0-9]/g,""));
         return vals.reduce((s,v)=>s+(v===qn?100:v.includes(qn)?60:qn.includes(v)&&v.length>3?35:0),0)+(x.zip_code?2:0);
       };
       return score(b)-score(a);
     }).slice(0,50);
-    return json({ok:true,data});
+    const response=new Response(JSON.stringify({ok:true,data}),{
+      headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"public, max-age=3600, s-maxage=3600"}
+    });
+    try{await caches.default.put(cacheKey,response.clone());}catch{}
+    return response;
   }catch(e){return json({ok:false,error:e?.message||"Gagal mencari lokasi."},502);}
 }
