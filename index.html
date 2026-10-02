@@ -686,67 +686,86 @@ body{background:var(--bg);color:var(--ink)}
 </div>
 
 <!-- CHECKOUT -->
-<div id="checkoutModal" class="modal" aria-hidden="true" onclick="closeCheckout(event)">
-  <div class="modal-box" onclick="event.stopPropagation()">
-    <div class="modal-head">
-      <h3 data-i18n="checkout_title">Checkout MarketKita</h3>
+<div id="checkoutModal" class="modal kw-checkout-modal" aria-hidden="true" onclick="closeCheckout(event)">
+  <div class="modal-box kw-checkout-box" onclick="event.stopPropagation()">
+    <div class="kw-checkout-head">
+      <div>
+        <span class="kw-checkout-kicker">PESANAN ANDA</span>
+        <h3 data-i18n="checkout_title">Checkout MarketKita</h3>
+        <p>Lengkapi data penerima dan pilih alamat pengiriman.</p>
+      </div>
       <button class="close-btn" type="button" onclick="closeCheckout()">×</button>
     </div>
 
-    <div id="checkoutItems" class="checkout-summary"></div>
+    <div id="checkoutItems" class="checkout-summary kw-checkout-items"></div>
 
-    <div class="field">
-      <label for="buyerName" data-i18n="field_name">Nama</label>
-      <input id="buyerName" required>
+    <div class="kw-checkout-section">
+      <div class="kw-checkout-section-title"><b>1</b><div><strong>Data penerima</strong><small>Pastikan nama dan nomor WhatsApp sudah benar.</small></div></div>
+      <div class="kw-checkout-grid">
+        <div class="field"><label for="buyerName" data-i18n="field_name">Nama lengkap</label><input id="buyerName" required placeholder="Nama penerima"></div>
+        <div class="field"><label for="buyerPhone" data-i18n="field_phone">No. WhatsApp</label><input id="buyerPhone" required placeholder="08xxxxxxxxxx"></div>
+        <div class="field kw-checkout-full"><label for="buyerEmail" data-i18n="field_email">Email</label><input id="buyerEmail" type="email" required placeholder="nama@email.com"></div>
+      </div>
     </div>
-    <div class="field">
-      <label for="buyerEmail" data-i18n="field_email">Email</label>
-      <input id="buyerEmail" type="email" required>
-    </div>
-    <div class="field">
-      <label for="buyerPhone" data-i18n="field_phone">No. WhatsApp</label>
-      <input id="buyerPhone" required>
-    </div>
-    <div class="field">
-      <label for="buyerAddressSelect">Alamat Tersimpan</label>
-      <select id="buyerAddressSelect" onchange="applyCheckoutAddress(this.value)" style="width:100%;height:44px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:#fff">
-        <option value="">Pilih alamat tersimpan</option>
-      </select>
-      <small style="display:block;margin-top:6px;color:#77736c">Atau pilih <strong>Isi alamat manual</strong> untuk menghitung ongkir berdasarkan alamat yang Anda ketik.</small>
-    </div>
-    <div class="field">
-      <label for="buyerAddressMode">Metode alamat</label>
-      <select id="buyerAddressMode" onchange="toggleManualCheckoutAddress(this.value)" style="width:100%;height:44px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:#fff">
+
+    <div class="kw-checkout-section">
+      <div class="kw-checkout-section-title"><b>2</b><div><strong>Alamat pengiriman</strong><small>Pilih alamat tersimpan atau isi alamat baru.</small></div></div>
+
+      <div class="kw-address-choice">
+        <button id="kwSavedAddressChoice" type="button" class="kw-address-choice-btn active" onclick="setCheckoutAddressMode('saved')">
+          <span class="kw-choice-icon">⌂</span><span><strong>Alamat tersimpan</strong><small>Gunakan alamat yang sudah disimpan</small></span>
+        </button>
+        <button id="kwManualAddressChoice" type="button" class="kw-address-choice-btn" onclick="setCheckoutAddressMode('manual')">
+          <span class="kw-choice-icon">＋</span><span><strong>Alamat baru</strong><small>Isi alamat untuk pesanan ini</small></span>
+        </button>
+      </div>
+
+      <select id="buyerAddressMode" aria-hidden="true" tabindex="-1" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
         <option value="saved">Gunakan alamat tersimpan</option>
         <option value="manual">Isi alamat manual</option>
       </select>
-    </div>
-    <div id="manualCheckoutAddressFields" style="display:none">
-      <div class="field"><label for="buyerManualAddressLine">Alamat lengkap</label><textarea id="buyerManualAddressLine" placeholder="Jalan, nomor rumah, RT/RW, kelurahan..." style="width:100%;min-height:84px;border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical"></textarea></div>
-      <div class="field"><label for="buyerManualCity">Kota/Kabupaten</label><select id="buyerManualCity" disabled><option value="">Pilih provinsi terlebih dahulu</option></select></div>
-      <div class="field"><label for="buyerManualProvince">Provinsi</label><select id="buyerManualProvince"><option value="">Memuat provinsi...</option></select></div>
-      <div class="field"><label for="buyerManualPostalCode">Kode Pos</label><input id="buyerManualPostalCode" inputmode="numeric" maxlength="5" placeholder="5 digit"></div>
-      <small style="display:block;margin:-4px 0 12px;color:#77736c">Kode pos wajib 5 digit agar RajaOngkir dapat menghitung ongkir.</small>
-    </div>
-    <div class="field">
-      <label for="buyerAddress" data-i18n="field_address">Ringkasan Alamat Pengiriman</label>
-      <textarea id="buyerAddress" required readonly style="width:100%;min-height:84px;border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical;background:#f7f5f0"></textarea>
-    </div>
-    <div id="checkoutShippingSummary" class="checkout-summary-row" style="margin-top:8px">
-      <span>Ongkir</span><strong>Rp0 <small style="font-weight:500;color:#77736c">(pilih alamat)</small></strong>
-    </div>
-    <div id="checkoutShippingOptions" class="checkout-shipping-options" style="margin-top:10px">
-      <div class="checkout-shipping-empty">Pilih alamat tersimpan untuk menghitung ongkir.</div>
+
+      <div id="kwSavedAddressPanel" class="kw-address-panel">
+        <label for="buyerAddressSelect">Pilih alamat tersimpan</label>
+        <select id="buyerAddressSelect" onchange="applyCheckoutAddress(this.value)">
+          <option value="">Pilih alamat pengiriman</option>
+        </select>
+        <div class="kw-address-helper">Belum punya alamat? Pilih <strong>Alamat baru</strong> di atas.</div>
+      </div>
+
+      <div id="manualCheckoutAddressFields" class="kw-address-panel kw-manual-address-panel" style="display:none">
+        <div class="kw-manual-intro"><strong>Masukkan alamat tujuan</strong><span>Provinsi dan kota dipilih dari data RajaOngkir agar ongkir lebih akurat.</span></div>
+        <div class="kw-checkout-grid">
+          <div class="field kw-checkout-full"><label for="buyerManualAddressLine">Alamat jalan</label><textarea id="buyerManualAddressLine" placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan..."></textarea></div>
+          <div class="field"><label for="buyerManualProvince">Provinsi</label><select id="buyerManualProvince"><option value="">Memuat provinsi...</option></select></div>
+          <div class="field"><label for="buyerManualCity">Kota / Kabupaten</label><select id="buyerManualCity" disabled><option value="">Pilih provinsi terlebih dahulu</option></select></div>
+          <div class="field"><label for="buyerManualPostalCode">Kode pos</label><input id="buyerManualPostalCode" inputmode="numeric" maxlength="5" placeholder="Contoh: 29444"></div>
+        </div>
+      </div>
+
+      <div class="field kw-checkout-address-summary">
+        <label for="buyerAddress" data-i18n="field_address">Ringkasan alamat</label>
+        <textarea id="buyerAddress" required readonly placeholder="Alamat pengiriman akan tampil di sini"></textarea>
+      </div>
     </div>
 
-    <div class="field" style="margin-top:12px"><label for="checkoutVoucher">Voucher</label><div style="display:flex;gap:8px"><input id="checkoutVoucher" placeholder="Masukkan voucher yang sudah diklaim" style="flex:1"><button type="button" class="smallbtn" style="width:110px" onclick="validateCheckoutVoucher()">Terapkan</button></div><div id="checkoutVoucherMessage" style="font-size:11px;color:#777;margin-top:6px"></div></div>
+    <div class="kw-checkout-section kw-shipping-section">
+      <div class="kw-checkout-section-title"><b>3</b><div><strong>Pengiriman</strong><small>Pilih layanan kurir yang tersedia.</small></div></div>
+      <div id="checkoutShippingSummary" class="checkout-summary-row"><span>Ongkir</span><strong>Rp0 <small>(pilih alamat)</small></strong></div>
+      <div id="checkoutShippingOptions" class="checkout-shipping-options"><div class="checkout-shipping-empty">Pilih alamat untuk menghitung ongkir.</div></div>
+    </div>
 
-<div class="total-row" style="padding:12px 0 16px">
-      <strong data-i18n="total">Total</strong>
+    <div class="kw-checkout-section">
+      <div class="kw-checkout-section-title"><b>4</b><div><strong>Voucher</strong><small>Gunakan voucher yang sudah Anda klaim.</small></div></div>
+      <div class="field kw-voucher-row"><input id="checkoutVoucher" placeholder="Masukkan kode voucher"><button type="button" class="smallbtn" onclick="validateCheckoutVoucher()">Terapkan</button></div>
+      <div id="checkoutVoucherMessage" class="kw-voucher-message"></div>
+    </div>
+
+    <div class="kw-checkout-total">
+      <span>Total pembayaran</span>
       <strong id="checkoutTotal">Rp0</strong>
     </div>
-
-    <button id="payButton" class="pay-btn" type="button" onclick="startPayment(event)" data-i18n="pay_button">
+    <button id="payButton" class="pay-btn kw-checkout-pay" type="button" onclick="startPayment(event)" data-i18n="pay_button">
       Lanjut ke Pembayaran
     </button>
   </div>
@@ -4383,6 +4402,65 @@ async function saveBuyerAddress(){
     await loadBuyerAddresses(); closeBuyerAddressForm();
   }catch(error){if(msg)msg.textContent=error.message||"Gagal menyimpan alamat."}
   finally{if(button){button.disabled=false;button.textContent="Simpan alamat";}}
+}
+</script>
+<style id="kw-checkout-ux-v2">
+.kw-checkout-box{max-width:620px!important;padding:0!important;overflow:hidden;background:#fffdf9}
+.kw-checkout-head{display:flex;justify-content:space-between;gap:16px;padding:20px 22px 16px;background:#fff;border-bottom:1px solid var(--line)}
+.kw-checkout-kicker{font-size:9px;letter-spacing:.14em;font-weight:900;color:#77736c}
+.kw-checkout-head h3{margin:4px 0 3px;font-size:21px}
+.kw-checkout-head p{margin:0;color:#77736c;font-size:11px}
+.kw-checkout-items{margin:14px 18px!important}
+.kw-checkout-section{padding:17px 22px;border-top:1px solid var(--line)}
+.kw-checkout-section-title{display:flex;gap:10px;align-items:center;margin-bottom:13px}
+.kw-checkout-section-title>b{width:27px;height:27px;border-radius:50%;display:grid;place-items:center;background:#171817;color:#fff;font-size:11px}
+.kw-checkout-section-title strong{display:block;font-size:13px}
+.kw-checkout-section-title small{display:block;color:#85817a;font-size:10px;margin-top:2px}
+.kw-checkout-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kw-checkout-full{grid-column:1/-1}
+.kw-checkout-section .field{margin:0}
+.kw-checkout-section label{font-size:10px;font-weight:850;display:block;margin-bottom:5px}
+.kw-checkout-section input,.kw-checkout-section select,.kw-checkout-section textarea{width:100%;height:43px;border:1px solid #dcd7ce;border-radius:10px;background:#fff;padding:0 11px;box-sizing:border-box}
+.kw-checkout-section textarea{height:78px;padding:10px 11px;resize:vertical}
+.kw-checkout-section input:focus,.kw-checkout-section select:focus,.kw-checkout-section textarea:focus{outline:none;border-color:#77736c;box-shadow:0 0 0 3px rgba(23,24,23,.05)}
+.kw-address-choice{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px}
+.kw-address-choice-btn{display:flex;align-items:center;text-align:left;gap:9px;padding:11px;border:1px solid #dcd7ce;border-radius:12px;background:#fff;cursor:pointer}
+.kw-address-choice-btn.active{border-color:#171817;background:#f7f5f0;box-shadow:inset 0 0 0 1px #171817}
+.kw-choice-icon{width:29px;height:29px;border-radius:8px;background:#eeeae2;display:grid;place-items:center;font-size:16px;flex:0 0 auto}
+.kw-address-choice-btn strong{display:block;font-size:11px}
+.kw-address-choice-btn small{display:block;color:#85817a;font-size:9px;margin-top:2px;line-height:1.3}
+.kw-address-panel{padding:11px;border:1px solid #e1ddd5;border-radius:12px;background:#faf8f3}
+.kw-address-helper{font-size:9px;color:#85817a;margin-top:6px}
+.kw-manual-intro{margin-bottom:10px}
+.kw-manual-intro strong{display:block;font-size:11px}
+.kw-manual-intro span{display:block;color:#85817a;font-size:9px;margin-top:2px}
+.kw-checkout-address-summary{margin-top:11px!important}
+.kw-checkout-address-summary textarea{background:#f4f2ed!important}
+.kw-shipping-section{background:#fcfbf8}
+.kw-shipping-section .checkout-summary-row{margin:0!important}
+.kw-shipping-section .checkout-shipping-options{margin-top:8px!important}
+.kw-voucher-row{display:flex;gap:8px}
+.kw-voucher-row input{flex:1}
+.kw-voucher-row button{width:105px;flex:0 0 105px}
+.kw-voucher-message{font-size:10px;color:#777;margin-top:6px;min-height:14px}
+.kw-checkout-total{display:flex;justify-content:space-between;align-items:center;padding:17px 22px 10px;border-top:1px solid var(--line);font-size:12px}
+.kw-checkout-total strong{font-size:17px}
+.kw-checkout-pay{margin:0 22px 20px!important;width:calc(100% - 44px)!important;height:46px!important;border-radius:11px!important}
+@media(max-width:560px){
+ .kw-checkout-box{max-width:100%!important}
+ .kw-checkout-head{padding:17px 16px 14px}.kw-checkout-section{padding:15px 16px}.kw-checkout-grid,.kw-address-choice{grid-template-columns:1fr}.kw-checkout-full{grid-column:auto}.kw-checkout-items{margin:12px 14px!important}.kw-checkout-total{padding:15px 16px 9px}.kw-checkout-pay{margin:0 16px 16px!important;width:calc(100% - 32px)!important}
+}
+</style>
+<script id="kw-checkout-ux-v2-script">
+function setCheckoutAddressMode(mode){
+  const m=document.getElementById("buyerAddressMode");
+  if(m)m.value=mode;
+  document.getElementById("kwSavedAddressChoice")?.classList.toggle("active",mode==="saved");
+  document.getElementById("kwManualAddressChoice")?.classList.toggle("active",mode==="manual");
+  const saved=document.getElementById("kwSavedAddressPanel"), manual=document.getElementById("manualCheckoutAddressFields");
+  if(saved)saved.style.display=mode==="saved"?"block":"none";
+  if(manual)manual.style.display=mode==="manual"?"block":"none";
+  if(typeof toggleManualCheckoutAddress==="function")toggleManualCheckoutAddress(mode);
 }
 </script>
 </body>
