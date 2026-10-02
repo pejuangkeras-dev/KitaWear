@@ -79,11 +79,22 @@ async function supabaseRequest(url, key, path, options = {}) {
 }
 
 
+async function paymentEventExists(url, key, eventKey) {
+  const rows = await supabaseRequest(
+    url,
+    key,
+    "/rest/v1/payment_events?select=id&provider=eq.midtrans&event_key=eq." +
+      encodeURIComponent(eventKey) +
+      "&limit=1"
+  );
+  return Array.isArray(rows) && rows.length > 0;
+}
+
 async function recordPaymentEvent(url, key, eventKey, orderId, payload, source = "webhook") {
   if (!eventKey) throw new Error("Payment event key wajib.");
-  const rows = await supabaseRequest(url, key, "/rest/v1/payment_events", {
+  await supabaseRequest(url, key, "/rest/v1/payment_events", {
     method: "POST",
-    headers: { Prefer: "resolution=ignore-duplicates,return=representation" },
+    headers: { Prefer: "resolution=ignore-duplicates,return=minimal" },
     body: JSON.stringify({
       provider: "midtrans",
       event_key: eventKey,
@@ -100,7 +111,6 @@ async function recordPaymentEvent(url, key, eventKey, orderId, payload, source =
       payload: payload || {}
     })
   });
-  return Array.isArray(rows) && rows.length > 0;
 }
 
 function mapMidtransStatus(transactionStatus, fraudStatus) {
@@ -285,15 +295,7 @@ export async function onRequestPost(context) {
       statusCode,
       signatureKey
     ].join(":");
-    const isNewPaymentEvent = await recordPaymentEvent(
-      supabaseUrl,
-      serviceRoleKey,
-      eventKey,
-      order.id,
-      body,
-      "webhook"
-    );
-    if (!isNewPaymentEvent) {
+    if (await paymentEventExists(supabaseUrl, serviceRoleKey, eventKey)) {
       return json({
         ok: true,
         order_id: orderId,
@@ -343,6 +345,7 @@ export async function onRequestPost(context) {
         }
       );
 
+      await recordPaymentEvent(supabaseUrl, serviceRoleKey, eventKey, order.id, body, "webhook");
       return json({
         ok:true,
         order_id:orderId,
@@ -384,6 +387,7 @@ export async function onRequestPost(context) {
         }
       );
 
+      await recordPaymentEvent(supabaseUrl, serviceRoleKey, eventKey, order.id, body, "webhook");
       return json({
         ok: true,
         order_id: orderId,
@@ -535,6 +539,7 @@ await supabaseRequest(
         body: JSON.stringify(notification)
       }).catch(() => {});
     }
+    await recordPaymentEvent(supabaseUrl, serviceRoleKey, eventKey, order.id, body, "webhook");
     return json({
       ok: true,
       order_id: orderId,
