@@ -79,22 +79,28 @@ async function supabaseRequest(url, key, path, options = {}) {
 }
 
 
-async function recordWebhookEvent(url, key, eventKey, orderId, payload) {
-  if (!eventKey) return;
-  try {
-    await supabaseRequest(url, key, "/rest/v1/webhook_events", {
-      method: "POST",
-      headers: { Prefer: "resolution=ignore-duplicates,return=minimal" },
-      body: JSON.stringify({
-        provider: "midtrans",
-        event_key: eventKey,
-        order_id: orderId || null,
-        payload: payload || {}
-      })
-    });
-  } catch (e) {
-    console.warn("Midtrans webhook event audit skipped:", e?.message || e);
-  }
+async function recordPaymentEvent(url, key, eventKey, orderId, payload, source = "webhook") {
+  if (!eventKey) throw new Error("Payment event key wajib.");
+  const rows = await supabaseRequest(url, key, "/rest/v1/payment_events", {
+    method: "POST",
+    headers: { Prefer: "resolution=ignore-duplicates,return=representation" },
+    body: JSON.stringify({
+      provider: "midtrans",
+      event_key: eventKey,
+      event_type: "notification",
+      order_id: orderId || null,
+      transaction_id: payload?.transaction_id || null,
+      transaction_status: payload?.transaction_status || null,
+      status_code: payload?.status_code || null,
+      status_message: payload?.status_message || null,
+      payment_type: payload?.payment_type || null,
+      fraud_status: payload?.fraud_status || null,
+      gross_amount: Number.isFinite(Number(payload?.gross_amount)) ? Math.round(Number(payload.gross_amount)) : null,
+      source,
+      payload: payload || {}
+    })
+  });
+  return Array.isArray(rows) && rows.length > 0;
 }
 
 function mapMidtransStatus(transactionStatus, fraudStatus) {
@@ -269,7 +275,34 @@ export async function onRequestPost(context) {
       );
     }
 
-    const incomingRefundStatus=String(body?.transaction_status||"").toLowerCase();
+    const transactionStatus = String(body?.transaction_status || "").toLowerCase();
+    const transactionId = String(body?.transaction_id || "").trim();
+    const eventKey = [
+      "notification",
+      orderId,
+      transactionId,
+      transactionStatus,
+      statusCode,
+      signatureKey
+    ].join(":");
+    const isNewPaymentEvent = await recordPaymentEvent(
+      supabaseUrl,
+      serviceRoleKey,
+      eventKey,
+      order.id,
+      body,
+      "webhook"
+    );
+    if (!isNewPaymentEvent) {
+      return json({
+        ok: true,
+        order_id: orderId,
+        duplicate: true,
+        event_key: eventKey
+      });
+    }
+
+    const incomingRefundStatus=transactionStatus;
     const incomingRefundKey=String(body?.refund_key||"").trim();
     if(["refund","partial_refund"].includes(incomingRefundStatus) && incomingRefundKey.startsWith("MK-REFUND-")){
       // Midtrans sends bank_confirmed_at inside the matching item of the \`refunds\` array
@@ -310,7 +343,6 @@ export async function onRequestPost(context) {
         }
       );
 
-      await recordWebhookEvent(supabaseUrl, serviceRoleKey, signatureKey, order.id, body);
       return json({
         ok:true,
         order_id:orderId,
@@ -366,7 +398,12 @@ export async function onRequestPost(context) {
       status: mapped.orderStatus,
       payment_status: mapped.paymentStatus,
       midtrans_order_id: orderId,
-      midtrans_transaction_id: body?.transaction_id || order.midtrans_transaction_id || null
+      midtrans_transaction_id: body?.transaction_id || order.midtrans_transaction_id || null,
+      payment_last_synced_at: new Date().toISOString(),
+      payment_status_code: statusCode,
+      payment_status_message: String(body?.status_message || "").trim() || null,
+      payment_type: String(body?.payment_type || "").trim() || null,
+      payment_fraud_status: String(body?.fraud_status || "").trim() || null
     };
 
     if (mapped.paymentStatus === "paid" && !order.paid_at) {
@@ -478,7 +515,26 @@ await supabaseRequest(
         }
       );
     }
-    await recordWebhookEvent(supabaseUrl, serviceRoleKey, signatureKey, order.id, body);
+    if (order.payment_status !== mapped.paymentStatus) {
+      const notification = {
+        user_id: order.buyer_id,
+        type: "payment",
+        title: mapped.paymentStatus === "paid"
+          ? "Pembayaran berhasil"
+          : mapped.paymentStatus === "pending"
+            ? "Menunggu pembayaran"
+            : "Status pembayaran diperbarui",
+        message: mapped.paymentStatus === "paid"
+          ? "Pembayaran pesanan " + orderId + " telah dikonfirmasi."
+          : "Status pembayaran pesanan " + orderId + " sekarang " + mapped.paymentStatus + ".",
+        link: "/?order=" + encodeURIComponent(order.id)
+      };
+      await supabaseRequest(supabaseUrl, serviceRoleKey, "/rest/v1/notifications", {
+        method: "POST",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify(notification)
+      }).catch(() => {});
+    }
     return json({
       ok: true,
       order_id: orderId,
