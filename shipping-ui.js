@@ -57,8 +57,15 @@ window.fetch=async function(input,init){
  }
  return originalFetch(input,init);
 };
+let mkQuoteTimer=null;
+let mkQuoteInFlight=false;
 function scheduleQuote(){
- [0,150,500,1200].forEach(ms=>setTimeout(()=>{quote();},ms));
+ clearTimeout(mkQuoteTimer);
+ // One debounced request only. The previous implementation fired four
+ // requests for every checkout/address event and could exhaust RajaOngkir HITs.
+ mkQuoteTimer=setTimeout(()=>{
+   if(!mkQuoteInFlight){mkQuoteInFlight=true;quote().finally(()=>{mkQuoteInFlight=false;});}
+ },500);
 }
 function wrap(){
  if(typeof window.openCheckout==="function"&&!window.openCheckout.__mkWrapped){
