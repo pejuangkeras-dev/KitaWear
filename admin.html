@@ -3991,15 +3991,25 @@ async function loadAdminReturns(){
   const status=String($("adminReturnsFilter")?.value||"");const url="/api/admin-return"+(status?"?status="+encodeURIComponent(status):"");
   const r=await fetch(url,{headers:{Authorization:"Bearer "+session.access_token},cache:"no-store"});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Gagal memuat retur.");
   const rows=Array.isArray(d.requests)?d.requests:[];
+  window.adminP14Evidence={};rows.forEach(x=>window.adminP14Evidence[x.id]=Array.isArray(x.evidence_urls)?x.evidence_urls:[]);
   if(!rows.length){root.innerHTML='<div class="empty" style="padding:20px">Belum ada pengajuan retur.</div>';return}
   root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Pengajuan</th><th>Jenis</th><th>Order</th><th>Alasan</th><th>Status</th><th>Nominal</th><th>Aksi</th></tr></thead><tbody>'+rows.map(x=>{
    let a="";if(x.status==="requested")a='<button class="small-btn" onclick="adminReturnAction(\''+x.id+'\',\'approve\')">Setujui</button> <button class="small-btn" onclick="adminReturnAction(\''+x.id+'\',\'reject\')">Tolak</button>';
    else if(x.status==="shipping_back")a='<button class="small-btn" onclick="adminReturnAction(\''+x.id+'\',\'receive\')">Barang Diterima</button>';
    else if(x.status==="received")a='<button class="small-btn" onclick="adminReturnAction(\''+x.id+'\',\'resolve\')">'+(x.type==="replacement"?"Selesaikan Penggantian":"Proses Refund")+'</button>';
    else if(x.status==="resolved")a='<span class="muted">Selesai</span>';
-   return '<tr><td><strong>'+escapeHtml(String(x.id).slice(0,8))+'</strong><div class="muted">'+formatDate(x.requested_at)+'</div></td><td>'+escapeHtml(x.type==="replacement"?"Penggantian":"Retur & Refund")+'</td><td><span class="order-id">'+escapeHtml(x.order_id)+'</span></td><td>'+escapeHtml(x.reason)+'<div class="muted">'+escapeHtml(x.description||"")+'</div></td><td>'+escapeHtml(x.status)+'</td><td class="amount">'+formatRupiah(x.approved_amount||x.requested_amount||0)+'</td><td><div class="actions-cell">'+a+'</div></td></tr>'
+   return '<tr><td><strong>'+escapeHtml(String(x.id).slice(0,8))+'</strong><div class="muted">'+formatDate(x.requested_at)+'</div></td><td>'+escapeHtml(x.type==="replacement"?"Penggantian":"Retur & Refund")+'</td><td><span class="order-id">'+escapeHtml(x.order_id)+'</span></td><td>'+escapeHtml(x.reason)+'<div class="muted">'+escapeHtml(x.description||"")+'</div>'+(Array.isArray(x.evidence_urls)&&x.evidence_urls.length?'<br><button class="small-btn" onclick="adminP14OpenEvidence(\''+x.id+'\')">Lihat bukti ('+x.evidence_urls.length+')</button>':'')+'</td><td>'+escapeHtml(x.status)+'</td><td class="amount">'+formatRupiah(x.approved_amount||x.requested_amount||0)+'</td><td><div class="actions-cell">'+a+'</div></td></tr>'
   }).join("")+'</tbody></table></div>';
  }catch(e){root.innerHTML='<div class="empty" style="padding:20px">'+escapeHtml(e.message||"Gagal memuat retur.")+'</div>'}
+}
+async function adminP14OpenEvidence(id){
+ const paths=window.adminP14Evidence?.[id]||[];if(!paths.length)return;
+ try{
+  for(const path of paths){
+   const s=await supabaseClient.storage.from("return-evidence").createSignedUrl(path,300);
+   if(s.error)throw s.error;if(s.data?.signedUrl)window.open(s.data.signedUrl,"_blank","noopener,noreferrer");
+  }
+ }catch(e){showNotice(e.message||"Bukti tidak dapat dibuka.","error")}
 }
 async function adminReturnAction(id,action){
  let tracking="";let note="";
