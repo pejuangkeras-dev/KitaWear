@@ -1230,6 +1230,11 @@ tr:last-child td{
   <div id="adminRefundsContainer"><div class="loading">Memuat refund...</div></div>
 </section>
 
+<section class="panel" style="margin-top:26px" id="adminChatPanel">
+  <div class="panel-head"><div><h2 class="panel-title">Chat & Communication</h2><div class="muted">Audit percakapan buyer–seller dan status pesan secara read-only.</div></div><button id="adminChatRefresh" class="btn" type="button">↻ Refresh</button></div>
+  <div id="adminChatContainer"><div class="loading">Memuat komunikasi...</div></div>
+</section>
+
 <section class="panel" style="margin-top:26px" id="adminReturnsPanel">
   <div class="panel-head"><div><h2 class="panel-title">Returns & Replacement Center</h2><div class="muted">Kelola retur barang, penggantian, bukti, dan refund terhubung Midtrans.</div></div><button id="adminReturnsRefresh" class="btn" type="button">↻ Refresh</button></div>
   <div class="panel-tools" style="padding:16px 20px;border-bottom:1px solid var(--line)"><select id="adminReturnsFilter" class="select"><option value="">Semua status</option><option value="requested">Diajukan</option><option value="approved">Disetujui</option><option value="shipping_back">Menunggu barang</option><option value="received">Diterima</option><option value="resolved">Selesai</option><option value="rejected">Ditolak</option></select></div>
@@ -1898,6 +1903,7 @@ async function checkAdminAccess(){
   await loadAdminShipping();
   await loadAdminRefunds();
   await loadAdminReturns();
+  await loadAdminChat();
   await loadAdminAudit();
   await loadAdminLedger();
   await loadAdminHealth();
@@ -4026,6 +4032,20 @@ async function adminReturnAction(id,action){
 }
 $("adminReturnsRefresh")?.addEventListener("click",loadAdminReturns);
 $("adminReturnsFilter")?.addEventListener("change",loadAdminReturns);
+
+/* ================= P15 CHAT ADMIN ================= */
+async function loadAdminChat(){
+ const root=$("adminChatContainer");if(!root)return;root.innerHTML='<div class="loading">Memuat komunikasi...</div>';
+ try{
+  const session=(await supabaseClient.auth.getSession()).data?.session;if(!session)throw Error("Session admin berakhir.");
+  const r=await fetch("/api/admin-chat",{headers:{Authorization:"Bearer "+session.access_token},cache:"no-store"});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Gagal memuat komunikasi.");
+  const threads=Array.isArray(d.threads)?d.threads:[],messages=Array.isArray(d.messages)?d.messages:[];
+  const latest=new Map();messages.forEach(m=>{if(!latest.has(String(m.thread_id)))latest.set(String(m.thread_id),m)});
+  root.innerHTML='<div class="mini-grid" style="padding:16px 20px;border-bottom:1px solid var(--line)"><div><strong>'+threads.length+'</strong><span class="muted"> Percakapan</span></div><div><strong>'+messages.length+'</strong><span class="muted"> Pesan terbaru</span></div><div><strong>'+messages.filter(m=>!m.read_at).length+'</strong><span class="muted"> Belum dibaca</span></div></div>'+
+  (threads.length?'<div class="table-wrap"><table><thead><tr><th>Thread</th><th>Buyer</th><th>Seller</th><th>Update</th><th>Pesan terakhir</th></tr></thead><tbody>'+threads.map(t=>{const m=latest.get(String(t.id));return '<tr><td><strong>'+escapeHtml(String(t.id).slice(0,8))+'</strong></td><td>'+escapeHtml(String(t.buyer_id||""))+'</td><td>'+escapeHtml(String(t.seller_id||""))+'</td><td>'+formatDate(t.updated_at)+'</td><td>'+escapeHtml(String(m?.body||"Belum ada pesan").slice(0,160))+'</td></tr>'}).join("")+'</tbody></table></div>':'<div class="empty" style="padding:20px">Belum ada percakapan.</div>');
+ }catch(e){root.innerHTML='<div class="empty" style="padding:20px">'+escapeHtml(e.message||"Gagal memuat komunikasi.")+'</div>'}
+}
+$("adminChatRefresh")?.addEventListener("click",loadAdminChat);
 </script>
 
 </body>
