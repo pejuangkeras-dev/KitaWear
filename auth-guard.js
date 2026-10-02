@@ -85,8 +85,7 @@ const marketKitaCookieStorage={
     return clientPromise;
   }
 
-  async function requireRole(allowedRoles, options = {}) {
-    const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+  async function requireAuth(options = {}) {
     const loginUrl = options.loginUrl || '/?account=login';
     const client = await getClient();
 
@@ -105,17 +104,28 @@ const marketKitaCookieStorage={
 
     if (profileError) throw profileError;
 
-    if (!profile || !roles.includes(profile.role)) {
-      await client.auth.signOut();
+    // Seller Center is also the onboarding entry point for buyers who want
+    // to become sellers. Do not block an authenticated buyer at the route
+    // guard; seller-only operations remain protected by their own RLS/RPC.
+    return { client, user, profile: profile || { id: user.id, role: 'buyer' } };
+  }
+
+  async function requireRole(allowedRoles, options = {}) {
+    const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+    const result = await requireAuth(options);
+    const currentRole = String(result.profile?.role || '').toLowerCase();
+
+    if (!roles.map((role) => String(role).toLowerCase()).includes(currentRole)) {
       location.replace('/?account=login&error=access_denied');
       throw new Error('ACCESS_DENIED');
     }
 
-    return { client, user, profile };
+    return result;
   }
 
   window.KWAuth = Object.freeze({
     getClient,
+    requireAuth,
     requireRole
   });
 })();
