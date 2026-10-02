@@ -4005,6 +4005,7 @@ async function adminReturnAction(id,action){
  let tracking="";let note="";
  if(action==="resolve" && confirm("Selesaikan pengajuan ini? Untuk Retur & Refund, MarketKita akan mengirim refund ke Midtrans." )===false)return;
  if(action==="shipping_back")tracking=prompt("Nomor resi retur:")||"";
+ if(action==="resolve")tracking=prompt("Nomor resi penggantian (opsional):")||"";
  note=prompt("Catatan admin (opsional):")||"";
  try{
   const session=(await supabaseClient.auth.getSession()).data?.session;if(!session)throw Error("Session admin berakhir.");
