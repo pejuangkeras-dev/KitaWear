@@ -2336,11 +2336,18 @@ function toggleManualCheckoutAddress(mode){
 const kwLocationPicker={level:"province",province:null,city:null,district:null,subdistrict:null,postal:"",provinceRows:[],cityRows:[],districtRows:[],subdistrictRows:[],searchRows:[],searchMode:false};
 let kwStreetSearchTimer=null,kwStreetSearchAbort=null,kwStreetSuggestionCache=new Map();
 function closeStreetSuggestions(){
+  clearTimeout(kwStreetSearchTimer);
+  kwStreetSearchTimer=null;
+  if(kwStreetSearchAbort){try{kwStreetSearchAbort.abort();}catch{} kwStreetSearchAbort=null;}
   const el=document.getElementById("buyerStreetSuggestions");
   if(el){el.hidden=true;el.innerHTML="";}
 }
+function isStreetInputActive(){
+  return document.activeElement?.id==="buyerManualAddressLine";
+}
 function streetSuggestionEscape(v){return escDetail(String(v||""));}
 function renderStreetSuggestions(rows,query){
+  if(!isStreetInputActive()){closeStreetSuggestions();return;}
   const el=document.getElementById("buyerStreetSuggestions");if(!el)return;
   if(!rows.length){el.innerHTML='<div class="kw-street-empty">Nama jalan tidak ditemukan pada wilayah yang dipilih.</div>';el.hidden=false;return;}
   const q=String(query||"").trim().toLowerCase();
@@ -2352,6 +2359,7 @@ function renderStreetSuggestions(rows,query){
   window.kwStreetSuggestionRows=rows;el.hidden=false;
 }
 async function handleStreetAddressInput(input){
+  if(input?.id!=="buyerManualAddressLine" || !isStreetInputActive()){closeStreetSuggestions();return;}
   const value=String(input?.value||"").trim();
   const p=kwLocationPicker;
   if(!p.city?.name||!p.province?.name){closeStreetSuggestions();return;}
@@ -2367,6 +2375,7 @@ async function handleStreetAddressInput(input){
       const data=await res.json().catch(()=>({}));
       if(!res.ok)throw new Error(data.error||"Pencarian nama jalan gagal.");
       const rows=Array.isArray(data.data)?data.data:[];
+      if(!isStreetInputActive())return;
       kwStreetSuggestionCache.set(cacheKey,rows);renderStreetSuggestions(rows,value);
     }catch(e){if(e?.name!=="AbortError")closeStreetSuggestions();}
   },value.length?350:80);
