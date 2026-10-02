@@ -41,6 +41,8 @@ test.describe("P44 — automatic Indonesia location picker", () => {
   test("shipping quote accepts exact selected destination", async ({ request }) => {
     const text = await source(request, "functions/api/shipping-quote.js");
     expect(text).toContain("destination_id");
+    expect(text).toContain("rajaDestination");
+    expect(text).toContain("calculate/domestic-cost");
     expect(text).toContain("address.destination_id");
     expect(text).toContain("/calculate/domestic-cost");
   });
@@ -50,6 +52,7 @@ test.describe("P44 — automatic Indonesia location picker", () => {
     const tx = await source(request, "functions/api/create-transaction.js");
     expect(html).toContain("district:document.getElementById");
     expect(html).toContain("subdistrict:document.getElementById");
+    expect(html).toContain("destination_id:String(kwLocationPicker.subdistrict?.id||\"\").trim()");
     expect(tx).toContain("quotedManual.district");
     expect(tx).toContain("quotedManual.subdistrict");
   });
