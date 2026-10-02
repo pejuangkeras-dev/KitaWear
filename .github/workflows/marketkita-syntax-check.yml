@@ -1,0 +1,23 @@
+name: MarketKita syntax check
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Parse inline JavaScript in index.html
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('index.html','utf8');
+          const scripts=[...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)].map(m=>m[1]);
+          console.log('inline scripts:',scripts.length);
+          scripts.forEach((src,i)=>{ try { new Function(src); console.log('OK script',i+1); } catch(e) { console.error('FAIL script',i+1,e.stack||e); process.exitCode=1; } });
+          if(process.exitCode) process.exit(1);
+          NODE
