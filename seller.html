@@ -243,8 +243,13 @@ Alamat ini digunakan sebagai lokasi asal paket saat menghitung ongkir dan membua
 </div>
 </div>
 
+<section class="card wide" id="p14SellerReturnsPanel">
+<h2>Retur & Penggantian</h2>
+<div class="order-toolbar"><button class="btn light" type="button" onclick="loadP14SellerReturns()">↻ Refresh</button><select id="p14SellerReturnFilter"><option value="">Semua status</option><option value="requested">Diajukan</option><option value="approved">Disetujui</option><option value="shipping_back">Menunggu barang</option><option value="received">Diterima</option><option value="resolved">Selesai</option><option value="rejected">Ditolak</option></select></div>
+<div id="p14SellerReturnsList" class="empty">Memuat retur...</div>
+</section>
 <div class="card wide">
-<h2>Produk saya</h2>
+<h2>Produk saya</h2
 <div id="productList" class="empty">Memuat...</div>
 </div>
 
@@ -532,7 +537,8 @@ loadOrders(),
 loadPayouts(),
 loadPayoutRequests(),
 loadSellerChats(),
-loadSellerReviews()
+loadSellerReviews(),
+loadP14SellerReturns()
 ])
 }
 
@@ -1519,7 +1525,40 @@ async function replyToSellerReview(reviewId){
 }
 
 document.getElementById("productEditForm").addEventListener("submit",saveProductEdit);
-</script>
+<script id="p14-seller-script">
+function p14SellerLabel(s){return ({requested:"Diajukan",approved:"Disetujui",shipping_back:"Menunggu barang dikirim",received:"Barang diterima",resolved:"Selesai",rejected:"Ditolak",cancelled:"Dibatalkan"}[s]||s||"-")}
+async function p14SellerAction(id,status){
+ let tracking="";
+ if(status==="shipping_back") tracking=prompt("Masukkan resi pengiriman balik (opsional):")||"";
+ const note=prompt("Catatan seller (opsional):")||"";
+ try{
+  const session=(await sb.auth.getSession()).data?.session;if(!session)throw Error("Sesi login berakhir.");
+  const r=await fetch("/api/returns",{method:"PUT",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},body:JSON.stringify({return_id:id,status,tracking_number:tracking,note}),cache:"no-store"});
+  const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Gagal memperbarui retur.");
+  toast("Status retur diperbarui.");await loadP14SellerReturns();
+ }catch(e){toast(e.message||"Gagal memperbarui retur.")}
+}
+async function loadP14SellerReturns(){
+ const root=$("p14SellerReturnsList");if(!root||!store)return;
+ root.textContent="Memuat retur...";
+ try{
+  const status=String($("p14SellerReturnFilter")?.value||"");
+  let q=sb.from("return_requests").select("id,order_id,order_item_id,type,reason,description,evidence_urls,status,requested_amount,approved_amount,resolution_note,return_tracking_number,replacement_tracking_number,seller_note,requested_at,approved_at,resolved_at").eq("seller_id",user.id).order("created_at",{ascending:false}).limit(100);
+  if(status)q=q.eq("status",status);const r=await q;if(r.error)throw r.error;const rows=r.data||[];
+  if(!rows.length){root.innerHTML='<div class="notice">Belum ada pengajuan retur.</div>';return}
+  root.innerHTML='<div class="tablewrap"><table class="table"><thead><tr><th>Pengajuan</th><th>Jenis</th><th>Alasan</th><th>Status</th><th>Nominal</th><th>Aksi</th></tr></thead><tbody>'+rows.map(x=>{
+   let actions="";
+   if(x.status==="requested")actions='<button class="btn green" type="button" onclick="p14SellerAction(\''+x.id+'\',\'approved\')">Setujui</button> <button class="btn light" type="button" onclick="p14SellerAction(\''+x.id+'\',\'rejected\')">Tolak</button>';
+   else if(x.status==="approved")actions='<button class="btn green" type="button" onclick="p14SellerAction(\''+x.id+'\',\'shipping_back\')">Tunggu Barang Balik</button>';
+   else if(x.status==="shipping_back")actions='<button class="btn green" type="button" onclick="p14SellerAction(\''+x.id+'\',\'received\')">Tandai Diterima</button>';
+   else if(x.status==="received")actions='<span class="pill amber">Menunggu penyelesaian admin</span>';
+   else if(x.status==="resolved")actions='<span class="pill green">Selesai</span>';
+   return '<tr><td><strong>'+esc(x.id.slice(0,8))+'</strong><br><small>'+new Date(x.requested_at).toLocaleString("id-ID")+'</small></td><td>'+esc(x.type==="replacement"?"Penggantian":"Retur & Refund")+'</td><td>'+esc(x.reason)+'<br><small>'+esc(x.description||"")+'</small></td><td>'+pill(x.status)+'</td><td>'+money(x.approved_amount||x.requested_amount||0)+'</td><td><div class="order-actions">'+actions+'</div></td></tr>'
+  }).join("")+'</tbody></table></div>';
+ }catch(e){root.innerHTML='<div class="notice">'+esc(e.message||"Gagal memuat retur.")+'</div>'}
+}
+document.getElementById("p14SellerReturnFilter")?.addEventListener("change",loadP14SellerReturns);
+</script></script>
 
 </body>
 </html>
