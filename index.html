@@ -2301,8 +2301,8 @@ async function prefillBuyerCheckout(){
       select.onchange=function(){ applyCheckoutAddress(this.value); calculateCheckoutShipping(); };
       select.innerHTML='<option value="">Pilih alamat tersimpan</option>'+rows.map(a=>'<option value="'+escDetail(a.id)+'">'+escDetail((a.is_default?'★ ':'')+a.label+' — '+a.recipient_name+' — '+a.city)+'</option>').join('');
       const selected=rows.find(a=>a.is_default)||rows[0];
-      if(selected){ select.value=selected.id; const mode=document.getElementById('buyerAddressMode');if(mode)mode.value='saved'; applyCheckoutAddress(selected.id); calculateCheckoutShipping(); }
-      else{ const mode=document.getElementById('buyerAddressMode');if(mode)mode.value='manual'; toggleManualCheckoutAddress('manual'); }
+      if(selected){ select.value=selected.id; setCheckoutAddressMode('saved'); applyCheckoutAddress(selected.id); calculateCheckoutShipping(); }
+      else{ setCheckoutAddressMode('manual'); }
     }
   }catch(error){ console.warn('MarketKita checkout address prefill:',error); }
 }
