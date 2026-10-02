@@ -1,5 +1,38 @@
 function json(data,status=200,extraHeaders={}){return new Response(JSON.stringify(data),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"public, max-age=900, s-maxage=900",...extraHeaders}});}
 function clean(v){return String(v||"").trim();}
+function supabaseHeaders(key){return {apikey:key,Authorization:`Bearer ${key}`,"Content-Type":"application/json"};}
+async function sb(url,key,path,options={}){
+  const r=await fetch(url+path,{...options,headers:{...supabaseHeaders(key),...(options.headers||{})}});
+  const t=await r.text();let d=null;try{d=t?JSON.parse(t):null}catch{d={};}
+  if(!r.ok)throw new Error(d?.message||d?.error||d?.details||`Supabase HTTP ${r.status}`);
+  return d;
+}
+function sourceId(rows,code){return Array.isArray(rows)?rows.find(x=>x.source_code===code)?.id:null;}
+async function databaseStreetSearch(env,q,province,city,district,subdistrict,postal){
+  const url=String(env.SUPABASE_URL||"").trim().replace(/\/+$/,""),key=String(env.SUPABASE_SERVICE_ROLE_KEY||"").trim();
+  if(!url||!key)return [];
+  const params=new URLSearchParams();
+  params.set("p_query",q||"");params.set("p_province",province||"");params.set("p_city",city||"");
+  params.set("p_district",district||"");params.set("p_subdistrict",subdistrict||"");params.set("p_postal",postal||"");params.set("p_limit","20");
+  return await sb(url,key,"/rest/v1/rpc/search_address_streets",{method:"POST",body:JSON.stringify(Object.fromEntries(params))});
+}
+async function cacheStreets(env,rows,sourceCode="BIG_RBI"){
+  const url=String(env.SUPABASE_URL||"").trim().replace(/\/+$/,""),key=String(env.SUPABASE_SERVICE_ROLE_KEY||"").trim();
+  if(!url||!key||!rows.length)return;
+  try{
+    const src=await sb(url,key,"/rest/v1/address_street_sources?select=id,source_code&source_code=eq."+encodeURIComponent(sourceCode));
+    const source_id=src?.[0]?.id||null;if(!source_id)return;
+    const payload=rows.filter(x=>x?.street).map(x=>({
+      source_id,source_record_id:x.road_id?String(x.road_id):null,street_name:x.street,
+      province_name:x.province||null,city_name:x.city||null,district_name:x.district||null,
+      subdistrict_name:x.subdistrict||null,postal_codes:x.postcode?[String(x.postcode)]:[],
+      road_status:x.road_status!=null?String(x.road_status):null,road_owner:x.road_owner!=null?String(x.road_owner):null,
+      source_status:x.source_status||null,source_updated_at:x.updated!=null?String(x.updated):null,
+      is_authoritative:sourceCode==="BIG_RBI",latitude:x.lat??null,longitude:x.lon??null,metadata:{source:sourceCode}
+    }));
+    if(payload.length)await sb(url,key,"/rest/v1/address_streets?on_conflict=source_id,source_record_id",{method:"POST",headers:{"Prefer":"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(payload)});
+  }catch(e){console.warn("MarketKita street cache:",e?.message||e);}
+}
 function addRow(map,row,source){
   const street=clean(row.street||row.road||row.name);
   if(!street)return;
@@ -119,7 +152,16 @@ export async function onRequestGet(context){
   const headers={"Accept":"application/json","User-Agent":"MarketKita/1.0 address autocomplete"};
   const results=new Map();
   try{
+    // Local master database is the first source. This makes autocomplete
+    // independent from public geocoder latency once a city has been indexed.
+    try{
+      const dbRows=await databaseStreetSearch(context.env,q,province,city,district,"",u.searchParams.get("postal")||"");
+      for(const x of Array.isArray(dbRows)?dbRows:[]){
+        addRow(results,{street:x.street_name,province:x.province_name,city:x.city_name,district:x.district_name,subdistrict:x.subdistrict_name,postcode:(x.postal_codes||[])[0],lat:x.latitude,lon:x.longitude,road_id:x.id,road_status:x.road_status,road_owner:x.road_owner},x.is_authoritative?"BIG-RBI":"DB");
+      }
+    }catch(dbError){console.warn("MarketKita street DB:",dbError?.message||dbError);}
     await queryBIG(results,q,city,province,district,headers);
+    if(results.size)await cacheStreets(context.env,[...results.values()].filter(x=>x.source==="BIG-RBI"),"BIG_RBI");
     // OSM remains a fallback/completion source for streets that are not
     // present in the current RBI road layer.
     if(results.size<20 || q) await queryNominatimAndPhoton(results,q,city,province,district,headers);
