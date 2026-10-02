@@ -123,6 +123,7 @@ test.describe("MarketKita Admin Center", () => {
       "#adminReviewsPanel",
       "#adminShippingPanel",
       "#adminRefundsPanel",
+      "#adminReturnsPanel",
       "#adminAuditPanel",
       "#adminLedgerPanel",
       "#adminSettingsPanel",
@@ -146,6 +147,7 @@ test.describe("MarketKita Admin Center", () => {
       "#adminReviewsRefresh",
       "#adminShippingRefresh",
       "#adminRefundsRefresh",
+      "#adminReturnsRefresh",
       "#adminAuditRefresh",
       "#adminLedgerRefresh",
       "#adminHealthRefresh",
@@ -166,6 +168,7 @@ test.describe("MarketKita Admin Center", () => {
       "#adminReviewsRefresh",
       "#adminShippingRefresh",
       "#adminRefundsRefresh",
+      "#adminReturnsRefresh",
       "#adminAuditRefresh",
       "#adminLedgerRefresh",
       "#adminHealthRefresh",
@@ -183,6 +186,7 @@ test.describe("MarketKita Admin Center", () => {
     await expect(page.locator("#adminReviewsContainer")).toBeAttached();
     await expect(page.locator("#adminShippingContainer")).toBeAttached();
     await expect(page.locator("#adminRefundsContainer")).toBeAttached();
+    await expect(page.locator("#adminReturnsContainer")).toBeAttached();
     await expect(page.locator("#adminAuditContainer")).toBeAttached();
     await expect(page.locator("#adminLedgerContainer")).toBeAttached();
     await expect(page.locator("#adminHealthContainer")).toBeAttached();
