@@ -2298,7 +2298,7 @@ function applyCheckoutAddress(id){
   const name=document.getElementById('buyerName'); if(name&&a.recipient_name)name.value=a.recipient_name;
   const phone=document.getElementById('buyerPhone'); if(phone&&a.phone)phone.value=a.phone;
 }
-async function loadCheckoutProvinces(){
+async async function loadCheckoutProvinces(){
   const select=document.getElementById("buyerManualProvince"); if(!select)return;
   select.innerHTML='<option value="">Memuat provinsi...</option>';
   try{
@@ -2309,7 +2309,7 @@ async function loadCheckoutProvinces(){
     select.onchange=()=>loadCheckoutCities(select.value);
   }catch(e){select.innerHTML='<option value="">Gagal memuat provinsi</option>';console.warn(e);}
 }
-async function loadCheckoutCities(provinceId){
+async async function loadCheckoutCities(provinceId){
   const select=document.getElementById("buyerManualCity"); if(!select)return;
   select.disabled=true; select.innerHTML='<option value="">Memuat kota/kabupaten...</option>';
   if(!provinceId){select.innerHTML='<option value="">Pilih provinsi terlebih dahulu</option>'; return;}
@@ -4385,5 +4385,9 @@ async function saveBuyerAddress(){
   finally{if(button){button.disabled=false;button.textContent="Simpan alamat";}}
 }
 </script>
-</body>
+<style id="kw-checkout-safe-scroll">
+#checkoutModal{overflow-y:auto!important;-webkit-overflow-scrolling:touch;padding:12px!important;align-items:center}
+#checkoutModal .modal-box{max-height:calc(100vh - 24px)!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch}
+@media(max-width:700px){#checkoutModal{padding:0!important;align-items:flex-start}#checkoutModal .modal-box{max-height:100vh!important;min-height:100vh!important;border-radius:0!important}}
+</style></body>
 </html>
