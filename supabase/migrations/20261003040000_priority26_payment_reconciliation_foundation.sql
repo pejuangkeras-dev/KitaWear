@@ -37,3 +37,10 @@ alter table public.orders
 create index if not exists orders_payment_reconcile_idx
   on public.orders(payment_status, updated_at desc)
   where payment_status = 'pending';
+
+create policy "payment_events_no_client_access"
+  on public.payment_events
+  for all
+  to anon, authenticated
+  using (false)
+  with check (false);
