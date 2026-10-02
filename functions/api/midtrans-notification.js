@@ -78,6 +78,25 @@ async function supabaseRequest(url, key, path, options = {}) {
   return data;
 }
 
+
+async function recordWebhookEvent(url, key, eventKey, orderId, payload) {
+  if (!eventKey) return;
+  try {
+    await supabaseRequest(url, key, "/rest/v1/webhook_events", {
+      method: "POST",
+      headers: { Prefer: "resolution=ignore-duplicates,return=minimal" },
+      body: JSON.stringify({
+        provider: "midtrans",
+        event_key: eventKey,
+        order_id: orderId || null,
+        payload: payload || {}
+      })
+    });
+  } catch (e) {
+    console.warn("Midtrans webhook event audit skipped:", e?.message || e);
+  }
+}
+
 function mapMidtransStatus(transactionStatus, fraudStatus) {
   const status = String(transactionStatus || "").toLowerCase();
   const fraud = String(fraudStatus || "").toLowerCase();
@@ -291,6 +310,7 @@ export async function onRequestPost(context) {
         }
       );
 
+      await recordWebhookEvent(supabaseUrl, serviceRoleKey, signatureKey, order.id, body);
       return json({
         ok:true,
         order_id:orderId,
@@ -458,6 +478,7 @@ await supabaseRequest(
         }
       );
     }
+    await recordWebhookEvent(supabaseUrl, serviceRoleKey, signatureKey, order.id, body);
     return json({
       ok: true,
       order_id: orderId,
