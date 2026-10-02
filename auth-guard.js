@@ -85,22 +85,47 @@ const marketKitaCookieStorage={
     return clientPromise;
   }
 
+  async function withTimeout(promise, ms, message) {
+    let timer;
+    try {
+      return await Promise.race([
+        promise,
+        new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error(message)), ms);
+        })
+      ]);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   async function requireAuth(options = {}) {
     const loginUrl = options.loginUrl || '/?account=login';
-    const client = await getClient();
+    const client = await withTimeout(getClient(), 8000, 'Koneksi autentikasi terlalu lama. Silakan muat ulang halaman.');
 
-    const { data: userData, error: userError } = await client.auth.getUser();
-    if (userError || !userData?.user) {
+    // Read the persisted session first so Seller Center does not remain stuck
+    // on "Menghubungkan..." while waiting for a remote getUser round-trip.
+    const { data: sessionData, error: sessionError } = await withTimeout(
+      client.auth.getSession(),
+      8000,
+      'Sesi login tidak dapat dibaca. Silakan muat ulang halaman.'
+    );
+
+    if (sessionError || !sessionData?.session?.user) {
       location.replace(loginUrl);
       throw new Error('LOGIN_REQUIRED');
     }
 
-    const user = userData.user;
-    const { data: profile, error: profileError } = await client
-      .from('profiles')
-      .select('id,full_name,role,phone')
-      .eq('id', user.id)
-      .maybeSingle();
+    const user = sessionData.session.user;
+    const { data: profile, error: profileError } = await withTimeout(
+      client
+        .from('profiles')
+        .select('id,full_name,role,phone')
+        .eq('id', user.id)
+        .maybeSingle(),
+      8000,
+      'Profil akun tidak dapat dimuat. Silakan muat ulang halaman.'
+    );
 
     if (profileError) throw profileError;
 
