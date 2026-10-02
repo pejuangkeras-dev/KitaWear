@@ -63,7 +63,7 @@ export async function onRequestPost(context){
       destination_id:String(body.location?.destination_id||body.destination_id||"").trim(),
       province_id:String(body.location?.province_id||"").trim(),
       city_id:String(body.location?.city_id||"").trim(),
-      district_id:String(body.location?.district_id||"").trim(),
+      district_id:String(body.location?.district_id||body.district_id||"").trim(),
       subdistrict_id:String(body.location?.subdistrict_id||"").trim()
     };
     const hasManual=Boolean(manualAddress.address_line||manualAddress.city||manualAddress.province||manualAddress.postal_code);
@@ -118,7 +118,20 @@ export async function onRequestPost(context){
       try{
         rate=await raja(env,"/calculate/domestic-cost","POST",makeCostForm(destination));
       }catch(firstError){
-        if(address.destination_id){
+        if(address.destination_id && address.district_id){
+          const districtForm=new URLSearchParams();
+          districtForm.set("origin",String(origin.id));
+          districtForm.set("destination",String(address.district_id));
+          districtForm.set("weight",String(weight));
+          districtForm.set("courier",courierList);
+          districtForm.set("price","lowest");
+          try{
+            rate=await raja(env,"/calculate/district/domestic-cost","POST",districtForm.toString());
+          }catch(secondError){
+            destination=await rajaDestination(env,String(address.postal_code));
+            rate=await raja(env,"/calculate/domestic-cost","POST",makeCostForm(destination));
+          }
+        }else if(address.destination_id){
           destination=await rajaDestination(env,String(address.postal_code));
           rate=await raja(env,"/calculate/domestic-cost","POST",makeCostForm(destination));
         }else throw firstError;
