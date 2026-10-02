@@ -2351,7 +2351,7 @@ function renderStreetSuggestions(rows,query){
 async function handleStreetAddressInput(input){
   const value=String(input?.value||"").trim();
   const p=kwLocationPicker;
-  if(value.length<3||!p.city?.name||!p.province?.name){closeStreetSuggestions();return;}
+  if(!p.city?.name||!p.province?.name){closeStreetSuggestions();return;}
   clearTimeout(kwStreetSearchTimer);
   if(kwStreetSearchAbort)kwStreetSearchAbort.abort();
   const cacheKey=[value,p.province?.name,p.city?.name,p.district?.name,p.postal].join("|").toLowerCase();
@@ -2366,7 +2366,7 @@ async function handleStreetAddressInput(input){
       const rows=Array.isArray(data.data)?data.data:[];
       kwStreetSuggestionCache.set(cacheKey,rows);renderStreetSuggestions(rows,value);
     }catch(e){if(e?.name!=="AbortError")closeStreetSuggestions();}
-  },500);
+  },value.length?350:80);
 }
 function selectStreetSuggestion(index){
   const row=window.kwStreetSuggestionRows?.[index];if(!row)return;
