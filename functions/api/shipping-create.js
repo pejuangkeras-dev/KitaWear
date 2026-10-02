@@ -56,10 +56,14 @@ export async function onRequestPost(context){
   const body=await context.request.json().catch(()=>({})),orderId=clean(body.order_id),requestedSellerId=clean(body.order_seller_id);
   if(!orderId)return json({error:"order_id wajib."},400);
   const profile=await sb(u,k,"/rest/v1/profiles?select=id,role&id=eq."+encodeURIComponent(user.id)+"&limit=1"),role=clean(profile?.[0]?.role).toLowerCase(),isAdmin=role==="admin";
+  if(!["seller","admin"].includes(role))return json({error:"Akses ditolak. Akun harus seller atau admin."},403);
   const orders=await sb(u,k,"/rest/v1/orders?select=id,order_number,buyer_id,customer_name,customer_email,customer_phone,shipping_address,shipping_postal_code,shipping_selections,status,payment_status&id=eq."+encodeURIComponent(orderId)+"&limit=1"),order=orders?.[0];
   if(!order)return json({error:"Pesanan tidak ditemukan."},404);
   if(order.payment_status!=="paid")return json({error:"Pengiriman hanya dapat dibuat untuk pesanan yang sudah dibayar."},409);
-  const sellers=await sb(u,k,"/rest/v1/order_sellers?select=id,order_id,store_id,seller_id,subtotal,shipping_fee,total,seller_status,shipping_status,tracking_number&id=eq."+encodeURIComponent(requestedSellerId)+"&order_id=eq."+encodeURIComponent(orderId)+"&limit=1"),seller=sellers?.[0];
+  const sellerQuery = requestedSellerId
+    ? "/rest/v1/order_sellers?select=id,order_id,store_id,seller_id,subtotal,shipping_fee,total,seller_status,shipping_status,tracking_number&id=eq."+encodeURIComponent(requestedSellerId)+"&order_id=eq."+encodeURIComponent(orderId)+"&limit=1"
+    : "/rest/v1/order_sellers?select=id,order_id,store_id,seller_id,subtotal,shipping_fee,total,seller_status,shipping_status,tracking_number&seller_id=eq."+encodeURIComponent(user.id)+"&order_id=eq."+encodeURIComponent(orderId)+"&limit=1";
+  const sellers=await sb(u,k,sellerQuery),seller=sellers?.[0];
   if(!seller)return json({error:"Data order seller tidak ditemukan."},404);
   if(!isAdmin&&String(seller.seller_id)!==String(user.id))return json({error:"Akses ditolak."},403);
   if(!["processing","paid"].includes(clean(seller.seller_status)))return json({error:"Order seller harus berada pada status paid atau processing sebelum membuat pengiriman."},409);
