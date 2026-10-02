@@ -283,3 +283,23 @@ returns boolean language sql security definer set search_path=''
 as $$ select coalesce(sum(case when direction='debit' then amount else -amount end),0)=0 from public.ledger_entries where transaction_id=p_transaction_id; $$;
 revoke execute on function public.assert_ledger_transaction_balanced(uuid) from public,anon,authenticated;
 grant execute on function public.assert_ledger_transaction_balanced(uuid) to service_role;
+
+create or replace function public.admin_ledger_summary()
+returns jsonb language plpgsql security definer set search_path=''
+as $$
+declare v_transactions bigint; v_entries bigint; v_unbalanced bigint; v_payments bigint; v_refunds bigint; v_payouts bigint; v_seller_payable bigint; v_platform_revenue bigint; v_cash bigint;
+begin
+  if not public.is_admin() then raise exception 'Akses ditolak: hanya admin.'; end if;
+  select count(*) into v_transactions from public.ledger_transactions;
+  select count(*) into v_entries from public.ledger_entries;
+  select count(*) into v_unbalanced from public.ledger_transactions t where not public.assert_ledger_transaction_balanced(t.id);
+  select coalesce(sum(amount),0) into v_payments from public.ledger_transactions where transaction_type='order_payment' and status='posted';
+  select coalesce(sum(amount),0) into v_refunds from public.ledger_transactions where transaction_type='refund' and status='posted';
+  select coalesce(sum(amount),0) into v_payouts from public.ledger_transactions where transaction_type='seller_payout' and status='posted';
+  select coalesce(sum(balance),0) into v_seller_payable from public.ledger_balance_summary where owner_type='seller' and account_type='liability';
+  select coalesce(balance,0) into v_platform_revenue from public.ledger_balance_summary where account_key='system:platform_revenue';
+  select coalesce(balance,0) into v_cash from public.ledger_balance_summary where account_key='system:cash';
+  return jsonb_build_object('transactions',v_transactions,'entries',v_entries,'unbalanced',v_unbalanced,'payments',v_payments,'refunds',v_refunds,'payouts',v_payouts,'seller_payable',v_seller_payable,'platform_revenue',v_platform_revenue,'cash',v_cash);
+end; $$;
+revoke execute on function public.admin_ledger_summary() from public,anon;
+grant execute on function public.admin_ledger_summary() to authenticated;
