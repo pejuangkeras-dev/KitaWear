@@ -2473,7 +2473,7 @@ async function selectLocationPickerRow(index){
 }
 async function filterLocationPicker(value){
   const q=String(value||"").trim().toLowerCase();
-  if(q.length<2){kwLocationPicker.searchMode=false;renderLocationPicker();return;}
+  if(q.length<2){kwLocationPicker.searchMode=false;kwLocationPicker.searchRows=[];renderLocationPicker();return;}
   clearTimeout(window.kwLocationSearchTimer);
   window.kwLocationSearchTimer=setTimeout(()=>{
     const rows=locationRowsForLevel();
@@ -2481,7 +2481,10 @@ async function filterLocationPicker(value){
       const hay=[x.name,x.label,x.province_name,x.city_name,x.district_name,x.subdistrict_name,x.postal_code,x.zip_code].filter(Boolean).join(" ").toLowerCase();
       return hay.includes(q);
     });
-    kwLocationPicker.searchMode=false;
+    // Keep the filtered result set active. The previous code set
+    // searchMode=false here, which immediately discarded searchRows and
+    // rendered the complete province/city list again.
+    kwLocationPicker.searchMode=true;
     const list=document.getElementById("locationPickerList");
     if(list && !kwLocationPicker.searchRows.length){
       list.innerHTML='<div class="kw-location-empty">Tidak ditemukan pada tingkat lokasi ini. Pilih tingkat lokasi terlebih dahulu, lalu cari lagi.</div>';
