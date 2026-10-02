@@ -39,7 +39,7 @@ function mapMidtransStatus(transactionStatus, fraudStatus) {
 }
 
 async function supabase(context, path, options = {}) {
-  const base = clean(context.env.SUPABASE_URL).replace(/\\/+$/, "");
+  const base = clean(context.env.SUPABASE_URL).replace(/\/+$/, "");
   const key = clean(context.env.SUPABASE_SERVICE_ROLE_KEY);
   if (!base || !key) throw new Error("Konfigurasi Supabase server belum lengkap.");
 
@@ -62,10 +62,10 @@ async function supabase(context, path, options = {}) {
 }
 
 async function authUser(context) {
-  const base = clean(context.env.SUPABASE_URL).replace(/\\/+$/, "");
+  const base = clean(context.env.SUPABASE_URL).replace(/\/+$/, "");
   const anon = clean(context.env.SUPABASE_ANON_KEY);
   const header = context.request.headers.get("Authorization") || "";
-  if (!base || !anon || !/^Bearer\\s+/i.test(header)) return null;
+  if (!base || !anon || !/^Bearer\s+/i.test(header)) return null;
   const response = await fetch(base + "/auth/v1/user", {
     headers: { apikey: anon, Authorization: header }
   });
