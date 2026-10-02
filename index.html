@@ -695,6 +695,15 @@ body{background:var(--bg);color:var(--ink)}
 
     <div id="checkoutItems" class="checkout-summary kw-co-items"></div>
 
+    <section class="kw-co-section kw-co-recipient">
+      <div class="kw-co-title"><b>1</b><div><strong>Data penerima</strong><small>Pastikan nama dan nomor WhatsApp sudah benar.</small></div></div>
+      <div class="kw-co-grid">
+        <div class="field"><label for="buyerName">Nama penerima</label><input id="buyerName" type="text" autocomplete="name" placeholder="Nama lengkap" required></div>
+        <div class="field"><label for="buyerPhone">No. WhatsApp</label><input id="buyerPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="08xxxxxxxxxx" required></div>
+        <div class="field kw-co-full"><label for="buyerEmail">Email</label><input id="buyerEmail" type="email" autocomplete="email" placeholder="email@contoh.com" required></div>
+      </div>
+    </section>
+
     <section class="kw-co-section">
       <div class="kw-co-title"><b>2</b><div><strong>Alamat pengiriman</strong><small>Pilih lokasi secara otomatis agar ongkir lebih akurat.</small></div></div>
       <div class="field kw-co-full"><label>Lokasi tujuan</label>
@@ -2196,7 +2205,7 @@ function updateCheckoutShippingSelection(){
   const total=document.getElementById("checkoutTotal");
   if(total)total.textContent=rupiah(base+fee);
 }
-async function calculateCheckoutShipping(){
+async async function calculateCheckoutShipping(){
   const root=document.getElementById("checkoutShippingOptions");
   window.marketCheckoutShippingQuoteId=null; window.marketCheckoutShippingSelections=[]; window.marketCheckoutShippingFee=0;
   const province=document.getElementById("buyerManualProvince")?.selectedOptions?.[0]?.textContent?.trim()||"";
