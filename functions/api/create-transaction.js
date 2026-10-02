@@ -294,6 +294,16 @@ export async function onRequestPost(context) {
 
     const customer = body?.customer || {};
     const addressId = String(body?.address_id || "").trim();
+    const manualRaw = body?.manual_address && typeof body.manual_address === "object" ? body.manual_address : {};
+    const manualAddress = {
+      recipient_name: String(manualRaw.recipient_name || "").trim(),
+      phone: String(manualRaw.phone || "").trim(),
+      address_line: String(manualRaw.address_line || "").trim(),
+      city: String(manualRaw.city || "").trim(),
+      province: String(manualRaw.province || "").trim(),
+      postal_code: String(manualRaw.postal_code || "").trim()
+    };
+    const hasManualAddress = Boolean(manualAddress.address_line || manualAddress.city || manualAddress.province || manualAddress.postal_code);
 
     const rawItems =
       Array.isArray(body?.items)
@@ -328,7 +338,8 @@ export async function onRequestPost(context) {
     }
 
     const fingerprintInput = JSON.stringify({
-      address_id: addressId,
+      address_id: addressId || null,
+      manual_address: addressId ? null : (hasManualAddress ? manualAddress : null),
       items: Array.isArray(body?.items) ? body.items.map(x => ({
         product_id: x?.product_id || null,
         store_id: x?.store_id || null,
@@ -394,34 +405,43 @@ export async function onRequestPost(context) {
       { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ status: "processing", updated_at: new Date().toISOString() }) }
     );
 
-    if (!addressId) {
-      return json({ error: "Pilih alamat tersimpan sebelum checkout." }, 400);
+    if (!addressId && !hasManualAddress) {
+      return json({ error: "Pilih alamat tersimpan atau isi alamat manual terlebih dahulu." }, 400);
+    }
+    if (addressId && hasManualAddress) {
+      return json({ error: "Pilih alamat tersimpan atau isi alamat manual, bukan keduanya." }, 400);
     }
 
-    const addressRows = await supabaseRequest(
-      supabaseUrl,
-      serviceRoleKey,
-      "/rest/v1/buyer_addresses?select=id,label,recipient_name,phone,address_line,city,province,postal_code" +
-        "&id=eq." + encodeURIComponent(addressId) +
-        "&user_id=eq." + encodeURIComponent(buyerUser.id) +
-        "&limit=1",
-      { method: "GET" }
-    );
-    const shippingAddress = Array.isArray(addressRows) ? addressRows[0] : null;
-    if (!shippingAddress) {
-      return json({ error: "Alamat pengiriman tidak ditemukan atau bukan milik akun ini." }, 400);
+    let shippingAddress = null;
+    if (addressId) {
+      const addressRows = await supabaseRequest(
+        supabaseUrl,
+        serviceRoleKey,
+        "/rest/v1/buyer_addresses?select=id,label,recipient_name,phone,address_line,city,province,postal_code" +
+          "&id=" + encodeURIComponent(addressId) +
+          "&user_id=" + encodeURIComponent(buyerUser.id) +
+          "&limit=1",
+        { method: "GET" }
+      );
+      shippingAddress = Array.isArray(addressRows) ? addressRows[0] : null;
+      if (!shippingAddress) {
+        return json({ error: "Alamat pengiriman tidak ditemukan atau bukan milik akun ini." }, 400);
+      }
+    } else {
+      shippingAddress = { ...manualAddress, id: null };
     }
+
     if (!/^\d{5}$/.test(String(shippingAddress.postal_code || ""))) {
       return json({ error: "Kode pos alamat pengiriman harus 5 digit." }, 400);
+    }
+    if (!shippingAddress.address_line || !shippingAddress.city || !shippingAddress.province) {
+      return json({ error: "Alamat manual wajib berisi alamat lengkap, kota, dan provinsi." }, 400);
     }
     if (!/^[0-9+][0-9 ()-]{7,19}$/.test(String(shippingAddress.phone || ""))) {
       return json({ error: "Nomor WhatsApp pada alamat pengiriman tidak valid." }, 400);
     }
-
-    // The saved address is the source of truth. Client-entered checkout fields cannot
-    // silently replace the address snapshot stored with the order.
-    name = String(shippingAddress.recipient_name || "").trim();
-    phone = String(shippingAddress.phone || "").trim();
+    name = String(shippingAddress.recipient_name || name || "").trim();
+    phone = String(shippingAddress.phone || phone || "").trim();
     address = [shippingAddress.address_line, shippingAddress.city, shippingAddress.province, shippingAddress.postal_code].filter(Boolean).join(", ");
     email = String(buyerUser.email || email || "").trim();
 
@@ -556,10 +576,22 @@ export async function onRequestPost(context) {
     );
     const shippingQuote = Array.isArray(quoteRows) ? quoteRows[0] : null;
     const shippingPostalCode = String(shippingAddress.postal_code || "").trim();
-    if (!/^\d{5}$/.test(shippingPostalCode)) return json({ error: "Kode pos alamat pengiriman tidak valid. Silakan pilih alamat tersimpan yang lengkap." }, 400);
+    if (!/^\d{5}$/.test(shippingPostalCode)) return json({ error: "Kode pos alamat pengiriman tidak valid. Silakan hitung ulang ongkir." }, 400);
     const quotedAddressId = String(shippingQuote?.request_snapshot?.address_id || "").trim();
-    if (quotedAddressId && quotedAddressId !== addressId) {
-      return json({ error: "Alamat checkout berubah. Silakan hitung ulang ongkir." }, 409);
+    if (addressId) {
+      if (quotedAddressId && quotedAddressId !== addressId) {
+        return json({ error: "Alamat checkout berubah. Silakan hitung ulang ongkir." }, 409);
+      }
+    } else {
+      const quotedManual = shippingQuote?.request_snapshot?.manual_address || null;
+      const manualMatches = quotedManual &&
+        String(quotedManual.recipient_name || "").trim() === String(shippingAddress.recipient_name || "").trim() &&
+        String(quotedManual.phone || "").trim() === String(shippingAddress.phone || "").trim() &&
+        String(quotedManual.address_line || "").trim() === String(shippingAddress.address_line || "").trim() &&
+        String(quotedManual.city || "").trim() === String(shippingAddress.city || "").trim() &&
+        String(quotedManual.province || "").trim() === String(shippingAddress.province || "").trim() &&
+        String(quotedManual.postal_code || "").trim() === String(shippingAddress.postal_code || "").trim();
+      if (!manualMatches) return json({ error: "Alamat manual berubah setelah ongkir dihitung. Silakan hitung ulang ongkir." }, 409);
     }
     if (!shippingQuote || shippingQuote.status !== "active") {
       return json({ error: "Quote ongkir sudah tidak tersedia. Silakan hitung ulang." }, 400);
