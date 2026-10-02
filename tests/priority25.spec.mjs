@@ -1,0 +1,59 @@
+import { test, expect } from "@playwright/test";
+
+const baseURL = process.env.MARKETKITA_URL || "https://marketkita.pages.dev";
+const rawBase = "https://raw.githubusercontent.com/pejuangkeras-dev/MarketKita/main/";
+
+async function source(request, path) {
+  const response = await request.get(rawBase + path);
+  expect(response.ok()).toBeTruthy();
+  return response.text();
+}
+
+test.describe("P25 — security and authorization hardening", () => {
+  test("protected marketplace lifecycle API rejects anonymous access", async ({ request }) => {
+    const response = await request.get(baseURL + "/api/marketplace-lifecycle");
+    expect(response.status()).toBe(401);
+  });
+
+  test("lifecycle handlers retain server-side authorization gates", async ({ request }) => {
+    const text = await source(request, "functions/api/marketplace-lifecycle.js");
+    for (const marker of [
+      "authUser(context)",
+      "request_return",
+      "seller_update_return",
+      "buyer_create_dispute",
+      "seller_request_payout",
+      "admin_review_payout_request",
+      "admin_resolve_return",
+      "admin_resolve_dispute"
+    ]) {
+      expect(text).toContain(marker);
+    }
+  });
+
+  test("shipping, payment and buyer-order APIs remain protected", async ({ request }) => {
+    const checks = [
+      ["/api/create-transaction", "post", { items: [] }],
+      ["/api/shipping-create", "post", { order_id: "00000000-0000-0000-0000-000000000000" }],
+      ["/api/shipping-track", "post", { order_id: "00000000-0000-0000-0000-000000000000" }],
+      ["/api/buyer-orders", "get"],
+      ["/api/buyer-cancel-order", "post", { order_id: "00000000-0000-0000-0000-000000000000" }]
+    ];
+
+    for (const [path, method, body] of checks) {
+      const response = method === "get"
+        ? await request.get(baseURL + path)
+        : await request.post(baseURL + path, { data: body });
+      expect([401, 403]).toContain(response.status());
+    }
+  });
+
+  test("public pages do not expose service-role or payment/shipping secrets", async ({ request }) => {
+    for (const path of ["/", "/seller.html", "/admin.html"]) {
+      const response = await request.get(baseURL + path);
+      expect(response.ok()).toBeTruthy();
+      const text = await response.text();
+      expect(text).not.toMatch(/SUPABASE_SERVICE_ROLE_KEY|MIDTRANS_SERVER_KEY|RAJAONGKIR_DELIVERY_API_KEY/i);
+    }
+  });
+});
