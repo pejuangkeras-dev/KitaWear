@@ -101,4 +101,4 @@ export async function onRequestPost(context){
   return json({ok:true,order_id:order.id,order_seller_id:seller.id,provider_order_no:data.order_no,provider_order_id:data.order_id||null,waybill_id:awb||null,courier,shipping_type:shippingType,shipment:shipmentRow});
  }catch(e){console.error("MarketKita shipping create:",e?.message||e);return json({error:e?.message||"Gagal membuat pengiriman."},500);}
 }
-export async function onRequestGet(){return json({ok:true,service:"MarketKita RajaOngkir Delivery Create",sandbox:true});}
+export async function onRequestGet(context){const base=clean(context.env.RAJAONGKIR_DELIVERY_BASE_URL)||"https://api-sandbox.collaborator.komerce.id";const key=clean(context.env.RAJAONGKIR_DELIVERY_API_KEY);const normalized=base.toLowerCase();const sandbox=normalized.includes("sandbox")||normalized.includes("collaborator.komerce.id");return json({ok:true,service:"MarketKita RajaOngkir Delivery Create",mode:sandbox?"sandbox":"production",configured:Boolean(key),safe_to_create:Boolean(key)&&!sandbox});}
