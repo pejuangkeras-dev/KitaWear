@@ -186,7 +186,31 @@ export async function onRequestPost(context){
     const message=String(error?.message||"Gagal menghitung ongkir.");
     const daily=/daily limit|limit exceeded|rate limit|quota/i.test(message);
     if(daily&&recentCachedQuote?.selections){
-      return json({quote_id:recentCachedQuote.id,expires_at:recentCachedQuote.expires_at,total_fee:Number(recentCachedQuote.total_fee||0),sellers:recentCachedQuote.selections,cached:true,stale:true,warning:"Menggunakan tarif ongkir terakhir yang berhasil diperoleh karena kuota provider sedang tercapai."},200);
+      // Provider quota can be exhausted while the customer is still retrying
+      // the same checkout. Re-issue a short-lived local quote from the last
+      // successful provider result instead of returning an already-expired
+      // quote ID. This keeps the checkout/payment validation consistent.
+      try{
+        const quoteId=crypto.randomUUID();
+        const expires=new Date(Date.now()+15*60*1000).toISOString();
+        const totalFee=Number(recentCachedQuote.total_fee||0);
+        const snap=recentCachedQuote.request_snapshot||{};
+        await sb(url,key,"/rest/v1/shipping_quotes",{
+          method:"POST",headers:{Prefer:"return=minimal"},
+          body:JSON.stringify({
+            id:quoteId,buyer_id:buyer.id,total_fee:totalFee,status:"active",
+            expires_at:expires,selections:recentCachedQuote.selections,
+            request_snapshot:{...snap,reissued_from:recentCachedQuote.id,reissued_at:new Date().toISOString()}
+          })
+        });
+        return json({
+          quote_id:quoteId,expires_at:expires,total_fee:totalFee,
+          sellers:recentCachedQuote.selections,cached:true,stale:true,
+          warning:"Provider sedang mencapai batas penggunaan API. Tarif terakhir yang berhasil diperoleh untuk alamat dan keranjang ini digunakan sementara."
+        },200);
+      }catch(reissueError){
+        console.warn("MarketKita stale quote reissue:",reissueError?.message||reissueError);
+      }
     }
     return json({error:daily?"Batas penggunaan API ongkir hari ini sudah tercapai dan belum ada tarif tersimpan untuk kombinasi alamat/keranjang ini.":message,code:daily?"SHIPPING_PROVIDER_QUOTA":"SHIPPING_QUOTE_ERROR"},daily?429:500);
   }
