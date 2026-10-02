@@ -32,15 +32,39 @@ async function raja(env,path,method="GET",body=null){
     throw new Error("Gagal terhubung ke RajaOngkir: "+(error?.message||"network error"));
   }finally{clearTimeout(timer);}
   const t=await r.text(); let d={}; try{d=t?JSON.parse(t):{};}catch{d={};}
-  if(!r.ok||d?.meta?.status!=="success")throw new Error(d?.meta?.message||d?.message||("RajaOngkir gagal (HTTP "+r.status+")."));
+  if(!r.ok||d?.meta?.status!=="success"){
+    const msg=String(d?.meta?.message||d?.message||"");
+    const code=String(d?.meta?.code||r.status||"");
+    const err=new Error(msg||("RajaOngkir gagal (HTTP "+r.status+")."));
+    err.providerStatus=r.status;
+    err.providerCode=code;
+    throw err;
+  }
   return d;
 }
 async function rajaDestination(env,postal){
-  const d=await raja(env,"/destination/domestic-destination?search="+encodeURIComponent(postal)+"&limit=20&offset=0");
+  const normalized=String(postal||"").trim();
+  if(!/^\\d{5}$/.test(normalized))throw new Error("Kode pos "+normalized+" tidak valid.");
+  // Destination records are reference data, so cache them at the Cloudflare
+  // edge. Repeated checkout/address edits must not consume Shipping Cost HITs.
+  const cacheKey=new Request("https://marketkita.invalid/raja-destination/"+normalized);
+  try{
+    const cached=await caches.default.match(cacheKey);
+    if(cached){
+      const data=await cached.json();
+      if(data?.id)return data;
+    }
+  }catch{}
+  const d=await raja(env,"/destination/domestic-destination?search="+encodeURIComponent(normalized)+"&limit=20&offset=0");
   const rows=Array.isArray(d?.data)?d.data:[];
-  const exact=rows.find(x=>String(x.zip_code||"")===String(postal));
+  const exact=rows.find(x=>String(x.zip_code||"")===normalized);
   const row=exact||rows[0];
-  if(!row?.id)throw new Error("Kode pos "+postal+" tidak ditemukan di RajaOngkir.");
+  if(!row?.id)throw new Error("Kode pos "+normalized+" tidak ditemukan di RajaOngkir.");
+  try{
+    await caches.default.put(cacheKey,new Response(JSON.stringify(row),{
+      headers:{"Content-Type":"application/json","Cache-Control":"public, max-age=86400"}
+    }));
+  }catch{}
   return row;
 }
 export async function onRequestPost(context){
@@ -189,7 +213,9 @@ export async function onRequestPost(context){
   }catch(error){
     console.error("MarketKita shipping quote error:",error?.message||error);
     const message=String(error?.message||"Gagal menghitung ongkir.");
-    const daily=/daily limit|limit exceeded|rate limit|quota/i.test(message);
+    const providerCode=String(error?.providerCode||"");
+    const providerStatus=Number(error?.providerStatus||0);
+    const daily=providerStatus===429||providerCode==="429"||/daily limit|limit exceeded|rate limit|quota|too many requests/i.test(message);
     if(daily&&recentCachedQuote?.selections){
       // Provider quota can be exhausted while the customer is still retrying
       // the same checkout. Re-issue a short-lived local quote from the last
@@ -217,6 +243,13 @@ export async function onRequestPost(context){
         console.warn("MarketKita stale quote reissue:",reissueError?.message||reissueError);
       }
     }
-    return json({error:daily?"Batas penggunaan API ongkir hari ini sudah tercapai dan belum ada tarif tersimpan untuk kombinasi alamat/keranjang ini.":message,code:daily?"SHIPPING_PROVIDER_QUOTA":"SHIPPING_QUOTE_ERROR"},daily?429:500);
+    return json({
+      error:daily
+        ?"RajaOngkir menolak request karena batas HIT/rate limit tercapai. Saldo pembayaran dan kuota HIT API adalah hal yang berbeda; periksa Developer → Settings → Shipping Cost APIKEY serta penggunaan HIT di dashboard."
+        :message,
+      code:daily?"SHIPPING_PROVIDER_QUOTA":"SHIPPING_QUOTE_ERROR",
+      provider_status:providerStatus||null,
+      provider_code:providerCode||null
+    },daily?429:500);
   }
 }
