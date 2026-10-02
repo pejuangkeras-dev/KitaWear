@@ -5,7 +5,10 @@ export async function onRequestGet(context){
   const city=String(u.searchParams.get("city")||"").trim();
   const province=String(u.searchParams.get("province")||"").trim();
   const district=String(u.searchParams.get("district")||"").trim();
-  if(q.length<3)return json({ok:true,data:[]});
+  // Empty query is intentional: when the customer focuses the address field,
+  // show street recommendations for the already-selected city/province.
+  // Typed text then narrows those recommendations.
+  if(!q && !city)return json({ok:true,data:[]});
   const parts=[q,district,city,province,"Indonesia"].filter(Boolean);
   const target=new URL("https://photon.komoot.io/api/");
   target.searchParams.set("q",parts.join(", "));
