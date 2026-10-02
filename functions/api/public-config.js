@@ -37,7 +37,7 @@ export async function onRequestGet(context) {
     ) {
       return json({
         error:
-          "Konfigurasi publik KitaWear belum lengkap."
+          "Konfigurasi publik MarketKita belum lengkap."
       }, 500);
     }
 
@@ -54,14 +54,14 @@ export async function onRequestGet(context) {
 
   } catch (error) {
     console.error(
-      "KitaWear public-config error:",
+      "MarketKita public-config error:",
       error?.message || error
     );
 
     return json({
       error:
         error?.message ||
-        "Gagal memuat konfigurasi KitaWear."
+        "Gagal memuat konfigurasi MarketKita."
     }, 500);
   }
 }
