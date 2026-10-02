@@ -696,16 +696,18 @@ body{background:var(--bg);color:var(--ink)}
     <div id="checkoutItems" class="checkout-summary kw-co-items"></div>
 
     <section class="kw-co-section">
-      <div class="kw-co-title"><b>2</b><div><strong>Alamat pengiriman</strong><small>Isi alamat tujuan. Ongkir akan dihitung otomatis saat kota/kabupaten dipilih.</small></div></div>
-
-      <div id="manualCheckoutAddressFields" class="kw-co-panel" style="display:block">
-        <div class="kw-co-grid">
-          <div class="field kw-co-full"><label for="buyerManualAddressLine">Alamat jalan</label><textarea id="buyerManualAddressLine" placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan..."></textarea></div>
-          <div class="field"><label for="buyerManualProvince">Provinsi</label><select id="buyerManualProvince"><option value="">Memuat provinsi...</option></select></div>
-          <div class="field"><label for="buyerManualCity">Kota / Kabupaten</label><select id="buyerManualCity" disabled><option value="">Pilih provinsi terlebih dahulu</option></select></div>
-          <div class="field"><label for="buyerManualPostalCode">Kode pos</label><input id="buyerManualPostalCode" inputmode="numeric" maxlength="5" placeholder="Otomatis dari kota/kabupaten"></div>
-        </div>
+      <div class="kw-co-title"><b>2</b><div><strong>Alamat pengiriman</strong><small>Pilih lokasi secara otomatis agar ongkir lebih akurat.</small></div></div>
+      <div class="field kw-co-full"><label>Lokasi tujuan</label>
+        <button type="button" id="buyerLocationPickerButton" class="kw-location-trigger" onclick="openLocationPicker()">
+          <span id="buyerLocationPickerText">Pilih provinsi, kota/kabupaten, kecamatan & kode pos</span><b>›</b>
+        </button>
       </div>
+      <div class="field kw-co-full"><label for="buyerManualAddressLine">Alamat jalan</label><textarea id="buyerManualAddressLine" placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan..."></textarea></div>
+      <select id="buyerManualProvince" aria-hidden="true" tabindex="-1" style="display:none"></select>
+      <select id="buyerManualCity" aria-hidden="true" tabindex="-1" style="display:none"></select>
+      <input id="buyerManualDistrictId" type="hidden"><input id="buyerManualSubdistrictId" type="hidden">
+      <input id="buyerManualDistrict" type="hidden"><input id="buyerManualSubdistrict" type="hidden">
+      <input id="buyerManualPostalCode" type="hidden">
       <div class="field kw-co-summary-field"><label for="buyerAddress">Ringkasan alamat</label><textarea id="buyerAddress" required readonly placeholder="Alamat pengiriman akan tampil di sini"></textarea></div>
     </section>
 
@@ -723,6 +725,22 @@ body{background:var(--bg);color:var(--ink)}
 
     <div class="kw-co-total"><span>Total pembayaran</span><strong id="checkoutTotal">Rp0</strong></div>
     <button id="payButton" class="pay-btn kw-co-pay" type="button" onclick="startPayment(event)" data-i18n="pay_button">Lanjut ke Pembayaran</button>
+  </div>
+</div>
+
+<div id="locationPickerModal" class="kw-location-modal" aria-hidden="true" onclick="closeLocationPicker(event)">
+  <div class="kw-location-dialog" onclick="event.stopPropagation()">
+    <div class="kw-location-head"><div><strong>Pilih lokasi pengiriman</strong><small>Pilih sampai kecamatan dan kode pos agar ongkir akurat.</small></div><button type="button" onclick="closeLocationPicker()">×</button></div>
+    <div class="kw-location-search"><span>⌕</span><input id="locationPickerSearch" placeholder="Cari provinsi, kota, kecamatan, atau kode pos" oninput="filterLocationPicker(this.value)"></div>
+    <div class="kw-location-tabs">
+      <button id="locationTabProvince" class="active" type="button" onclick="locationPickerTab('province')">Provinsi</button>
+      <button id="locationTabCity" type="button" onclick="locationPickerTab('city')">Kota/Kab.</button>
+      <button id="locationTabDistrict" type="button" onclick="locationPickerTab('district')">Kecamatan</button>
+      <button id="locationTabPostal" type="button" onclick="locationPickerTab('postal')">Kode Pos</button>
+    </div>
+    <div id="locationPickerBreadcrumb" class="kw-location-breadcrumb">Pilih provinsi</div>
+    <div id="locationPickerList" class="kw-location-list"><div class="kw-location-loading">Memuat provinsi...</div></div>
+    <div class="kw-location-selected" id="locationPickerSelected">Belum ada lokasi dipilih.</div>
   </div>
 </div>
 
@@ -2199,6 +2217,7 @@ async function calculateCheckoutShipping(){
     const manualAddress={recipient_name:String(document.getElementById("buyerName")?.value||"").trim(),phone:String(document.getElementById("buyerPhone")?.value||"").trim(),address_line:line,city,province,postal_code:postal};
     const res=await fetch("/api/shipping-quote",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},body:JSON.stringify({
       address_id:null,manual_address:manualAddress,
+      location:{province_id:kwLocationPicker.province?.id||"",city_id:kwLocationPicker.city?.id||"",district_id:kwLocationPicker.district?.id||"",subdistrict_id:kwLocationPicker.subdistrict?.id||"",destination_id:kwLocationPicker.subdistrict?.id||"",subdistrict:kwLocationPicker.subdistrict?.name||""},
       items:cart.map(x=>({product_id:x.product_id||products[x.productIndex]?.id,size:x.size,quantity:x.quantity})),
       couriers:"jne:sicepat:jnt:ninja:tiki:lion:anteraja:pos:wahana"
     })});
@@ -2295,6 +2314,103 @@ function toggleManualCheckoutAddress(mode){
   if(modeInput)modeInput.value='manual';
   updateManualCheckoutAddressSummary();
   calculateCheckoutShipping();
+}
+const kwLocationPicker={level:"province",province:null,city:null,district:null,subdistrict:null,postal:"",provinceRows:[],cityRows:[],districtRows:[],subdistrictRows:[],searchRows:[],searchMode:false};
+function updateManualCheckoutAddressSummary(){
+  const line=String(document.getElementById("buyerManualAddressLine")?.value||"").trim();
+  const p=kwLocationPicker;
+  const el=document.getElementById("buyerAddress");
+  if(el)el.value=[line,p.subdistrict?.name,p.district?.name,p.city?.name,p.province?.name,p.postal].filter(Boolean).join(", ");
+}
+function locationPickerModal(){return document.getElementById("locationPickerModal")}
+function locationPickerTab(level){
+  if(level==="city"&&!kwLocationPicker.province)return;
+  if(level==="district"&&!kwLocationPicker.city)return;
+  if(level==="postal"&&!kwLocationPicker.district)return;
+  kwLocationPicker.level=level;kwLocationPicker.searchMode=false;
+  const q=document.getElementById("locationPickerSearch");if(q)q.value="";
+  renderLocationPicker();
+}
+function setLocationTabs(){["province","city","district","postal"].forEach(x=>{const b=document.getElementById("locationTab"+x.charAt(0).toUpperCase()+x.slice(1));if(b)b.classList.toggle("active",kwLocationPicker.level===x);});}
+function locationRowsForLevel(){
+  if(kwLocationPicker.searchMode)return kwLocationPicker.searchRows;
+  if(kwLocationPicker.level==="province")return kwLocationPicker.provinceRows;
+  if(kwLocationPicker.level==="city")return kwLocationPicker.cityRows;
+  if(kwLocationPicker.level==="district")return kwLocationPicker.districtRows;
+  return kwLocationPicker.subdistrictRows;
+}
+function renderLocationPicker(){
+  setLocationTabs();
+  const list=document.getElementById("locationPickerList"), crumb=document.getElementById("locationPickerBreadcrumb");if(!list)return;
+  const rows=locationRowsForLevel();
+  const labels={province:"Pilih provinsi",city:"Pilih kota/kabupaten",district:"Pilih kecamatan",postal:"Pilih kelurahan & kode pos"};
+  if(crumb)crumb.textContent=kwLocationPicker.searchMode?"Hasil pencarian":labels[kwLocationPicker.level];
+  if(!rows.length){list.innerHTML='<div class="kw-location-empty">Lokasi tidak ditemukan.</div>';return;}
+  list.innerHTML=rows.map((x,i)=>{
+    const name=x.name||x.city_name||x.district_name||x.subdistrict_name||"Lokasi";
+    const detail=x.label||[x.province_name,x.city_name,x.district_name,x.subdistrict_name,x.zip_code].filter(Boolean).join(" · ");
+    return '<button class="kw-location-item" type="button" onclick="selectLocationPickerRow('+i+')"><strong>'+escDetail(name)+'</strong><small>'+escDetail(detail)+'</small></button>';
+  }).join("");
+  const sel=document.getElementById("locationPickerSelected");if(sel){const p=kwLocationPicker;sel.innerHTML=p.subdistrict?'<strong>'+escDetail([p.subdistrict.name,p.district?.name,p.city?.name,p.province?.name,p.postal].filter(Boolean).join(", "))+'</strong>':"Belum ada lokasi dipilih.";}
+}
+async function locationPickerFetch(path){
+  const r=await fetch(path,{cache:"no-store"});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Gagal memuat lokasi.");return Array.isArray(d.data)?d.data:[];
+}
+async function openLocationPicker(){
+  const m=locationPickerModal();if(!m)return;
+  m.classList.add("open");m.setAttribute("aria-hidden","false");kwLocationPicker.searchMode=false;kwLocationPicker.level="province";
+  const q=document.getElementById("locationPickerSearch");if(q)q.value="";
+  const list=document.getElementById("locationPickerList");if(list)list.innerHTML='<div class="kw-location-loading">Memuat provinsi...</div>';
+  try{if(!kwLocationPicker.provinceRows.length)kwLocationPicker.provinceRows=await locationPickerFetch("/api/location-provinces");renderLocationPicker();}
+  catch(e){if(list)list.innerHTML='<div class="kw-location-empty">'+escDetail(e.message)+'</div>';}
+}
+function closeLocationPicker(e){if(e&&e.target!==e.currentTarget)return;const m=locationPickerModal();if(m){m.classList.remove("open");m.setAttribute("aria-hidden","true");}}
+async function selectLocationPickerRow(index){
+  const rows=locationRowsForLevel(),x=rows[index];if(!x)return;
+  try{
+    if(kwLocationPicker.searchMode){
+      kwLocationPicker.province={id:x.province_id,name:x.province_name};kwLocationPicker.city={id:x.city_id,name:x.city_name};kwLocationPicker.district={id:x.district_id,name:x.district_name};kwLocationPicker.subdistrict={id:x.id,name:x.subdistrict_name||x.name};kwLocationPicker.postal=String(x.zip_code||"");await applyPickedLocation();return;
+    }
+    if(kwLocationPicker.level==="province"){
+      kwLocationPicker.province={id:x.id,name:x.name};kwLocationPicker.city=null;kwLocationPicker.district=null;kwLocationPicker.subdistrict=null;kwLocationPicker.postal="";
+      kwLocationPicker.cityRows=await locationPickerFetch("/api/location-cities/"+encodeURIComponent(x.id));kwLocationPicker.level="city";
+    }else if(kwLocationPicker.level==="city"){
+      kwLocationPicker.city={id:x.id,name:x.name};kwLocationPicker.district=null;kwLocationPicker.subdistrict=null;kwLocationPicker.postal="";
+      kwLocationPicker.districtRows=await locationPickerFetch("/api/location-districts/"+encodeURIComponent(x.id));kwLocationPicker.level="district";
+    }else if(kwLocationPicker.level==="district"){
+      kwLocationPicker.district={id:x.id,name:x.name};kwLocationPicker.subdistrict=null;kwLocationPicker.postal="";
+      kwLocationPicker.subdistrictRows=await locationPickerFetch("/api/location-subdistricts/"+encodeURIComponent(x.id));kwLocationPicker.level="postal";
+    }else{
+      kwLocationPicker.subdistrict={id:x.id,name:x.name||x.subdistrict_name};kwLocationPicker.postal=String(x.zip_code||"");await applyPickedLocation();return;
+    }
+    renderLocationPicker();
+  }catch(e){const list=document.getElementById("locationPickerList");if(list)list.innerHTML='<div class="kw-location-empty">'+escDetail(e.message)+'</div>';}
+}
+async function filterLocationPicker(value){
+  const q=String(value||"").trim();
+  if(q.length<2){kwLocationPicker.searchMode=false;renderLocationPicker();return;}
+  clearTimeout(window.kwLocationSearchTimer);
+  window.kwLocationSearchTimer=setTimeout(async()=>{
+    const list=document.getElementById("locationPickerList");if(list)list.innerHTML='<div class="kw-location-loading">Mencari lokasi...</div>';
+    try{kwLocationPicker.searchRows=await locationPickerFetch("/api/location-search?search="+encodeURIComponent(q));kwLocationPicker.searchMode=true;renderLocationPicker();}
+    catch(e){if(list)list.innerHTML='<div class="kw-location-empty">'+escDetail(e.message)+'</div>';}
+  },350);
+}
+async function applyPickedLocation(){
+  const p=kwLocationPicker,province=document.getElementById("buyerManualProvince"),city=document.getElementById("buyerManualCity"),postal=document.getElementById("buyerManualPostalCode");
+  if(province){province.innerHTML='<option value="'+escDetail(p.province?.id||"")+'">'+escDetail(p.province?.name||"")+'</option>';province.value=p.province?.id||"";}
+  if(city){city.innerHTML='<option value="'+escDetail(p.city?.id||"")+'">'+escDetail(p.city?.name||"")+'</option>';city.value=p.city?.name||"";}
+  if(postal)postal.value=p.postal||"";
+  document.getElementById("buyerManualDistrictId").value=p.district?.id||"";
+  document.getElementById("buyerManualSubdistrictId").value=p.subdistrict?.id||"";
+  document.getElementById("buyerManualDistrict").value=p.district?.name||"";
+  document.getElementById("buyerManualSubdistrict").value=p.subdistrict?.name||"";
+  const text=[p.province?.name,p.city?.name,p.district?.name,p.subdistrict?.name,p.postal].filter(Boolean).join(" · ");
+  const btn=document.getElementById("buyerLocationPickerButton");if(btn)btn.classList.add("has-value");
+  const label=document.getElementById("buyerLocationPickerText");if(label)label.textContent=text;
+  updateManualCheckoutAddressSummary();
+  const m=locationPickerModal();if(m){m.classList.remove("open");m.setAttribute("aria-hidden","true");}
+  await calculateCheckoutShipping();
 }
 async function validateCheckoutVoucher(){
   const code=String(document.getElementById("checkoutVoucher")?.value||"").trim().toUpperCase();
@@ -4366,5 +4482,9 @@ async function saveBuyerAddress(){
 .kw-co-shipping .kw-co-title{margin-bottom:7px}
 .kw-co-shipping #checkoutShippingSummary{padding:8px 0}
 #buyerManualPostalCode{background:#f4f2ed;color:#5f5b54}
+</style><style id="kw-location-picker">
+.kw-location-trigger{width:100%;min-height:48px;border:1px solid #d8d4cb;border-radius:10px;background:#fff;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;text-align:left;cursor:pointer}.kw-location-trigger span{font-size:10px;color:#77736c}.kw-location-trigger.has-value span{color:#171817;font-weight:700}.kw-location-trigger b{font-size:20px;color:#77736c}
+.kw-location-modal{position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:10050;display:none;align-items:center;justify-content:center;padding:16px}.kw-location-modal.open{display:flex}.kw-location-dialog{width:min(560px,100%);max-height:min(680px,calc(100vh - 32px));background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 20px 70px rgba(0,0,0,.25);display:flex;flex-direction:column}.kw-location-head{display:flex;justify-content:space-between;gap:12px;padding:16px;border-bottom:1px solid #ece8e0}.kw-location-head strong{display:block;font-size:15px}.kw-location-head small{display:block;color:#77736c;font-size:9px;margin-top:3px}.kw-location-head button{border:0;background:#f2f0eb;border-radius:50%;width:30px;height:30px;font-size:18px;cursor:pointer}.kw-location-search{margin:12px 16px 8px;border:1px solid #d8d4cb;border-radius:9px;height:42px;display:flex;align-items:center;padding:0 10px;gap:7px}.kw-location-search span{font-size:18px;color:#77736c}.kw-location-search input{border:0;outline:0;width:100%;font-size:11px}.kw-location-tabs{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #ece8e0;padding:0 12px}.kw-location-tabs button{border:0;background:transparent;padding:11px 4px;font-size:10px;font-weight:800;color:#77736c;border-bottom:2px solid transparent;cursor:pointer}.kw-location-tabs button.active{color:#c64b2b;border-bottom-color:#c64b2b}.kw-location-breadcrumb{padding:9px 16px;background:#faf9f6;color:#77736c;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kw-location-list{overflow:auto;min-height:260px;max-height:390px}.kw-location-item{width:100%;border:0;border-bottom:1px solid #f0ede7;background:#fff;text-align:left;padding:12px 16px;cursor:pointer}.kw-location-item:hover{background:#faf8f4}.kw-location-item strong{display:block;font-size:11px;color:#171817}.kw-location-item small{display:block;margin-top:3px;color:#77736c;font-size:8px}.kw-location-loading,.kw-location-empty{padding:40px 16px;text-align:center;color:#77736c;font-size:10px}.kw-location-selected{padding:10px 16px;border-top:1px solid #ece8e0;background:#faf9f6;font-size:9px;color:#555}.kw-location-selected strong{color:#171817}
+@media(max-width:700px){.kw-location-modal{padding:0;align-items:flex-end}.kw-location-dialog{width:100%;max-height:88vh;border-radius:16px 16px 0 0}.kw-location-list{max-height:45vh}}
 </style></body>
 </html>
