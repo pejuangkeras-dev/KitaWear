@@ -127,6 +127,15 @@ function mapMidtransStatus(transactionStatus, fraudStatus) {
     };
   }
 
+  // A card capture with fraud_status=challenge is not yet safe to fulfill.
+  // Midtrans documents challenge as requiring FDS approval before settlement.
+  if (status === "capture" && fraud === "challenge") {
+    return {
+      orderStatus: "pending_payment",
+      paymentStatus: "pending"
+    };
+  }
+
   if (status === "settlement" || status === "capture") {
     return {
       orderStatus: "paid",
