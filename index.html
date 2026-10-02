@@ -711,7 +711,8 @@ body{background:var(--bg);color:var(--ink)}
           <span id="buyerLocationPickerText">Pilih provinsi, kota/kabupaten, kecamatan & kode pos</span><b>›</b>
         </button>
       </div>
-      <div class="field kw-co-full kw-address-autocomplete-field"><label for="buyerManualAddressLine">Nama jalan</label><textarea id="buyerManualAddressLine" placeholder="Ketik nama jalan, contoh: Jalan Ahmad Yani..." autocomplete="street-address" oninput="handleStreetAddressInput(this)" onfocus="handleStreetAddressInput(this)"></textarea><div id="buyerStreetSuggestions" class="kw-street-suggestions" hidden></div><small class="kw-address-attribution">Ketik atau pilih nama jalan yang direkomendasikan sesuai kota/kabupaten.</small></div>
+      <div class="field kw-co-full kw-address-autocomplete-field"><label for="buyerManualAddressLine">Nama jalan</label><input id="buyerManualAddressLine" type="text" placeholder="Ketik nama jalan, contoh: Jalan Ahmad Yani..." autocomplete="street-address" oninput="handleStreetAddressInput(this)" onfocus="handleStreetAddressInput(this)"><div id="buyerStreetSuggestions" class="kw-street-suggestions" hidden></div><small class="kw-address-attribution">Pilih nama jalan resmi yang direkomendasikan sesuai kota/kabupaten yang dipilih.</small></div>
+      <div class="field kw-co-half"><label for="buyerManualHouseNumber">Nomor rumah / blok</label><input id="buyerManualHouseNumber" type="text" placeholder="Contoh: Blok A No. 12 / No. 5" autocomplete="address-line2" oninput="updateManualCheckoutAddressSummary()"></div>
       <select id="buyerManualProvince" aria-hidden="true" tabindex="-1" style="display:none"></select>
       <select id="buyerManualCity" aria-hidden="true" tabindex="-1" style="display:none"></select>
       <input id="buyerManualDistrictId" type="hidden"><input id="buyerManualSubdistrictId" type="hidden">
@@ -2372,7 +2373,7 @@ function selectStreetSuggestion(index){
   const row=window.kwStreetSuggestionRows?.[index];if(!row)return;
   const input=document.getElementById("buyerManualAddressLine");if(!input)return;
   const house=String(row.house_number||"").trim();
-  input.value=[row.street,house].filter(Boolean).join(" ");
+  input.value=row.street; if(house){const hn=document.getElementById("buyerManualHouseNumber");if(hn&&!hn.value)hn.value=house;}
   input.focus();closeStreetSuggestions();updateManualCheckoutAddressSummary();
   // The street name is descriptive; shipping remains based on the selected
   // administrative location and postal code.
@@ -2383,7 +2384,9 @@ document.addEventListener("click",function(e){
   if(field&&!field.contains(e.target))closeStreetSuggestions();
 });
 function updateManualCheckoutAddressSummary(){
-  const line=String(document.getElementById("buyerManualAddressLine")?.value||"").trim();
+  const street=String(document.getElementById("buyerManualAddressLine")?.value||"").trim();
+  const house=String(document.getElementById("buyerManualHouseNumber")?.value||"").trim();
+  const line=[street,house].filter(Boolean).join(", ");
   const p=kwLocationPicker;
   const el=document.getElementById("buyerAddress");
   if(el)el.value=[line,p.subdistrict?.name,p.district?.name,p.city?.name,p.province?.name,p.postal].filter(Boolean).join(", ");
