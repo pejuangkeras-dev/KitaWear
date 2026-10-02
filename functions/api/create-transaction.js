@@ -237,6 +237,8 @@ function groupByStore(items) {
 export async function onRequestPost(context) {
   let createdOrderId = null;
   let voucherConsumed = false;
+  let voucherId = "";
+  let buyerUser = null;
 
   try {
     const env = context.env;
@@ -276,7 +278,7 @@ export async function onRequestPost(context) {
       }, 500);
     }
 
-    const buyerUser = await getAuthenticatedUser(
+    buyerUser = await getAuthenticatedUser(
       context,
       supabaseUrl,
       anonKey
@@ -304,7 +306,7 @@ export async function onRequestPost(context) {
     let address =
       String(customer.address || "").trim();
 
-    const voucherId = String(body?.voucher_id || "").trim();
+    voucherId = String(body?.voucher_id || "").trim();
     const shippingQuoteId = String(body?.shipping_quote_id || "").trim();
     const shippingSelections = Array.isArray(body?.shipping_selections) ? body.shipping_selections : [];
 
