@@ -12,8 +12,8 @@ async function databaseStreetSearch(env,q,province,city,district,subdistrict,pos
   const url=String(env.SUPABASE_URL||"").trim().replace(/\/+$/,""),key=String(env.SUPABASE_SERVICE_ROLE_KEY||"").trim();
   if(!url||!key)return [];
   const params=new URLSearchParams();
-  params.set("p_query",q||"");params.set("p_province",province||"");params.set("p_city",city||"");
-  params.set("p_district",district||"");params.set("p_subdistrict",subdistrict||"");params.set("p_postal",postal||"");params.set("p_limit","20");
+  params.set("p_query",q||"");if(province)params.set("p_province",province);if(city)params.set("p_city",city);
+  if(district)params.set("p_district",district);if(subdistrict)params.set("p_subdistrict",subdistrict);if(postal)params.set("p_postal",postal);params.set("p_limit","20");
   return await sb(url,key,"/rest/v1/rpc/search_address_streets",{method:"POST",body:JSON.stringify(Object.fromEntries(params))});
 }
 async function cacheStreets(env,rows,sourceCode="BIG_RBI"){
