@@ -29,6 +29,19 @@ export async function onRequest(context){
     if(!rows.length&&awb)rows=await sb(u,k,`/rest/v1/shipping_shipments?select=id,order_id,order_seller_id,provider_order_id&waybill_id=eq.${encodeURIComponent(awb)}&limit=1`);
     if(!rows.length)return json({ok:true,ignored:true});
     const shipment=rows[0],marketStatus=mapStatus(incomingStatus);
+    // Persist provider callbacks exactly once. The unique (provider,event_key)
+    // constraint makes webhook retries idempotent.
+    const eventKey=clean(body.event_id||body.id||body.event||body.order_event_id||(
+      orderNo+"|"+awb+"|"+incomingStatus+"|"+clean(body.updated_at||body.timestamp||"")
+    ));
+    if(eventKey){
+      const existingEvent=await sb(u,k,"/rest/v1/webhook_events?select=id&provider=eq.rajaongkir_delivery&event_key=eq."+encodeURIComponent(eventKey)+"&limit=1");
+      if(existingEvent?.length)return json({ok:true,duplicate:true,event_key:eventKey});
+      await sb(u,k,"/rest/v1/webhook_events",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({
+        provider:"rajaongkir_delivery",event_key:eventKey,order_id:shipment.order_id,
+        received_at:new Date().toISOString(),payload:body
+      })});
+    }
     const patch={status:incomingStatus||marketStatus,waybill_id:awb||null,last_webhook_at:new Date().toISOString(),raw_response:body};
     if(!awb){patch.waybill_id=undefined;delete patch.waybill_id;}
     await sb(u,k,`/rest/v1/shipping_shipments?id=eq.${encodeURIComponent(shipment.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(patch)});
@@ -45,6 +58,16 @@ export async function onRequest(context){
     if(allDelivered){orderPatch.status="delivered";orderPatch.delivered_at=new Date().toISOString();}
     else if(allShipped){orderPatch.status="shipped";orderPatch.shipped_at=new Date().toISOString();}
     await sb(u,k,`/rest/v1/orders?id=eq.${encodeURIComponent(shipment.order_id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(orderPatch)});
-    return json({ok:true,order_no:orderNo,waybill_id:awb,market_status:marketStatus});
+    const orderRows=await sb(u,k,`/rest/v1/orders?select=buyer_id,order_number&id=eq.${encodeURIComponent(shipment.order_id)}&limit=1`);
+    const buyerId=clean(orderRows?.[0]?.buyer_id);
+    if(buyerId){
+      const title=marketStatus==="delivered"?"Pesanan diterima":marketStatus==="shipped"?"Pesanan dikirim":"Status pengiriman diperbarui";
+      const message=(orderRows?.[0]?.order_number||"Pesanan")+": status pengiriman "+(incomingStatus||marketStatus)+(awb?(". Resi "+awb+"."):"");
+      await sb(u,k,"/rest/v1/notifications",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({
+        user_id:buyerId,type:"shipping_update",title,message,
+        link:"/?order="+encodeURIComponent(shipment.order_id),created_at:new Date().toISOString()
+      })});
+    }
+    return json({ok:true,order_no:orderNo,waybill_id:awb,market_status:marketStatus,event_key:eventKey});
   }catch(e){console.error("MarketKita RajaOngkir webhook:",e?.message||e);return json({error:e?.message||"Webhook gagal diproses."},500);}
 }
