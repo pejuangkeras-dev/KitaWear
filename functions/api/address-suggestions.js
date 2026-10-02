@@ -64,7 +64,7 @@ async function cityPoint(city,province,headers){
 }
 async function queryBIG(map,q,city,province,district,headers){
   const point=q?await searchPoint(q,city,province,district,headers):await cityPoint(city,province,headers);
-  const u=new URL("https://geoservices.big.go.id/rbi/rest/services/BASEMAP/Rupabumi_Indonesia/MapServer/791/query");
+  const u=new URL("https://geoservices.big.go.id/rbi/rest/services/BASEMAP/Rupabumi_Indonesia/MapServer/863/query");
   const safeQ=q.toUpperCase().replace(/'/g,"''");
   // If the typed text is a housing complex, neighborhood, landmark, or
   // incomplete address rather than an official road name, locate that text
