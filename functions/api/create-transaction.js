@@ -67,6 +67,12 @@ function safeInteger(value, fallback = 0) {
   return Number.isFinite(n) ? Math.trunc(n) : fallback;
 }
 
+async function sha256Hex(value) {
+  const bytes = new TextEncoder().encode(String(value));
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
 async function getAuthenticatedUser(context, supabaseUrl, anonKey) {
   const authHeader = context.request.headers.get("Authorization") || "";
   if (!authHeader.toLowerCase().startsWith("bearer ")) return null;
@@ -313,6 +319,81 @@ export async function onRequestPost(context) {
     if (!buyerUser?.id) {
       return json({ error: "Login diperlukan untuk checkout." }, 401);
     }
+
+    const idempotencyKey = String(
+      context.request.headers.get("Idempotency-Key") || body?.idempotency_key || ""
+    ).trim();
+    if (!idempotencyKey || idempotencyKey.length < 16 || idempotencyKey.length > 200) {
+      return json({ error: "Idempotency-Key checkout wajib diisi dan valid." }, 400);
+    }
+
+    const fingerprintInput = JSON.stringify({
+      address_id: addressId,
+      items: Array.isArray(body?.items) ? body.items.map(x => ({
+        product_id: x?.product_id || null,
+        store_id: x?.store_id || null,
+        size: String(x?.size || "").trim().toUpperCase(),
+        quantity: Number(x?.quantity || 0)
+      })).sort((a,b) => JSON.stringify(a).localeCompare(JSON.stringify(b))) : [],
+      voucher_id: body?.voucher_id || null,
+      shipping_quote_id: body?.shipping_quote_id || null,
+      shipping_selections: body?.shipping_selections || []
+    });
+    const requestFingerprint = await sha256Hex(fingerprintInput);
+
+    const idemRows = await supabaseRequest(
+      supabaseUrl,
+      serviceRoleKey,
+      "/rest/v1/checkout_idempotency",
+      {
+        method: "POST",
+        headers: { Prefer: "resolution=ignore-duplicates,return=representation" },
+        body: JSON.stringify({
+          buyer_id: buyerUser.id,
+          idempotency_key: idempotencyKey,
+          request_fingerprint: requestFingerprint,
+          status: "processing"
+        })
+      }
+    );
+
+    let idem = Array.isArray(idemRows) ? idemRows[0] : null;
+    if (!idem) {
+      const existing = await supabaseRequest(
+        supabaseUrl,
+        serviceRoleKey,
+        "/rest/v1/checkout_idempotency?select=id,request_fingerprint,order_id,midtrans_order_id,midtrans_token,redirect_url,status&buyer_id=eq." +
+          encodeURIComponent(buyerUser.id) + "&idempotency_key=eq." +
+          encodeURIComponent(idempotencyKey) + "&limit=1",
+        { method: "GET" }
+      );
+      idem = Array.isArray(existing) ? existing[0] : null;
+    }
+    if (!idem) return json({ error: "Checkout idempotency record gagal dibuat." }, 500);
+    if (idem.request_fingerprint !== requestFingerprint) {
+      return json({ error: "Idempotency-Key sudah digunakan untuk checkout dengan data berbeda." }, 409);
+    }
+    if (idem.status === "created" && idem.midtrans_token) {
+      return json({
+        token: idem.midtrans_token,
+        redirect_url: idem.redirect_url || null,
+        order_id: idem.midtrans_order_id,
+        clientKey,
+        snapUrl: production ? "https://app.midtrans.com/snap/snap.js" : "https://app.sandbox.midtrans.com/snap/snap.js",
+        idempotent_replay: true
+      });
+    }
+    if (idem.status === "processing") {
+      return json({ error: "Checkout dengan permintaan yang sama sedang diproses. Jangan kirim ulang.", idempotent: true }, 409);
+    }
+
+    await supabaseRequest(
+      supabaseUrl,
+      serviceRoleKey,
+      "/rest/v1/checkout_idempotency?id=eq." + encodeURIComponent(idem.id),
+      { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ status: "processing", updated_at: new Date().toISOString() }) }
+    );
+
     if (!addressId) {
       return json({ error: "Pilih alamat tersimpan sebelum checkout." }, 400);
     }
@@ -1091,6 +1172,24 @@ export async function onRequestPost(context) {
       }, midtransResponse.status || 502);
     }
 
+    await supabaseRequest(
+      supabaseUrl,
+      serviceRoleKey,
+      "/rest/v1/checkout_idempotency?id=eq." + encodeURIComponent(idem.id),
+      {
+        method: "PATCH",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify({
+          status: "created",
+          order_id: createdOrderId,
+          midtrans_order_id: orderNumber,
+          midtrans_token: midtransResult.token,
+          redirect_url: midtransResult.redirect_url || null,
+          updated_at: new Date().toISOString()
+        })
+      }
+    );
+
     return json({
       token:
         midtransResult.token,
@@ -1111,6 +1210,21 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
+    try {
+      if (typeof idem !== "undefined" && idem?.id) {
+        const env2 = context.env;
+        const url2 = normalizeUrl(env2.SUPABASE_URL);
+        const key2 = String(env2.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+        if (url2 && key2) {
+          await supabaseRequest(
+            url2,
+            key2,
+            "/rest/v1/checkout_idempotency?id=eq." + encodeURIComponent(idem.id),
+            { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ status: "failed", updated_at: new Date().toISOString() }) }
+          ).catch(() => {});
+        }
+      }
+    } catch {}
     console.error(
       "KitaWear marketplace create transaction error:",
       error?.message ||
