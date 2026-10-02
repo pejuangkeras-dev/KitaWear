@@ -3,78 +3,54 @@ const clean=v=>String(v==null?"":v).trim();
 function h(k){return{apikey:k,Authorization:"Bearer "+k,"Content-Type":"application/json"};}
 async function sb(u,k,p,o={}){const r=await fetch(u+p,{...o,headers:{...h(k),...(o.headers||{})}});const t=await r.text();let d={};try{d=t?JSON.parse(t):{};}catch{}if(!r.ok)throw new Error(d?.message||d?.error||d?.details||`Supabase HTTP ${r.status}`);return d;}
 function mapStatus(v){
-  const s=clean(v).toLowerCase();
-  if(["diajukan","confirmed","scheduled","allocated","picking_up","pickup","diproses","processing"].includes(s))return"processing";
-  if(["dijemput","dikirim","picked","in_transit","dropping_off","shipped","transit"].includes(s))return"shipped";
-  if(["selesai","delivered","diterima","completed"].includes(s))return"delivered";
-  if(["dibatalkan","cancelled","rejected","returned","return","dikembalikan","disposed","failed"].includes(s))return"cancelled";
-  return"processing";
+ const s=clean(v).toLowerCase();
+ if(["selesai","delivered","diterima","completed"].includes(s))return"delivered";
+ if(["dibatalkan","cancelled","rejected","returned","return","dikembalikan","disposed","failed"].includes(s))return"cancelled";
+ if(["dijemput","dikirim","picked","in_transit","dropping_off","shipped","transit"].includes(s))return"shipped";
+ return"processing";
+}
+function shipmentStatus(v){
+ return v==="delivered"?"delivered":v==="cancelled"?"cancelled":v==="shipped"?"in_transit":"created";
 }
 export async function onRequest(context){
-  if(context.request.method==="GET")return json({ok:true,service:"MarketKita RajaOngkir Webhook"});
-  if(!["POST","PUT"].includes(context.request.method))return json({error:"Method not allowed"},405);
-  try{
-    const env=context.env,u=clean(env.SUPABASE_URL).replace(/\/+$/,""),k=clean(env.SUPABASE_SERVICE_ROLE_KEY);
-    const secret=clean(env.RAJAONGKIR_WEBHOOK_SECRET||env.BITESHIP_WEBHOOK_SECRET);
-    const configuredHeader=clean(env.RAJAONGKIR_WEBHOOK_HEADER)||"X-MarketKita-Shipping-Secret";
-    if(!u||!k||!secret)return json({error:"Konfigurasi webhook shipping belum lengkap."},500);
-    if(context.request.headers.get(configuredHeader)!==secret)return json({error:"Unauthorized"},401);
-    const body=await context.request.json().catch(()=>({}));
-    const orderNo=clean(body.order_no||body.order_id);
-    const awb=clean(body.cnote||body.awb||body.airway_bill||body.courier_waybill_id);
-    const incomingStatus=clean(body.status||body.order_status||body.event);
-    if(!orderNo&&!awb)return json({ok:true,ignored:true});
-    let rows=[];
-    if(orderNo)rows=await sb(u,k,`/rest/v1/shipping_shipments?select=id,order_id,order_seller_id,provider_order_id&provider_order_id=eq.${encodeURIComponent(orderNo)}&limit=1`);
-    if(!rows.length&&awb)rows=await sb(u,k,`/rest/v1/shipping_shipments?select=id,order_id,order_seller_id,provider_order_id&waybill_id=eq.${encodeURIComponent(awb)}&limit=1`);
-    if(!rows.length)return json({ok:true,ignored:true});
-    const shipment=rows[0],marketStatus=mapStatus(incomingStatus);
-    // Persist provider callbacks exactly once. The unique (provider,event_key)
-    // constraint makes webhook retries idempotent.
-    const eventKey=clean(body.event_id||body.id||body.event||body.order_event_id||(
-      orderNo+"|"+awb+"|"+incomingStatus+"|"+clean(body.updated_at||body.timestamp||"")
-    ));
-    if(eventKey){
-      const existingEvent=await sb(u,k,"/rest/v1/webhook_events?select=id&provider=eq.rajaongkir_delivery&event_key=eq."+encodeURIComponent(eventKey)+"&limit=1");
-      if(existingEvent?.length)return json({ok:true,duplicate:true,event_key:eventKey});
-      try{
-        await sb(u,k,"/rest/v1/webhook_events",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({
-          provider:"rajaongkir_delivery",event_key:eventKey,order_id:shipment.order_id,
-          received_at:new Date().toISOString(),payload:body
-        })});
-      }catch(insertError){
-        if(String(insertError?.message||"").includes("duplicate")||String(insertError?.message||"").includes("409")){
-          return json({ok:true,duplicate:true,event_key:eventKey});
-        }
-        throw insertError;
-      }
-    }
-    const patch={status:incomingStatus||marketStatus,waybill_id:awb||null,last_webhook_at:new Date().toISOString(),raw_response:body};
-    if(!awb){patch.waybill_id=undefined;delete patch.waybill_id;}
-    await sb(u,k,`/rest/v1/shipping_shipments?id=eq.${encodeURIComponent(shipment.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(patch)});
-    await sb(u,k,`/rest/v1/order_sellers?id=eq.${encodeURIComponent(shipment.order_seller_id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({
-      shipping_status:marketStatus,
-      ...(awb?{tracking_number:awb}:{}),
-      seller_status:marketStatus==="delivered"?"completed":marketStatus
-    })});
-    const sellers=await sb(u,k,`/rest/v1/order_sellers?select=id,seller_status,shipping_status&order_id=eq.${encodeURIComponent(shipment.order_id)}`);
-    const sellerRows=Array.isArray(sellers)?sellers:[];
-    const allShipped=sellerRows.length>0&&sellerRows.every(x=>["shipped","delivered","completed"].includes(clean(x.shipping_status)));
-    const allDelivered=sellerRows.length>0&&sellerRows.every(x=>clean(x.shipping_status)==="delivered");
-    const orderPatch={shipping_status:allDelivered?"delivered":allShipped?"shipped":"processing",updated_at:new Date().toISOString()};
-    if(allDelivered){orderPatch.status="delivered";orderPatch.delivered_at=new Date().toISOString();}
-    else if(allShipped){orderPatch.status="shipped";orderPatch.shipped_at=new Date().toISOString();}
-    await sb(u,k,`/rest/v1/orders?id=eq.${encodeURIComponent(shipment.order_id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(orderPatch)});
-    const orderRows=await sb(u,k,`/rest/v1/orders?select=buyer_id,order_number&id=eq.${encodeURIComponent(shipment.order_id)}&limit=1`);
-    const buyerId=clean(orderRows?.[0]?.buyer_id);
-    if(buyerId){
-      const title=marketStatus==="delivered"?"Pesanan diterima":marketStatus==="shipped"?"Pesanan dikirim":"Status pengiriman diperbarui";
-      const message=(orderRows?.[0]?.order_number||"Pesanan")+": status pengiriman "+(incomingStatus||marketStatus)+(awb?(". Resi "+awb+"."):"");
-      await sb(u,k,"/rest/v1/notifications",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({
-        user_id:buyerId,type:"shipping_update",title,message,
-        link:"/?order="+encodeURIComponent(shipment.order_id),created_at:new Date().toISOString()
-      })});
-    }
-    return json({ok:true,order_no:orderNo,waybill_id:awb,market_status:marketStatus,event_key:eventKey});
-  }catch(e){console.error("MarketKita RajaOngkir webhook:",e?.message||e);return json({error:e?.message||"Webhook gagal diproses."},500);}
+ if(context.request.method==="GET")return json({ok:true,service:"MarketKita RajaOngkir Webhook"});
+ if(!["POST","PUT"].includes(context.request.method))return json({error:"Method not allowed"},405);
+ try{
+  const env=context.env,u=clean(env.SUPABASE_URL).replace(/\/+$/,""),k=clean(env.SUPABASE_SERVICE_ROLE_KEY);
+  const secret=clean(env.RAJAONGKIR_WEBHOOK_SECRET||env.BITESHIP_WEBHOOK_SECRET);
+  const configuredHeader=clean(env.RAJAONGKIR_WEBHOOK_HEADER)||"X-MarketKita-Shipping-Secret";
+  if(!u||!k||!secret)return json({error:"Konfigurasi webhook shipping belum lengkap."},500);
+  if(context.request.headers.get(configuredHeader)!==secret)return json({error:"Unauthorized"},401);
+  const body=await context.request.json().catch(()=>({}));
+  const orderNo=clean(body.order_no||body.order_id),awb=clean(body.cnote||body.awb||body.airway_bill||body.courier_waybill_id),incomingStatus=clean(body.status||body.order_status||body.event);
+  if(!orderNo&&!awb)return json({ok:true,ignored:true});
+  let rows=[];
+  if(orderNo)rows=await sb(u,k,`/rest/v1/shipping_shipments?select=id,order_id,order_seller_id,provider_order_id,status&provider_order_id=eq.${encodeURIComponent(orderNo)}&limit=1`);
+  if(!rows.length&&awb)rows=await sb(u,k,`/rest/v1/shipping_shipments?select=id,order_id,order_seller_id,provider_order_id,status&waybill_id=eq.${encodeURIComponent(awb)}&limit=1`);
+  if(!rows.length)return json({ok:true,ignored:true});
+  const shipment=rows[0],marketStatus=mapStatus(incomingStatus),nextShipmentStatus=shipmentStatus(marketStatus);
+  const eventKey=clean(body.event_id||body.id||body.event||body.order_event_id||(orderNo+"|"+awb+"|"+incomingStatus+"|"+clean(body.updated_at||body.timestamp||"")));
+  if(eventKey){
+   const existing=await sb(u,k,"/rest/v1/webhook_events?select=id&provider=eq.rajaongkir_delivery&event_key=eq."+encodeURIComponent(eventKey)+"&limit=1");
+   if(existing?.length)return json({ok:true,duplicate:true,event_key:eventKey});
+   try{await sb(u,k,"/rest/v1/webhook_events",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({provider:"rajaongkir_delivery",event_key:eventKey,order_id:shipment.order_id,received_at:new Date().toISOString(),payload:body})});}
+   catch(e){if(String(e?.message||"").includes("duplicate")||String(e?.message||"").includes("409"))return json({ok:true,duplicate:true,event_key:eventKey});throw e;}
+  }
+  const patch={status:nextShipmentStatus,last_webhook_at:new Date().toISOString(),raw_response:body};
+  if(awb)patch.waybill_id=awb;
+  await sb(u,k,`/rest/v1/shipping_shipments?id=eq.${encodeURIComponent(shipment.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(patch)});
+  await sb(u,k,`/rest/v1/order_sellers?id=eq.${encodeURIComponent(shipment.order_seller_id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({shipping_status:marketStatus,...(awb?{tracking_number:awb}:{}),seller_status:marketStatus==="delivered"?"completed":marketStatus})});
+  const sellers=await sb(u,k,`/rest/v1/order_sellers?select=id,seller_status,shipping_status&order_id=eq.${encodeURIComponent(shipment.order_id)}`);
+  const sellerRows=Array.isArray(sellers)?sellers:[];
+  const allShipped=sellerRows.length>0&&sellerRows.every(x=>["shipped","delivered","completed"].includes(clean(x.shipping_status)));
+  const allDelivered=sellerRows.length>0&&sellerRows.every(x=>["delivered","completed"].includes(clean(x.shipping_status)));
+  const orderPatch={shipping_status:allDelivered?"delivered":allShipped?"shipped":"processing",updated_at:new Date().toISOString()};
+  if(allDelivered){orderPatch.status="delivered";orderPatch.delivered_at=new Date().toISOString();}
+  else if(allShipped){orderPatch.status="shipped";orderPatch.shipped_at=new Date().toISOString();}
+  await sb(u,k,`/rest/v1/orders?id=eq.${encodeURIComponent(shipment.order_id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(orderPatch)});
+  const orderRows=await sb(u,k,`/rest/v1/orders?select=buyer_id,order_number&id=eq.${encodeURIComponent(shipment.order_id)}&limit=1`);
+  const buyerId=clean(orderRows?.[0]?.buyer_id);
+  if(buyerId)await sb(u,k,"/rest/v1/notifications",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({user_id:buyerId,type:"shipping_update",title:marketStatus==="delivered"?"Pesanan diterima":marketStatus==="shipped"?"Pesanan dikirim":"Status pengiriman diperbarui",message:(orderRows?.[0]?.order_number||"Pesanan")+": status pengiriman "+(incomingStatus||marketStatus)+(awb?". Resi "+awb+".":""),link:"/?order="+encodeURIComponent(shipment.order_id),created_at:new Date().toISOString()})});
+  return json({ok:true,order_no:orderNo,waybill_id:awb,market_status:marketStatus,shipment_status:nextShipmentStatus,event_key:eventKey});
+ }catch(e){console.error("MarketKita RajaOngkir webhook:",e?.message||e);return json({error:e?.message||"Webhook gagal diproses."},500);}
 }
