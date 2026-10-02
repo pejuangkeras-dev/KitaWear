@@ -4018,5 +4018,80 @@ async function submitReviewForItem(itemId,rating,text){
   if(error){showNotice('Ulasan belum tersimpan',error.message||'Gagal menyimpan ulasan.');return false}
   showNotice('Ulasan tersimpan','Terima kasih. Ulasan Anda berhasil ditambahkan.'); return true;
 }
+</script><style id="p14-return-style">
+.p14-return-btn{margin-top:7px;border:1px solid var(--line);background:#fff;color:#171817;border-radius:9px;padding:8px 11px;font-size:11px;font-weight:850;cursor:pointer}
+.p14-return-status{margin-top:8px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#faf8f3;font-size:11px}
+.p14-return-modal{position:fixed;inset:0;z-index:420;background:#0008;display:none;align-items:center;justify-content:center;padding:18px}
+.p14-return-modal.show{display:flex}
+.p14-return-card{width:min(560px,100%);max-height:90vh;overflow:auto;background:#fffdf9;border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 25px 80px #0006}
+.p14-return-card h3{margin:0 0 6px}.p14-return-card p{color:#777;margin:0 0 16px;font-size:13px;line-height:1.5}
+.p14-return-field{margin:0 0 12px}.p14-return-field label{display:block;font-size:11px;font-weight:850;margin-bottom:6px}
+.p14-return-field input,.p14-return-field select,.p14-return-field textarea{width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;padding:10px;font:inherit}
+.p14-return-field textarea{min-height:90px;resize:vertical}
+.p14-return-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;flex-wrap:wrap}
+.p14-return-actions button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 14px;font-weight:850}
+.p14-return-actions .primary{background:#171817;color:#fff;border-color:#171817}
+</style><div id="p14ReturnModal" class="p14-return-modal" aria-hidden="true">
+ <div class="p14-return-card">
+  <h3>Ajukan Retur / Penggantian</h3><p id="p14ReturnItemLabel">Pilih alasan dan jelaskan masalah produk.</p>
+  <div class="p14-return-field"><label>Jenis</label><select id="p14ReturnType"><option value="return_refund">Retur & Refund</option><option value="replacement">Penggantian Barang</option></select></div>
+  <div class="p14-return-field"><label>Alasan</label><select id="p14ReturnReason"><option value="Barang rusak">Barang rusak</option><option value="Barang salah">Barang yang diterima salah</option><option value="Ukuran tidak sesuai">Ukuran tidak sesuai</option><option value="Barang tidak sesuai deskripsi">Tidak sesuai deskripsi</option><option value="Barang kurang">Barang kurang</option><option value="Lainnya">Lainnya</option></select></div>
+  <div class="p14-return-field"><label>Penjelasan</label><textarea id="p14ReturnDescription" maxlength="2000" placeholder="Jelaskan kondisi barang dan masalah yang terjadi."></textarea></div>
+  <div class="p14-return-field"><label>Foto bukti (opsional, maksimal 4)</label><input id="p14ReturnEvidence" type="file" accept="image/jpeg,image/png,image/webp" multiple></div>
+  <div id="p14ReturnMessage" style="font-size:11px;color:#777"></div>
+  <div class="p14-return-actions"><button type="button" onclick="closeP14ReturnModal()">Batal</button><button type="button" class="primary" onclick="submitP14Return()">Kirim Pengajuan</button></div>
+ </div>
+</div><script id="p14-return-script">
+let p14ReturnItem=null,p14ReturnOrder=null;
+function p14ReturnStatusLabel(s){return ({requested:"Diajukan",approved:"Disetujui",rejected:"Ditolak",shipping_back:"Menunggu barang dikirim balik",received:"Barang diterima seller",resolved:"Selesai",cancelled:"Dibatalkan"}[s]||s||"-")}
+async function p14GetRequests(orderId){
+ const session=(await kwSupabase.auth.getSession()).data?.session;if(!session)return [];
+ const r=await fetch("/api/returns?order_id="+encodeURIComponent(orderId),{headers:{Authorization:"Bearer "+session.access_token},cache:"no-store"});
+ const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Gagal memuat retur.");return Array.isArray(d.requests)?d.requests:[];
+}
+function openP14ReturnModal(item,order){
+ p14ReturnItem=item;p14ReturnOrder=order;
+ document.getElementById("p14ReturnItemLabel").textContent=(item.product_name||"Produk")+" · Size "+(item.size||"-")+" · "+rupiah(item.line_total||0);
+ document.getElementById("p14ReturnDescription").value="";document.getElementById("p14ReturnEvidence").value="";document.getElementById("p14ReturnMessage").textContent="";
+ document.getElementById("p14ReturnModal").classList.add("show");document.getElementById("p14ReturnModal").setAttribute("aria-hidden","false");
+}
+function closeP14ReturnModal(){document.getElementById("p14ReturnModal")?.classList.remove("show")}
+async function submitP14Return(){
+ if(!p14ReturnItem||!p14ReturnOrder||!kwSupabase)return;
+ const msg=document.getElementById("p14ReturnMessage"),files=[...(document.getElementById("p14ReturnEvidence")?.files||[])];
+ if(files.length>4){msg.textContent="Maksimal 4 foto.";return}
+ msg.textContent="Mengunggah bukti...";
+ try{
+  const evidence=[];
+  for(const file of files){
+   if(file.size>5*1024*1024)throw new Error("Ukuran setiap foto maksimal 5 MB.");
+   const path=kwCurrentUser.id+"/"+p14ReturnItem.id+"/"+Date.now()+"-"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+   const up=await kwSupabase.storage.from("return-evidence").upload(path,file,{upsert:false,contentType:file.type});
+   if(up.error)throw up.error;evidence.push(path);
+  }
+  const session=(await kwSupabase.auth.getSession()).data?.session;if(!session)throw new Error("Sesi login berakhir.");
+  const response=await fetch("/api/returns",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},body:JSON.stringify({order_item_id:p14ReturnItem.id,type:document.getElementById("p14ReturnType").value,reason:document.getElementById("p14ReturnReason").value,description:document.getElementById("p14ReturnDescription").value,evidence_urls:evidence}),cache:"no-store"});
+  const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||"Gagal mengirim pengajuan.");
+  closeP14ReturnModal();showKwNotice("Pengajuan retur berhasil dikirim ke seller.","Retur Berhasil Diajukan");await loadBuyerOrders();
+ }catch(e){msg.textContent=e.message||"Gagal mengirim pengajuan."}
+}
+async function enhanceP14BuyerOrders(){
+ const cards=document.querySelectorAll("#buyerOrdersList .buyer-order-card");
+ for(let i=0;i<cards.length;i++){
+  const order=(buyerOrdersCache||[]).find(x=>String(x.id)===String(cards[i].querySelector(".buyer-order-head strong")?.textContent));
+  const visibleRows=(buyerOrderFilter==="all"?(buyerOrdersCache||[]):(buyerOrdersCache||[]).filter(x=>x.status===buyerOrderFilter));
+  const o=visibleRows[i];if(!o)continue;
+  const items=Array.isArray(o.items)?o.items:[];let requests=[];try{requests=await p14GetRequests(o.id)}catch{}
+  const itemNodes=cards[i].querySelectorAll(".buyer-order-item");
+  items.forEach((item,j)=>{
+   const node=itemNodes[j];if(!node)return;
+   const req=requests.find(r=>String(r.order_item_id)===String(item.id));
+   if(req){const s=document.createElement("div");s.className="p14-return-status";s.textContent="Retur: "+p14ReturnStatusLabel(req.status)+(req.type==="replacement"?" · Penggantian":" · Refund");node.appendChild(s)}
+   else if(["delivered","completed"].includes(o.status)&&o.payment_status==="paid"){const b=document.createElement("button");b.type="button";b.className="p14-return-btn";b.textContent="Ajukan Retur / Penggantian";b.onclick=()=>openP14ReturnModal(item,o);node.appendChild(b)}
+  });
+ }
+}
+const p14OriginalRenderBuyerOrders=window.renderBuyerOrders;
+window.renderBuyerOrders=async function(){p14OriginalRenderBuyerOrders();await enhanceP14BuyerOrders()}
 </script></body>
 </html>
