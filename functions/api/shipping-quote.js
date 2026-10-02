@@ -87,7 +87,33 @@ export async function onRequestPost(context){
       return json({error:"Nomor WhatsApp alamat tidak valid."},400);
     }
 
-        const groups=new Map();
+        // Reuse an active quote for the exact same buyer, destination and cart
+    // before calling RajaOngkir again, preventing refreshes from consuming quota.
+    const normalizedItems=rawItems.map(item=>({
+      product_id:String(item.product_id||""),
+      size:String(item.size||"").trim().toUpperCase(),
+      quantity:Number(item.quantity||0)
+    })).sort((a,b)=>(a.product_id+a.size).localeCompare(b.product_id+b.size));
+    try{
+      const cachePath="/rest/v1/shipping_quotes?select=id,total_fee,expires_at,selections,request_snapshot&buyer_id=eq."+encodeURIComponent(buyer.id)+"&status=eq.active&expires_at=gt."+encodeURIComponent(new Date().toISOString())+"&request_snapshot->>postal_code=eq."+encodeURIComponent(String(address.postal_code))+"&order=created_at.desc&limit=10";
+      const cached=await sb(url,key,cachePath);
+      const hit=(Array.isArray(cached)?cached:[]).find(q=>{
+        const snap=q.request_snapshot||{};
+        const items=Array.isArray(snap.items)?snap.items.map(item=>({
+          product_id:String(item.product_id||""),
+          size:String(item.size||"").trim().toUpperCase(),
+          quantity:Number(item.quantity||0)
+        })).sort((a,b)=>(a.product_id+a.size).localeCompare(b.product_id+b.size)):[];
+        return JSON.stringify(items)===JSON.stringify(normalizedItems);
+      });
+      if(hit?.selections){
+        return json({quote_id:hit.id,expires_at:hit.expires_at,total_fee:Number(hit.total_fee||0),sellers:hit.selections,cached:true},200);
+      }
+    }catch(cacheError){
+      console.warn("MarketKita shipping quote cache:",cacheError?.message||cacheError);
+    }
+
+    const groups=new Map();
     for(const raw of rawItems){
       const pid=String(raw.product_id||"").trim(), size=String(raw.size||"").trim().toUpperCase(), qty=Number(raw.quantity);
       if(!pid||!size||!Number.isInteger(qty)||qty<1||qty>99)throw new Error("Data item checkout tidak valid.");
@@ -153,5 +179,10 @@ export async function onRequestPost(context){
         body:JSON.stringify({id:quoteId,buyer_id:buyer.id,total_fee:totalFee,status:"active",expires_at:expires,selections:sellerQuotes,request_snapshot:snapshot})
       }).then(()=>json({quote_id:quoteId,expires_at:expires,total_fee:totalFee,sellers:sellerQuotes},200));
     })();
-  }catch(error){console.error("MarketKita shipping quote error:",error?.message||error);return json({error:error?.message||"Gagal menghitung ongkir."},500);}
+  }catch(error){
+    console.error("MarketKita shipping quote error:",error?.message||error);
+    const message=String(error?.message||"Gagal menghitung ongkir.");
+    const daily=/daily limit|limit exceeded|rate limit|quota/i.test(message);
+    return json({error:daily?"Batas penggunaan API ongkir hari ini sudah tercapai. Silakan gunakan kembali setelah kuota RajaOngkir tersedia.":message,code:daily?"SHIPPING_PROVIDER_QUOTA":"SHIPPING_QUOTE_ERROR"},daily?429:500);
+  }
 }
