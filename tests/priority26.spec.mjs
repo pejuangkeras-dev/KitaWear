@@ -57,6 +57,13 @@ test.describe("P26 — Midtrans payment engine & reconciliation", () => {
     expect(text).toContain('currentPayment === "paid"');
   });
 
+  test("challenged card captures remain pending until Midtrans/FDS approval", async ({ request }) => {
+    const webhook = await source(request, "functions/api/midtrans-notification.js");
+    const reconcile = await source(request, "functions/api/midtrans-reconcile.js");
+    expect(webhook).toContain('status === "capture" && fraud === "challenge"');
+    expect(reconcile).toContain('status === "capture" && fraud === "challenge"');
+  });
+
   test("reconciliation uses Midtrans GET Status API and validates order identity and amount", async ({ request }) => {
     const text = await source(request, "functions/api/midtrans-reconcile.js");
     expect(text).toContain("/v2/");
