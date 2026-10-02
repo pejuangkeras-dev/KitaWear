@@ -3737,16 +3737,7 @@ async function openBuyerChatThread(threadId){
       '<div class="buyer-chat-compose"><input id="buyerChatInput" type="text" maxlength="2000" placeholder="Tulis balasan..."><button type="button" class="profile-save" onclick="sendBuyerChatMessage()">Kirim</button></div>'+
       '<div id="buyerChatStatus" class="msg"></div>';
 
-    const unreadIds=(await kwSupabase
-      .from("chat_messages")
-      .select("id")
-      .eq("thread_id",threadId)
-      .eq("read_at",null)
-      .neq("sender_id",kwCurrentUser.id)).data||[];
-
-    if(unreadIds.length){
-      await kwSupabase.from("chat_messages").update({read_at:new Date().toISOString()}).in("id",unreadIds.map(x=>x.id));
-    }
+    await kwSupabase.rpc("mark_chat_messages_read",{p_thread_id:threadId});
 
     const box=document.getElementById("buyerChatMessages");
     if(box)box.scrollTop=box.scrollHeight;
@@ -3827,21 +3818,12 @@ async function openSellerChat(){
 
   let thread=existing.data;
   if(!thread){
-    const created=await kwSupabase
-      .from("chat_threads")
-      .insert({
-        buyer_id:kwCurrentUser.id,
-        seller_id:storeRow.owner_id,
-        store_id:storeId
-      })
-      .select("*")
-      .single();
-
+    const created=await kwSupabase.rpc("open_chat_thread",{p_store_id:storeId});
     if(created.error){
       showKwNotice(created.error.message||"Chat seller gagal dibuka.","Chat Seller");
       return;
     }
-    thread=created.data;
+    thread=Array.isArray(created.data)?created.data[0]:created.data;
   }
 
   activeChatThread=thread;
