@@ -387,12 +387,12 @@ Memuat...
 <div id="trackingModal" class="tracking-modal" onclick="if(event.target===this)closeTrackingModal()">
 <div class="tracking-modal-card">
 <div class="result-icon">↗</div>
-<h2>Masukkan nomor resi</h2>
-<p>Isi nomor resi pengiriman untuk pesanan ini. Setelah disimpan, pesanan akan berubah menjadi <strong>Dikirim</strong>.</p>
-<input id="trackingInput" type="text" maxlength="100" placeholder="Contoh: TESTMK001" autocomplete="off">
+<h2>Buat Pengiriman</h2>
+<p>MarketKita akan membuat pengiriman RajaOngkir dan mengambil nomor resi otomatis. Resi manual hanya digunakan sebagai fallback jika layanan kurir belum tersedia.</p>
+<input id="trackingInput" type="text" maxlength="100" placeholder="Resi manual (opsional)" autocomplete="off">
 <div class="tracking-modal-actions">
 <button id="trackingCancel" class="btn light" type="button">Batal</button>
-<button id="trackingSubmit" class="btn green" type="button">Simpan & Kirim</button>
+<button id="trackingSubmit" class="btn green" type="button">Buat Pengiriman & Kirim</button>
 </div>
 </div>
 </div>
@@ -1084,31 +1084,54 @@ function closeTrackingModal(){
 async function submitTracking(){
   const orderId=trackingOrderId;
   if(!orderId)return;
-  const value=String($('trackingInput').value||'').trim();
-  if(!value){
-    toast('Nomor resi wajib diisi.');
-    $('trackingInput').focus();
-    return;
-  }
+  const manualTracking=String($('trackingInput').value||'').trim();
 
   $('trackingSubmit').disabled=true;
-  $('trackingSubmit').textContent='Menyimpan...';
+  $('trackingSubmit').textContent='Membuat pengiriman...';
 
   try{
-    const trackingResult=await sb.rpc('seller_set_tracking_number',{p_order_id:orderId,p_tracking_number:value});
-    if(trackingResult.error)throw trackingResult.error;
+    const session=(await sb.auth.getSession()).data?.session;
+    if(!session)throw new Error('Sesi login sudah berakhir.');
 
+    const response=await fetch('/api/shipping-create',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        Authorization:'Bearer '+session.access_token
+      },
+      body:JSON.stringify({order_id:orderId}),
+      cache:'no-store'
+    });
+    const data=await response.json().catch(()=>({}));
+
+    if(response.ok && data?.ok){
+      const awb=String(data.waybill_id||data.shipment?.waybill_id||'').trim();
+      closeTrackingModal();
+      toast(awb
+        ? 'Pengiriman berhasil dibuat. Resi: '+awb
+        : 'Pengiriman berhasil dibuat. Menunggu nomor resi dari kurir.');
+      await loadOrders();
+      return;
+    }
+
+    // Keep the existing manual-resi path as a controlled fallback.
+    if(!manualTracking){
+      throw new Error(data?.error||'Gagal membuat pengiriman otomatis. Anda dapat mencoba lagi atau memasukkan resi manual.');
+    }
+
+    const trackingResult=await sb.rpc('seller_set_tracking_number',{p_order_id:orderId,p_tracking_number:manualTracking});
+    if(trackingResult.error)throw trackingResult.error;
     const q=await sb.rpc('seller_update_order_status',{p_order_id:orderId,p_status:'shipped'});
     if(q.error)throw q.error;
 
     closeTrackingModal();
-    toast('Pesanan dikirim dan nomor resi tersimpan.');
+    toast('Pengiriman manual tersimpan dan pesanan dikirim.');
     await loadOrders();
   }catch(e){
-    toast(e.message||'Gagal menyimpan pengiriman.');
+    toast(e.message||'Gagal membuat pengiriman.');
   }finally{
     $('trackingSubmit').disabled=false;
-    $('trackingSubmit').textContent='Simpan & Kirim';
+    $('trackingSubmit').textContent='Buat Pengiriman & Kirim';
   }
 }
 
