@@ -2214,7 +2214,7 @@ async function calculateCheckoutShipping(){
   try{
     const session=(await kwSupabase.auth.getSession()).data?.session;
     if(!session)throw new Error("Silakan login terlebih dahulu.");
-    const manualAddress={recipient_name:String(document.getElementById("buyerName")?.value||"").trim(),phone:String(document.getElementById("buyerPhone")?.value||"").trim(),address_line:line,city,province,postal_code:postal};
+    const manualAddress={recipient_name:String(document.getElementById("buyerName")?.value||"").trim(),phone:String(document.getElementById("buyerPhone")?.value||"").trim(),address_line:line,city,province,district:String(document.getElementById("buyerManualDistrict")?.value||"").trim(),subdistrict:String(document.getElementById("buyerManualSubdistrict")?.value||"").trim(),postal_code:postal};
     const res=await fetch("/api/shipping-quote",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},body:JSON.stringify({
       address_id:null,manual_address:manualAddress,
       location:{province_id:kwLocationPicker.province?.id||"",city_id:kwLocationPicker.city?.id||"",district_id:kwLocationPicker.district?.id||"",subdistrict_id:kwLocationPicker.subdistrict?.id||"",destination_id:kwLocationPicker.subdistrict?.id||"",subdistrict:kwLocationPicker.subdistrict?.name||""},
@@ -2563,6 +2563,8 @@ async function startPayment(e){
       address_line:document.getElementById("buyerManualAddressLine").value.trim(),
       city:document.getElementById("buyerManualCity").value.trim(),
       province:document.getElementById("buyerManualProvince").selectedOptions?.[0]?.textContent?.trim()||"",
+      district:document.getElementById("buyerManualDistrict").value.trim(),
+      subdistrict:document.getElementById("buyerManualSubdistrict").value.trim(),
       postal_code:document.getElementById("buyerManualPostalCode").value.trim()
     }:null;
     const payload={
