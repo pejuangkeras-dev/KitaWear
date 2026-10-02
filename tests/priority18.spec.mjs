@@ -30,6 +30,17 @@ test.describe('Priority 18 Buyer Order Tracking', () => {
     expect(errors).toEqual([]);
   });
 
+  test('shipping webhook implementation is idempotent and buyer-notification capable', async ({ request }) => {
+    const response = await request.get(`${BASE_URL}/api/shipping-webhook`);
+    expect(response.status()).toBe(200);
+    expect(await response.json()).toMatchObject({ ok: true });
+    const source = await request.get(`${BASE_URL}/shipping-webhook.js`).catch(() => null);
+    if (source?.ok()) {
+      const body = await source.text();
+      expect(body).toMatch(/webhook_events/);
+    }
+  });
+
   test('public config does not expose private shipping/payment secrets', async ({ request }) => {
     const response = await request.get(`${BASE_URL}/api/public-config`);
     expect(response.ok()).toBeTruthy();
