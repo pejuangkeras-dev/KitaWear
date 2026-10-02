@@ -2593,10 +2593,42 @@ async function filterLocationPicker(value){
       // records, so names such as "Gedang Anak" are searchable.
       if(kwLocationPicker.level==="province"){
         list&&(list.innerHTML='<div class="kw-location-loading">Mencari kota, kecamatan, kelurahan, dan kode pos...</div>');
-        const r=await fetch("/api/location-search?search="+encodeURIComponent(q),{cache:"no-store"});
-        const d=await r.json().catch(()=>({}));
-        if(!r.ok||d?.ok===false)throw new Error(d?.error||"Gagal mencari lokasi.");
-        const rows=Array.isArray(d.data)?d.data:[];
+        let rows=[];
+        try{
+          const r=await fetch("/api/location-search?search="+encodeURIComponent(q),{cache:"no-store"});
+          const d=await r.json().catch(()=>({}));
+          if(r.ok && d?.ok!==false && Array.isArray(d.data)) rows=d.data;
+        }catch(_){}
+        // Cloudflare may briefly serve the previous deployment where the
+        // new search function is not yet present. Never leave the customer
+        // with a 404: use Nominatim directly as an immediate fallback.
+        if(!rows.length){
+          const u=new URL("https://nominatim.openstreetmap.org/search");
+          u.searchParams.set("q",q+", Indonesia");
+          u.searchParams.set("format","jsonv2");
+          u.searchParams.set("addressdetails","1");
+          u.searchParams.set("countrycodes","id");
+          u.searchParams.set("limit","30");
+          const nr=await fetch(u.toString(),{headers:{"Accept":"application/json"}});
+          const nd=await nr.json().catch(()=>[]);
+          rows=(Array.isArray(nd)?nd:[]).map(item=>{
+            const a=item?.address||{};
+            const province=a.state||"";
+            const city=a.city||a.town||a.municipality||a.county||"";
+            const district=a.city_district||a.district||a.suburb||"";
+            const subdistrict=a.village||a.suburb||a.neighbourhood||"";
+            const zip=String(a.postcode||"");
+            return {
+              id:"osm:"+String(item.place_id||""),
+              province_id:"",province_name:province,
+              city_id:"",city_name:city,
+              district_id:"",district_name:district,
+              subdistrict_id:"",subdistrict_name:subdistrict,
+              zip_code:/^\\d{5}$/.test(zip)?zip:"",
+              label:[subdistrict,district,city,province,zip].filter(Boolean).join(" · ")
+            };
+          }).filter(x=>x.province_name&&(x.city_name||x.district_name||x.subdistrict_name));
+        }
         kwLocationPicker.searchRows=rows;
         kwLocationPicker.searchMode="global-destination";
         if(!rows.length){
