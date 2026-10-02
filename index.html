@@ -696,49 +696,16 @@ body{background:var(--bg);color:var(--ink)}
     <div id="checkoutItems" class="checkout-summary kw-co-items"></div>
 
     <section class="kw-co-section">
-      <div class="kw-co-title"><b>1</b><div><strong>Data penerima</strong><small>Pastikan nama dan nomor WhatsApp benar.</small></div></div>
-      <div class="kw-co-grid">
-        <div class="field"><label for="buyerName">Nama lengkap</label><input id="buyerName" required placeholder="Nama penerima"></div>
-        <div class="field"><label for="buyerPhone">No. WhatsApp</label><input id="buyerPhone" required placeholder="08xxxxxxxxxx"></div>
-        <div class="field kw-co-full"><label for="buyerEmail">Email</label><input id="buyerEmail" type="email" required placeholder="nama@email.com"></div>
-      </div>
-    </section>
+      <div class="kw-co-title"><b>2</b><div><strong>Alamat pengiriman</strong><small>Isi alamat tujuan. Ongkir akan dihitung otomatis saat kota/kabupaten dipilih.</small></div></div>
 
-    <section class="kw-co-section">
-      <div class="kw-co-title"><b>2</b><div><strong>Alamat pengiriman</strong><small>Pilih alamat tersimpan atau isi alamat baru.</small></div></div>
-
-      <div class="kw-address-tabs">
-        <button type="button" id="kwSavedAddressTab" class="kw-address-tab active" onclick="document.getElementById('buyerAddressMode').value='saved';toggleManualCheckoutAddress('saved')">
-          <strong>Alamat tersimpan</strong><small>Gunakan alamat yang sudah ada</small>
-        </button>
-        <button type="button" id="kwManualAddressTab" class="kw-address-tab" onclick="document.getElementById('buyerAddressMode').value='manual';toggleManualCheckoutAddress('manual')">
-          <strong>＋ Alamat baru</strong><small>Isi alamat untuk pesanan ini</small>
-        </button>
-      </div>
-
-      <select id="buyerAddressMode" aria-label="Metode alamat" onchange="toggleManualCheckoutAddress(this.value)" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
-        <option value="saved">Gunakan alamat tersimpan</option>
-        <option value="manual">Isi alamat manual</option>
-      </select>
-
-      <div id="kw-saved-address-panel" class="kw-co-panel">
-        <label for="buyerAddressSelect">Pilih alamat tersimpan</label>
-        <select id="buyerAddressSelect" onchange="applyCheckoutAddress(this.value);calculateCheckoutShipping()">
-          <option value="">Pilih alamat tersimpan</option>
-        </select>
-        <small>Belum punya alamat? Pilih <strong>Alamat baru</strong>.</small>
-      </div>
-
-      <div id="manualCheckoutAddressFields" class="kw-co-panel" style="display:none">
-        <div class="kw-co-manual-note"><strong>Isi alamat tujuan</strong><span>Provinsi dan kota menggunakan pilihan data RajaOngkir.</span></div>
-        <div class="field kw-co-full"><label for="buyerManualAddressLine">Alamat jalan</label><textarea id="buyerManualAddressLine" placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan..." oninput="document.getElementById('buyerAddress').value=[this.value,document.getElementById('buyerManualCity').value,document.getElementById('buyerManualProvince').selectedOptions?.[0]?.textContent,document.getElementById('buyerManualPostalCode').value].filter(Boolean).join(', ')"></textarea></div>
+      <div id="manualCheckoutAddressFields" class="kw-co-panel" style="display:block">
         <div class="kw-co-grid">
-          <div class="field"><label for="buyerManualProvince">Provinsi</label><select id="buyerManualProvince" onchange="loadCheckoutCities(this.value)"><option value="">Memuat provinsi...</option></select></div>
-          <div class="field"><label for="buyerManualCity">Kota / Kabupaten</label><select id="buyerManualCity" disabled onchange="calculateCheckoutShipping()"><option value="">Pilih provinsi terlebih dahulu</option></select></div>
-          <div class="field"><label for="buyerManualPostalCode">Kode pos</label><input id="buyerManualPostalCode" inputmode="numeric" maxlength="5" placeholder="5 digit" oninput="if(/^\d{5}$/.test(this.value))calculateCheckoutShipping()"></div>
+          <div class="field kw-co-full"><label for="buyerManualAddressLine">Alamat jalan</label><textarea id="buyerManualAddressLine" placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan..."></textarea></div>
+          <div class="field"><label for="buyerManualProvince">Provinsi</label><select id="buyerManualProvince"><option value="">Memuat provinsi...</option></select></div>
+          <div class="field"><label for="buyerManualCity">Kota / Kabupaten</label><select id="buyerManualCity" disabled><option value="">Pilih provinsi terlebih dahulu</option></select></div>
+          <div class="field"><label for="buyerManualPostalCode">Kode pos</label><input id="buyerManualPostalCode" inputmode="numeric" maxlength="5" placeholder="Otomatis dari kota/kabupaten"></div>
         </div>
       </div>
-
       <div class="field kw-co-summary-field"><label for="buyerAddress">Ringkasan alamat</label><textarea id="buyerAddress" required readonly placeholder="Alamat pengiriman akan tampil di sini"></textarea></div>
     </section>
 
@@ -2174,26 +2141,14 @@ window.marketCheckoutShippingSelections=[];
 window.marketCheckoutShippingFee=0;
 
 function renderCheckoutShippingOptions(data){
-  const root=document.getElementById("checkoutShippingOptions");
-  if(!root)return;
+  const root=document.getElementById("checkoutShippingOptions"); if(!root)return;
   const sellers=Array.isArray(data?.sellers)?data.sellers:[];
-  if(!sellers.length){root.innerHTML='<div class="checkout-shipping-empty">Tidak ada pilihan kurir untuk keranjang ini.</div>';return;}
-  const subtotalByStore=new Map();
-  for(const item of (Array.isArray(cart)?cart:[])){
-    const p=products[item.productIndex]||{};
-    const sid=String(item.store_id||p.store_id||"");
-    if(!sid)continue;
-    subtotalByStore.set(sid,(subtotalByStore.get(sid)||0)+Number(item.price||p.price||0)*Number(item.quantity||1));
-  }
+  if(!sellers.length){root.innerHTML='<div class="checkout-shipping-empty">Tidak ada layanan pengiriman untuk tujuan ini.</div>';return;}
   root.innerHTML=sellers.map((seller,si)=>{
     const opts=Array.isArray(seller.options)?seller.options:[];
-    const sub=Number(subtotalByStore.get(String(seller.store_id))||0);
-    return '<div class="checkout-shipping-store" data-store-id="'+escDetail(seller.store_id)+'" style="padding:12px 0;border-bottom:1px solid var(--line)">'+
-      '<div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:8px"><strong>'+escDetail(seller.store_name||"Toko")+'</strong><strong>'+rupiah(sub)+'</strong></div>'+
-      '<div style="font-size:11px;color:#777;margin-bottom:7px">Subtotal produk toko</div>'+
-      '<label>Layanan pengiriman<select id="checkoutCourier-'+si+'" onchange="updateCheckoutShippingSelection()">'+
-      '<option value="">Pilih kurir</option>'+opts.map((o,oi)=>'<option value="'+si+'|'+oi+'">'+escDetail((o.courier_name||o.courier_company||"Kurir")+" — "+(o.service_name||o.courier_type||"Layanan")+" · "+rupiah(o.price)+(o.duration?" · "+o.duration:""))+'</option>').join("")+
-      '</select></label></div>';
+    return '<div class="kw-shipping-store"><strong>'+escDetail(seller.store_name||"Toko")+'</strong><select id="checkoutCourier-'+si+'" onchange="updateCheckoutShippingSelection()">'+
+      '<option value="">Pilih layanan</option>'+opts.map((o,oi)=>'<option value="'+si+'|'+oi+'">'+escDetail((o.courier_name||o.courier_company||"Kurir")+" · "+(o.service_name||o.courier_type||"Layanan")+" · "+rupiah(o.price))+'</option>').join("")+
+      '</select></div>';
   }).join("");
   root.dataset.payload=JSON.stringify(sellers);
 }
@@ -2222,48 +2177,33 @@ function updateCheckoutShippingSelection(){
   if(total)total.textContent=rupiah(base+fee);
 }
 async function calculateCheckoutShipping(){
-  const mode=String(document.getElementById("buyerAddressMode")?.value||"saved");
-  const select=document.getElementById("buyerAddressSelect");
-  const addressId=mode==="saved"?String(select?.value||"").trim():"";
   const root=document.getElementById("checkoutShippingOptions");
-  window.marketCheckoutShippingQuoteId=null;
-  window.marketCheckoutShippingSelections=[];
-  window.marketCheckoutShippingFee=0;
-  let manualAddress=null;
-  if(mode==="manual"){
-    manualAddress={
-      recipient_name:String(document.getElementById("buyerName")?.value||"").trim(),
-      phone:String(document.getElementById("buyerPhone")?.value||"").trim(),
-      address_line:String(document.getElementById("buyerManualAddressLine")?.value||"").trim(),
-      city:String(document.getElementById("buyerManualCity")?.value||"").trim(),
-      province:String(document.getElementById("buyerManualProvince")?.selectedOptions?.[0]?.textContent||"").trim(),
-      postal_code:String(document.getElementById("buyerManualPostalCode")?.value||"").trim()
-    };
-    if(!manualAddress.address_line||!manualAddress.city||!manualAddress.province||!/^\d{5}$/.test(manualAddress.postal_code)){
-      if(root)root.innerHTML='<div class="checkout-shipping-empty">Isi alamat lengkap, kota, provinsi, dan kode pos 5 digit untuk menghitung ongkir.</div>';
-      const s=document.getElementById("checkoutShippingSummary");if(s)s.innerHTML='<span>Ongkir</span><strong>Rp0 <small style="font-weight:500;color:#77736c">(lengkapi alamat)</small></strong>';
-      return;
-    }
-  }else if(!addressId){
-    if(root)root.innerHTML='<div class="checkout-shipping-empty">Pilih alamat tersimpan atau isi alamat manual untuk menghitung ongkir.</div>';
-    const s=document.getElementById("checkoutShippingSummary");if(s)s.innerHTML='<span>Ongkir</span><strong>Rp0 <small style="font-weight:500;color:#77736c">(pilih alamat)</small></strong>';
+  window.marketCheckoutShippingQuoteId=null; window.marketCheckoutShippingSelections=[]; window.marketCheckoutShippingFee=0;
+  const province=document.getElementById("buyerManualProvince")?.selectedOptions?.[0]?.textContent?.trim()||"";
+  const city=document.getElementById("buyerManualCity")?.value?.trim()||"";
+  const postal=document.getElementById("buyerManualPostalCode")?.value?.trim()||"";
+  const line=document.getElementById("buyerManualAddressLine")?.value?.trim()||"";
+  const summary=document.getElementById("checkoutShippingSummary");
+  if(!province||!city||!/^\d{5}$/.test(postal)){
+    if(root)root.innerHTML='<div class="checkout-shipping-empty">Pilih provinsi dan kota/kabupaten untuk menghitung ongkir.</div>';
+    if(summary)summary.innerHTML='<span>Ongkir</span><strong>Rp0 <small>(pilih kota/kabupaten)</small></strong>';
+    updateManualCheckoutAddressSummary();
     return;
   }
-  if(root)root.innerHTML='<div class="checkout-shipping-empty">Menghitung ongkir...</div>';
+  if(root)root.innerHTML='<div class="checkout-shipping-empty">Menghitung ongkir untuk '+escDetail(city)+', '+escDetail(province)+'...</div>';
   try{
     const session=(await kwSupabase.auth.getSession()).data?.session;
     if(!session)throw new Error("Silakan login terlebih dahulu.");
+    const manualAddress={recipient_name:String(document.getElementById("buyerName")?.value||"").trim(),phone:String(document.getElementById("buyerPhone")?.value||"").trim(),address_line:line,city,province,postal_code:postal};
     const res=await fetch("/api/shipping-quote",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},body:JSON.stringify({
-      address_id:addressId||null,
-      manual_address:manualAddress,
+      address_id:null,manual_address:manualAddress,
       items:cart.map(x=>({product_id:x.product_id||products[x.productIndex]?.id,size:x.size,quantity:x.quantity})),
       couriers:"jne:sicepat:jnt:ninja:tiki:lion:anteraja:pos:wahana"
     })});
     const data=await res.json().catch(()=>({}));
     if(!res.ok)throw new Error(data.error||"Gagal menghitung ongkir.");
     window.marketCheckoutShippingQuoteId=data.quote_id||null;
-    renderCheckoutShippingOptions(data);
-    updateCheckoutShippingSelection();
+    renderCheckoutShippingOptions(data); updateCheckoutShippingSelection();
   }catch(error){
     if(root)root.innerHTML='<div class="checkout-shipping-empty">'+escDetail(error.message||"Gagal menghitung ongkir.")+'</div>';
   }
@@ -2272,27 +2212,16 @@ async function calculateCheckoutShipping(){
 async function prefillBuyerCheckout(){
   if(!kwSupabase || !kwCurrentUser)return;
   try{
-    const profile=kwCurrentProfile||{};
-    const user=kwCurrentUser;
-    const name=document.getElementById('buyerName');
-    const email=document.getElementById('buyerEmail');
-    const phone=document.getElementById('buyerPhone');
+    const profile=kwCurrentProfile||{}, user=kwCurrentUser;
+    const name=document.getElementById('buyerName'), email=document.getElementById('buyerEmail'), phone=document.getElementById('buyerPhone');
     if(name && !name.value.trim()) name.value=getMarketKitaDisplayName(user,profile);
     if(email && !email.value.trim()) email.value=user.email||'';
     if(phone && !phone.value.trim()) phone.value=profile.phone||user.user_metadata?.phone||'';
-    const {data,error}=await kwSupabase.from('buyer_addresses').select('*').eq('user_id',user.id).order('is_default',{ascending:false}).order('created_at',{ascending:false});
-    if(error)throw error;
-    const rows=Array.isArray(data)?data:[];
-    buyerAddressCache=rows;
-    const select=document.getElementById('buyerAddressSelect');
-    if(select){
-      select.onchange=function(){ applyCheckoutAddress(this.value); calculateCheckoutShipping(); };
-      select.innerHTML='<option value="">Pilih alamat tersimpan</option>'+rows.map(a=>'<option value="'+escDetail(a.id)+'">'+escDetail((a.is_default?'★ ':'')+a.label+' — '+a.recipient_name+' — '+a.city)+'</option>').join('');
-      const selected=rows.find(a=>a.is_default)||rows[0];
-      if(selected){ select.value=selected.id; const mode=document.getElementById('buyerAddressMode');if(mode)mode.value='saved'; applyCheckoutAddress(selected.id); calculateCheckoutShipping(); }
-      else{ const mode=document.getElementById('buyerAddressMode');if(mode)mode.value='manual'; toggleManualCheckoutAddress('manual'); }
-    }
-  }catch(error){ console.warn('MarketKita checkout address prefill:',error); }
+    const mode=document.getElementById("buyerAddressMode"); if(mode)mode.value="manual";
+    await loadCheckoutProvinces();
+    updateManualCheckoutAddressSummary();
+    calculateCheckoutShipping();
+  }catch(error){ console.warn('MarketKita checkout prefill:',error); }
 }
 function applyCheckoutAddress(id){
   if(!id || !Array.isArray(buyerAddressCache))return;
@@ -2313,7 +2242,14 @@ async function loadCheckoutProvinces(){
     if(!res.ok)throw new Error(data.error||"Gagal memuat provinsi.");
     const rows=Array.isArray(data.data)?data.data:[];
     select.innerHTML='<option value="">Pilih provinsi</option>'+rows.map(x=>'<option value="'+escDetail(x.id)+'">'+escDetail(x.name)+'</option>').join('');
-    select.onchange=()=>loadCheckoutCities(select.value);
+    select.onchange=()=>{
+      const city=document.getElementById("buyerManualCity");
+      const postal=document.getElementById("buyerManualPostalCode");
+      if(city){city.innerHTML='<option value="">Memuat kota/kabupaten...</option>';city.disabled=true;}
+      if(postal)postal.value="";
+      updateManualCheckoutAddressSummary();
+      loadCheckoutCities(select.value);
+    };
   }catch(e){select.innerHTML='<option value="">Gagal memuat provinsi</option>';console.warn(e);}
 }
 async function loadCheckoutCities(provinceId){
@@ -2324,9 +2260,17 @@ async function loadCheckoutCities(provinceId){
     const res=await fetch("/api/location-cities/"+encodeURIComponent(provinceId)); const data=await res.json().catch(()=>({}));
     if(!res.ok)throw new Error(data.error||"Gagal memuat kota/kabupaten.");
     const rows=Array.isArray(data.data)?data.data:[];
-    select.innerHTML='<option value="">Pilih kota/kabupaten</option>'+rows.map(x=>'<option value="'+escDetail(x.name)+'" data-id="'+escDetail(x.id)+'">'+escDetail(x.name)+'</option>').join('');
+    select.innerHTML='<option value="">Pilih kota/kabupaten</option>'+rows.map(x=>'<option value="'+escDetail(x.name)+'" data-id="'+escDetail(x.id)+'" data-postal="'+escDetail(x.postal_code||'')+'">'+escDetail(x.name)+'</option>').join('');
     select.disabled=false;
-    select.onchange=()=>calculateCheckoutShipping();
+    select.onchange=()=>{
+      const opt=select.selectedOptions?.[0];
+      const postal=document.getElementById("buyerManualPostalCode");
+      if(postal){
+        postal.value=String(opt?.dataset?.postal||"").trim();
+      }
+      updateManualCheckoutAddressSummary();
+      calculateCheckoutShipping();
+    };
     calculateCheckoutShipping();
   }catch(e){select.innerHTML='<option value="">Gagal memuat kota/kabupaten</option>';console.warn(e);}
 }
@@ -2335,15 +2279,11 @@ function refreshManualLocationSelection(){
   if(p&&!p.dataset.loaded){p.dataset.loaded="1";loadCheckoutProvinces();}
 }
 function toggleManualCheckoutAddress(mode){
-  const isManual=String(mode)==='manual';
-  if(isManual)refreshManualLocationSelection();
-  const box=document.getElementById('manualCheckoutAddressFields');if(box)box.style.display=isManual?'block':'none';
-  const address=document.getElementById('buyerAddress');
-  const select=document.getElementById('buyerAddressSelect');
-  if(isManual){
-    if(select)select.value='';
-    if(address){const line=String(document.getElementById('buyerManualAddressLine')?.value||'').trim();const city=String(document.getElementById('buyerManualCity')?.value||'').trim();const province=String(document.getElementById('buyerManualProvince')?.value||'').trim();const postal=String(document.getElementById('buyerManualPostalCode')?.value||'').trim();address.value=[line,city,province,postal].filter(Boolean).join(', ');}
-  }else if(select?.value){ applyCheckoutAddress(select.value); }
+  const box=document.getElementById('manualCheckoutAddressFields');
+  if(box)box.style.display='block';
+  const modeInput=document.getElementById('buyerAddressMode');
+  if(modeInput)modeInput.value='manual';
+  updateManualCheckoutAddressSummary();
   calculateCheckoutShipping();
 }
 async function validateCheckoutVoucher(){
@@ -2389,7 +2329,8 @@ function openCheckout(){
   window.marketCheckoutShippingQuoteId=null;
   window.marketCheckoutShippingSelections=[];
   window.marketCheckoutShippingFee=0;
-  const shippingRoot=document.getElementById("checkoutShippingOptions");if(shippingRoot)shippingRoot.innerHTML='<div class="checkout-shipping-empty">Memuat alamat dan ongkir...</div>';
+  const mode=document.getElementById("buyerAddressMode");if(mode)mode.value="manual";
+  const shippingRoot=document.getElementById("checkoutShippingOptions");if(shippingRoot)shippingRoot.innerHTML='<div class="checkout-shipping-empty">Pilih provinsi dan kota/kabupaten untuk menghitung ongkir.</div>';
   const voucherInput=document.getElementById("checkoutVoucher");if(voucherInput)voucherInput.value="";
   const voucherMsg=document.getElementById("checkoutVoucherMessage");if(voucherMsg)voucherMsg.textContent="";
 
@@ -2419,12 +2360,9 @@ async function startPayment(e){
     return;
   }
 
-  const mode=String(document.getElementById("buyerAddressMode")?.value||"saved");
-  const addressId=mode==="saved"?String(document.getElementById("buyerAddressSelect")?.value||"").trim():"";
-  if(mode==="saved"&&!addressId){
-    showKwNotice("Pilih alamat tersimpan atau pilih mode Isi alamat manual.","Alamat Belum Dipilih");
-    return;
-  }
+  const mode="manual";
+  const addressId="";
+
   if(mode==="manual"){
     const postal=String(document.getElementById("buyerManualPostalCode")?.value||"").trim();
     const line=String(document.getElementById("buyerManualAddressLine")?.value||"").trim();
@@ -4407,5 +4345,16 @@ async function saveBuyerAddress(){
 .kw-co-panel{border:1px solid #e1ddd5;background:#faf9f5;border-radius:11px;padding:10px}.kw-co-panel>label{font-size:9px}.kw-co-panel>small{display:block;color:#77736c;font-size:8px;margin-top:5px}.kw-co-manual-note{margin-bottom:9px}.kw-co-manual-note strong{display:block;font-size:10px}.kw-co-manual-note span{display:block;color:#77736c;font-size:8px;margin-top:2px}.kw-co-summary-field{margin-top:9px!important}.kw-co-summary-field textarea{background:#f5f3ee!important}
 .kw-co-shipping{background:#fcfbf8}.kw-voucher{display:flex;gap:7px}.kw-voucher input{flex:1}.kw-voucher button{width:100px;flex:0 0 100px}.kw-voucher-msg{font-size:9px;color:#77736c;min-height:13px;margin-top:4px}.kw-co-total{display:flex;justify-content:space-between;padding:14px 20px 8px;font-size:12px;border-top:1px solid var(--line)}.kw-co-total strong{font-size:17px}.kw-co-pay{margin:0 20px 18px!important;width:calc(100% - 40px)!important;height:45px!important;border-radius:10px!important}
 @media(max-width:700px){.kw-checkout-modal{padding:0!important;align-items:flex-start!important}.kw-checkout-box{max-height:100vh!important;min-height:100vh!important;border-radius:0!important}.kw-co-head{position:sticky;top:0}.kw-co-section{padding:14px 15px}.kw-co-grid{grid-template-columns:1fr}.kw-co-full{grid-column:auto}.kw-address-tabs{grid-template-columns:1fr 1fr}.kw-co-total{padding-left:15px;padding-right:15px}.kw-co-pay{margin-left:15px!important;margin-right:15px!important;width:calc(100% - 30px)!important}}
+</style><style id="kw-checkout-location-fix">
+.kw-co-panel{border:1px solid #e1ddd5;background:#faf9f5;border-radius:11px;padding:10px}
+.kw-co-section .kw-co-panel{margin-top:4px}
+.kw-co-panel .kw-co-grid{margin:0}
+.kw-shipping-store{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #e8e4dc}
+.kw-shipping-store:last-child{border-bottom:0}
+.kw-shipping-store strong{font-size:10px;min-width:90px}
+.kw-shipping-store select{flex:1;height:36px;border:1px solid #d9d5cc;border-radius:8px;background:#fff;padding:0 8px;font-size:10px}
+.kw-co-shipping .kw-co-title{margin-bottom:7px}
+.kw-co-shipping #checkoutShippingSummary{padding:8px 0}
+#buyerManualPostalCode{background:#f4f2ed;color:#5f5b54}
 </style></body>
 </html>
