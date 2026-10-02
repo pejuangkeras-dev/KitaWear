@@ -52,4 +52,14 @@ test.describe("MarketKita Priority 9 Shipping", () => {
     expect(response.status()).toBe(401);
     expect((await response.json()).error).toContain("login");
   });
+
+  test("shipping webhooks reject unauthenticated delivery updates", async ({ request }) => {
+    for (const path of ["/api/shipping-webhook", "/api/rajaongkir-webhook"]) {
+      const response = await request.post(BASE_URL + path, {
+        data: { order_id: "invalid", status: "delivered" }
+      });
+      expect(response.status()).toBe(401);
+      expect((await response.json()).error).toContain("Unauthorized");
+    }
+  });
 });
