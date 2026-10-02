@@ -2224,10 +2224,10 @@ async function calculateCheckoutShipping(){
   try{
     const session=(await kwSupabase.auth.getSession()).data?.session;
     if(!session)throw new Error("Silakan login terlebih dahulu.");
-    const manualAddress={recipient_name:String(document.getElementById("buyerName")?.value||"").trim(),phone:String(document.getElementById("buyerPhone")?.value||"").trim(),address_line:line,city,province,district:String(document.getElementById("buyerManualDistrict")?.value||"").trim(),subdistrict:String(document.getElementById("buyerManualSubdistrict")?.value||"").trim(),postal_code:postal,destination_id:String(kwLocationPicker.subdistrict?.id||"").trim()};
+    const manualAddress={recipient_name:String(document.getElementById("buyerName")?.value||"").trim(),phone:String(document.getElementById("buyerPhone")?.value||"").trim(),address_line:line,city,province,district:String(document.getElementById("buyerManualDistrict")?.value||"").trim(),subdistrict:String(document.getElementById("buyerManualSubdistrict")?.value||"").trim(),postal_code:postal,destination_id:""};
     const res=await fetch("/api/shipping-quote",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},body:JSON.stringify({
       address_id:null,manual_address:manualAddress,
-      location:{province_id:picker.province?.id||"",city_id:picker.city?.id||"",district_id:picker.district?.id||"",subdistrict_id:picker.subdistrict?.id||"",destination_id:picker.subdistrict?.id||"",subdistrict:picker.subdistrict?.name||""},
+      location:{province_id:picker.province?.id||"",city_id:picker.city?.id||"",district_id:picker.district?.id||"",subdistrict_id:picker.subdistrict?.id||"",destination_id:"",subdistrict:picker.subdistrict?.name||""},
       items:cart.map(x=>({product_id:x.product_id||products[x.productIndex]?.id,size:x.size,quantity:x.quantity})),
       couriers:"jne:sicepat:jnt:ninja:tiki:lion:anteraja:pos:wahana"
     })});
@@ -2364,7 +2364,26 @@ function renderLocationPicker(){
   const sel=document.getElementById("locationPickerSelected");if(sel){const p=kwLocationPicker;sel.innerHTML=p.subdistrict?'<strong>'+escDetail([p.subdistrict.name,p.district?.name,p.city?.name,p.province?.name,p.postal].filter(Boolean).join(", "))+'</strong>':"Belum ada lokasi dipilih.";}
 }
 async function locationPickerFetch(path){
-  const r=await fetch(path,{cache:"no-store"});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Gagal memuat lokasi.");return Array.isArray(d.data)?d.data:[];
+  // Data wilayah untuk picker berasal dari API statis, bukan RajaOngkir,
+  // sehingga membuka checkout tidak menghabiskan quota shipping API.
+  const base="https://www.emsifa.com/api-wilayah-indonesia/v2";
+  let url="";
+  if(path==="/api/location-provinces") url=base+"/provinces.json";
+  else if(path.startsWith("/api/location-cities/")) url=base+"/regencies/"+encodeURIComponent(path.split("/").pop())+".json";
+  else if(path.startsWith("/api/location-districts/")) url=base+"/districts/"+encodeURIComponent(path.split("/").pop())+".json";
+  else if(path.startsWith("/api/location-subdistricts/")) url=base+"/villages/"+encodeURIComponent(path.split("/").pop())+".json";
+  else{
+    const q=new URL(path,"https://marketkita.invalid").searchParams.get("search")||"";
+    const rows=locationRowsForLevel().filter(x=>{
+      const hay=[x.name,x.label,x.province_name,x.city_name,x.district_name,x.subdistrict_name,x.postal_code,x.zip_code].filter(Boolean).join(" ").toLowerCase();
+      return hay.includes(q.toLowerCase());
+    });
+    return rows;
+  }
+  const r=await fetch(url,{cache:"force-cache"});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error("Gagal memuat data wilayah.");
+  return Array.isArray(d.data)?d.data:[];
 }
 async function openLocationPicker(){
   const m=locationPickerModal();if(!m)return;
@@ -2397,14 +2416,23 @@ async function selectLocationPickerRow(index){
   }catch(e){const list=document.getElementById("locationPickerList");if(list)list.innerHTML='<div class="kw-location-empty">'+escDetail(e.message)+'</div>';}
 }
 async function filterLocationPicker(value){
-  const q=String(value||"").trim();
+  const q=String(value||"").trim().toLowerCase();
   if(q.length<2){kwLocationPicker.searchMode=false;renderLocationPicker();return;}
   clearTimeout(window.kwLocationSearchTimer);
-  window.kwLocationSearchTimer=setTimeout(async()=>{
-    const list=document.getElementById("locationPickerList");if(list)list.innerHTML='<div class="kw-location-loading">Mencari lokasi...</div>';
-    try{kwLocationPicker.searchRows=await locationPickerFetch("/api/location-search?search="+encodeURIComponent(q));kwLocationPicker.searchMode=true;renderLocationPicker();}
-    catch(e){if(list)list.innerHTML='<div class="kw-location-empty">'+escDetail(e.message)+'</div>';}
-  },350);
+  window.kwLocationSearchTimer=setTimeout(()=>{
+    const rows=locationRowsForLevel();
+    kwLocationPicker.searchRows=rows.filter(x=>{
+      const hay=[x.name,x.label,x.province_name,x.city_name,x.district_name,x.subdistrict_name,x.postal_code,x.zip_code].filter(Boolean).join(" ").toLowerCase();
+      return hay.includes(q);
+    });
+    kwLocationPicker.searchMode=false;
+    const list=document.getElementById("locationPickerList");
+    if(list && !kwLocationPicker.searchRows.length){
+      list.innerHTML='<div class="kw-location-empty">Tidak ditemukan pada tingkat lokasi ini. Pilih tingkat lokasi terlebih dahulu, lalu cari lagi.</div>';
+      return;
+    }
+    renderLocationPicker();
+  },150);
 }
 async function applyPickedLocation(){
   const p=kwLocationPicker,province=document.getElementById("buyerManualProvince"),city=document.getElementById("buyerManualCity"),postal=document.getElementById("buyerManualPostalCode");
