@@ -501,7 +501,7 @@ if(!window.KWAuth?.requireRole){
   throw Error('Modul autentikasi MarketKita belum termuat.');
 }
 
-const guard=await window.KWAuth.requireRole(['buyer','seller','admin']);
+const guard=await window.KWAuth.requireAuth();
 sb=guard.client;
 user=guard.user;
 profile=guard.profile;
