@@ -710,13 +710,27 @@ body{background:var(--bg);color:var(--ink)}
     <div class="field">
       <label for="buyerAddressSelect">Alamat Tersimpan</label>
       <select id="buyerAddressSelect" onchange="applyCheckoutAddress(this.value)" style="width:100%;height:44px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:#fff">
-        <option value="">Pilih alamat utama atau alamat tersimpan</option>
+        <option value="">Pilih alamat tersimpan</option>
       </select>
-      <small style="display:block;margin-top:6px;color:#77736c">Kelola alamat di Akun Saya → Alamat.</small>
+      <small style="display:block;margin-top:6px;color:#77736c">Atau pilih <strong>Isi alamat manual</strong> untuk menghitung ongkir berdasarkan alamat yang Anda ketik.</small>
     </div>
     <div class="field">
-      <label for="buyerAddress" data-i18n="field_address">Alamat Pengiriman</label>
-      <textarea id="buyerAddress" required style="width:100%;min-height:84px;border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical"></textarea>
+      <label for="buyerAddressMode">Metode alamat</label>
+      <select id="buyerAddressMode" onchange="toggleManualCheckoutAddress(this.value)" style="width:100%;height:44px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:#fff">
+        <option value="saved">Gunakan alamat tersimpan</option>
+        <option value="manual">Isi alamat manual</option>
+      </select>
+    </div>
+    <div id="manualCheckoutAddressFields" style="display:none">
+      <div class="field"><label for="buyerManualAddressLine">Alamat lengkap</label><textarea id="buyerManualAddressLine" placeholder="Jalan, nomor rumah, RT/RW, kelurahan..." style="width:100%;min-height:84px;border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical"></textarea></div>
+      <div class="field"><label for="buyerManualCity">Kota/Kabupaten</label><input id="buyerManualCity" placeholder="Contoh: Batam"></div>
+      <div class="field"><label for="buyerManualProvince">Provinsi</label><input id="buyerManualProvince" placeholder="Contoh: Kepulauan Riau"></div>
+      <div class="field"><label for="buyerManualPostalCode">Kode Pos</label><input id="buyerManualPostalCode" inputmode="numeric" maxlength="5" placeholder="5 digit"></div>
+      <small style="display:block;margin:-4px 0 12px;color:#77736c">Kode pos wajib 5 digit agar RajaOngkir dapat menghitung ongkir.</small>
+    </div>
+    <div class="field">
+      <label for="buyerAddress" data-i18n="field_address">Ringkasan Alamat Pengiriman</label>
+      <textarea id="buyerAddress" required readonly style="width:100%;min-height:84px;border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical;background:#f7f5f0"></textarea>
     </div>
     <div id="checkoutShippingSummary" class="checkout-summary-row" style="margin-top:8px">
       <span>Ongkir</span><strong>Rp0 <small style="font-weight:500;color:#77736c">(pilih alamat)</small></strong>
@@ -2158,14 +2172,30 @@ function updateCheckoutShippingSelection(){
   if(total)total.textContent=rupiah(base+fee);
 }
 async function calculateCheckoutShipping(){
+  const mode=String(document.getElementById("buyerAddressMode")?.value||"saved");
   const select=document.getElementById("buyerAddressSelect");
-  const addressId=String(select?.value||"").trim();
+  const addressId=mode==="saved"?String(select?.value||"").trim():"";
   const root=document.getElementById("checkoutShippingOptions");
   window.marketCheckoutShippingQuoteId=null;
   window.marketCheckoutShippingSelections=[];
   window.marketCheckoutShippingFee=0;
-  if(!addressId){
-    if(root)root.innerHTML='<div class="checkout-shipping-empty">Pilih alamat tersimpan untuk menghitung ongkir.</div>';
+  let manualAddress=null;
+  if(mode==="manual"){
+    manualAddress={
+      recipient_name:String(document.getElementById("buyerName")?.value||"").trim(),
+      phone:String(document.getElementById("buyerPhone")?.value||"").trim(),
+      address_line:String(document.getElementById("buyerManualAddressLine")?.value||"").trim(),
+      city:String(document.getElementById("buyerManualCity")?.value||"").trim(),
+      province:String(document.getElementById("buyerManualProvince")?.value||"").trim(),
+      postal_code:String(document.getElementById("buyerManualPostalCode")?.value||"").trim()
+    };
+    if(!manualAddress.address_line||!manualAddress.city||!manualAddress.province||!/^\d{5}$/.test(manualAddress.postal_code)){
+      if(root)root.innerHTML='<div class="checkout-shipping-empty">Isi alamat lengkap, kota, provinsi, dan kode pos 5 digit untuk menghitung ongkir.</div>';
+      const s=document.getElementById("checkoutShippingSummary");if(s)s.innerHTML='<span>Ongkir</span><strong>Rp0 <small style="font-weight:500;color:#77736c">(lengkapi alamat)</small></strong>';
+      return;
+    }
+  }else if(!addressId){
+    if(root)root.innerHTML='<div class="checkout-shipping-empty">Pilih alamat tersimpan atau isi alamat manual untuk menghitung ongkir.</div>';
     const s=document.getElementById("checkoutShippingSummary");if(s)s.innerHTML='<span>Ongkir</span><strong>Rp0 <small style="font-weight:500;color:#77736c">(pilih alamat)</small></strong>';
     return;
   }
@@ -2174,7 +2204,8 @@ async function calculateCheckoutShipping(){
     const session=(await kwSupabase.auth.getSession()).data?.session;
     if(!session)throw new Error("Silakan login terlebih dahulu.");
     const res=await fetch("/api/shipping-quote",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},body:JSON.stringify({
-      address_id:addressId,
+      address_id:addressId||null,
+      manual_address:manualAddress,
       items:cart.map(x=>({product_id:x.product_id||products[x.productIndex]?.id,size:x.size,quantity:x.quantity})),
       couriers:"jne:sicepat:jnt:ninja:tiki:lion:anteraja:pos:wahana"
     })});
@@ -2206,9 +2237,10 @@ async function prefillBuyerCheckout(){
     const select=document.getElementById('buyerAddressSelect');
     if(select){
       select.onchange=function(){ applyCheckoutAddress(this.value); calculateCheckoutShipping(); };
-      select.innerHTML='<option value="">Pilih alamat utama atau alamat tersimpan</option>'+rows.map(a=>'<option value="'+escDetail(a.id)+'">'+escDetail((a.is_default?'★ ':'')+a.label+' — '+a.recipient_name+' — '+a.city)+'</option>').join('');
+      select.innerHTML='<option value="">Pilih alamat tersimpan</option>'+rows.map(a=>'<option value="'+escDetail(a.id)+'">'+escDetail((a.is_default?'★ ':'')+a.label+' — '+a.recipient_name+' — '+a.city)+'</option>').join('');
       const selected=rows.find(a=>a.is_default)||rows[0];
-      if(selected){ select.value=selected.id; applyCheckoutAddress(selected.id); calculateCheckoutShipping(); }
+      if(selected){ select.value=selected.id; const mode=document.getElementById('buyerAddressMode');if(mode)mode.value='saved'; applyCheckoutAddress(selected.id); calculateCheckoutShipping(); }
+      else{ const mode=document.getElementById('buyerAddressMode');if(mode)mode.value='manual'; toggleManualCheckoutAddress('manual'); }
     }
   }catch(error){ console.warn('MarketKita checkout address prefill:',error); }
 }
@@ -2216,10 +2248,23 @@ function applyCheckoutAddress(id){
   if(!id || !Array.isArray(buyerAddressCache))return;
   const a=buyerAddressCache.find(x=>String(x.id)===String(id));
   if(!a)return;
+  const mode=document.getElementById('buyerAddressMode');if(mode)mode.value='saved';
+  toggleManualCheckoutAddress('saved');
   const address=document.getElementById('buyerAddress');
   if(address) address.value=[a.address_line,a.city,a.province,a.postal_code].filter(Boolean).join(', ');
   const name=document.getElementById('buyerName'); if(name&&a.recipient_name)name.value=a.recipient_name;
   const phone=document.getElementById('buyerPhone'); if(phone&&a.phone)phone.value=a.phone;
+}
+function toggleManualCheckoutAddress(mode){
+  const isManual=String(mode)==='manual';
+  const box=document.getElementById('manualCheckoutAddressFields');if(box)box.style.display=isManual?'block':'none';
+  const address=document.getElementById('buyerAddress');
+  const select=document.getElementById('buyerAddressSelect');
+  if(isManual){
+    if(select)select.value='';
+    if(address){const line=String(document.getElementById('buyerManualAddressLine')?.value||'').trim();const city=String(document.getElementById('buyerManualCity')?.value||'').trim();const province=String(document.getElementById('buyerManualProvince')?.value||'').trim();const postal=String(document.getElementById('buyerManualPostalCode')?.value||'').trim();address.value=[line,city,province,postal].filter(Boolean).join(', ');}
+  }else if(select?.value){ applyCheckoutAddress(select.value); }
+  calculateCheckoutShipping();
 }
 async function validateCheckoutVoucher(){
   const code=String(document.getElementById("checkoutVoucher")?.value||"").trim().toUpperCase();
@@ -2294,10 +2339,21 @@ async function startPayment(e){
     return;
   }
 
-  const addressId=String(document.getElementById("buyerAddressSelect")?.value||"").trim();
-  if(!addressId){
-    showKwNotice("Pilih alamat tersimpan sebelum melanjutkan pembayaran.","Alamat Belum Dipilih");
+  const mode=String(document.getElementById("buyerAddressMode")?.value||"saved");
+  const addressId=mode==="saved"?String(document.getElementById("buyerAddressSelect")?.value||"").trim():"";
+  if(mode==="saved"&&!addressId){
+    showKwNotice("Pilih alamat tersimpan atau pilih mode Isi alamat manual.","Alamat Belum Dipilih");
     return;
+  }
+  if(mode==="manual"){
+    const postal=String(document.getElementById("buyerManualPostalCode")?.value||"").trim();
+    const line=String(document.getElementById("buyerManualAddressLine")?.value||"").trim();
+    const city=String(document.getElementById("buyerManualCity")?.value||"").trim();
+    const province=String(document.getElementById("buyerManualProvince")?.value||"").trim();
+    if(!line||!city||!province||!/^\d{5}$/.test(postal)){
+      showKwNotice("Lengkapi alamat manual, kota, provinsi, dan kode pos 5 digit.","Alamat Belum Lengkap");
+      return;
+    }
   }
   const shippingRoot=document.getElementById("checkoutShippingOptions");
   let shippingSellerCount=0; try{shippingSellerCount=JSON.parse(shippingRoot?.dataset.payload||"[]").length;}catch{}
@@ -2357,8 +2413,17 @@ async function startPayment(e){
       });
     }
 
+    const manualAddress=mode==="manual"?{
+      recipient_name:document.getElementById("buyerName").value.trim(),
+      phone:document.getElementById("buyerPhone").value.trim(),
+      address_line:document.getElementById("buyerManualAddressLine").value.trim(),
+      city:document.getElementById("buyerManualCity").value.trim(),
+      province:document.getElementById("buyerManualProvince").value.trim(),
+      postal_code:document.getElementById("buyerManualPostalCode").value.trim()
+    }:null;
     const payload={
-      address_id:addressId,
+      address_id:addressId||null,
+      manual_address:manualAddress,
       shipping_quote_id:window.marketCheckoutShippingQuoteId,
       shipping_selections:window.marketCheckoutShippingSelections.map(x=>({
         store_id:x.store_id,courier_company:x.courier_company,courier_type:x.courier_type,
