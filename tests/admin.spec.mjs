@@ -30,6 +30,58 @@ test.describe("MarketKita Admin Center", () => {
     expect(errors, `Browser page errors: ${errors.join(" | ")}`).toEqual([]);
   });
 
+
+
+  test("Admin Center contains all Priority 8 panels and no failed static requests", async ({ page }) => {
+    const errors = [];
+    const failedResponses = [];
+    page.on("pageerror", error => errors.push(error.message));
+    page.on("response", response => {
+      if (response.status() >= 400 && response.request().resourceType() !== "image") {
+        failedResponses.push(`${response.status()} ${response.url()}`);
+      }
+    });
+
+    await page.goto(`${BASE_URL}/admin`, { waitUntil: "networkidle" });
+
+    const requiredPanels = [
+      "#adminCatalogPanel",
+      "#adminReviewsPanel",
+      "#adminShippingPanel",
+      "#adminRefundsPanel",
+      "#adminAuditPanel",
+      "#adminSettingsPanel",
+      "#phase3BusinessPanel",
+      "#phase3VoucherPanel",
+      "#disputesContainer"
+    ];
+
+    for (const selector of requiredPanels) {
+      await expect(page.locator(selector)).toBeAttached();
+    }
+
+    const requiredControls = [
+      "#adminCatalogRefresh",
+      "#adminCatalogSearch",
+      "#adminCatalogStatus",
+      "#adminReviewsRefresh",
+      "#adminShippingRefresh",
+      "#adminRefundsRefresh",
+      "#adminAuditRefresh",
+      "#adminHealthRefresh",
+      "#p3AdminRefresh",
+      "#p3VoucherRefresh",
+      "#refreshDisputesBtn"
+    ];
+
+    for (const selector of requiredControls) {
+      await expect(page.locator(selector)).toBeAttached();
+    }
+
+    expect(errors, `Browser page errors: ${errors.join(" | ")}`).toEqual([]);
+    expect(failedResponses, `Failed requests: ${failedResponses.join(" | ")}`).toEqual([]);
+  });
+
   test("admin login works when local credentials are supplied", async ({ page }) => {
     const emailValue = process.env.MARKETKITA_ADMIN_EMAIL;
     const passwordValue = process.env.MARKETKITA_ADMIN_PASSWORD;
