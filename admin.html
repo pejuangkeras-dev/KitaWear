@@ -1235,6 +1235,17 @@ tr:last-child td{
   <div id="adminAuditContainer"><div class="loading">Memuat audit...</div></div>
 </section>
 
+<section class="panel" style="margin-top:26px" id="adminLedgerPanel">
+  <div class="panel-head"><div><h2 class="panel-title">Financial Ledger</h2><div class="muted">Double-entry ledger untuk payment, refund, dan seller payout.</div></div><button id="adminLedgerRefresh" class="btn" type="button">↻ Refresh</button></div>
+  <div class="stats" style="padding:18px;margin:0">
+    <div class="stat"><div class="stat-label">Transactions</div><div id="adminLedgerTransactions" class="stat-value">0</div></div>
+    <div class="stat"><div class="stat-label">Entries</div><div id="adminLedgerEntries" class="stat-value">0</div></div>
+    <div class="stat"><div class="stat-label">Seller Payable</div><div id="adminLedgerSellerPayable" class="stat-value">Rp0</div></div>
+    <div class="stat"><div class="stat-label">Unbalanced</div><div id="adminLedgerUnbalanced" class="stat-value">0</div></div>
+  </div>
+  <div id="adminLedgerContainer"><div class="loading">Memuat ledger...</div></div>
+</section>
+
 <section class="panel" style="margin-top:26px" id="adminSettingsPanel">
   <div class="panel-head"><div><h2 class="panel-title">Admin Settings & Health</h2><div class="muted">Identitas admin aktif dan status komponen utama marketplace.</div></div><button id="adminHealthRefresh" class="btn" type="button">↻ Refresh</button></div>
   <div id="adminHealthContainer"><div class="loading">Memeriksa sistem...</div></div>
@@ -3798,6 +3809,30 @@ async function loadAdminAudit(){
     root.innerHTML=rows.length?'<div class="table-wrap"><table><thead><tr><th>Waktu</th><th>Aktor</th><th>Aksi</th><th>Entity</th><th>ID</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+escapeHtml(formatDate(x.created_at))+'</td><td>'+escapeHtml(String(x.actor_id||'—').slice(0,12))+'…</td><td><strong>'+escapeHtml(x.action)+'</strong></td><td>'+escapeHtml(x.entity_type)+'</td><td>'+escapeHtml(String(x.entity_id||'—').slice(0,12))+'…</td></tr>').join('')+'</tbody></table></div>':'<div class="empty">Belum ada audit log administratif.</div>';
   }catch(e){root.innerHTML='<div class="error">'+escapeHtml(e.message||'Gagal memuat audit logs.')+'</div>';}
 }
+async function loadAdminLedger(){
+  const root=$('adminLedgerContainer'); if(!root)return;
+  try{
+    const [balances,txns,entries]=await Promise.all([
+      supabaseClient.from('ledger_balance_summary').select('account_key,account_type,owner_type,owner_id,name,balance').order('account_key',{ascending:true}),
+      supabaseClient.from('ledger_transactions').select('id,transaction_key,transaction_type,order_id,seller_id,amount,status,description,created_at').order('created_at',{ascending:false}).limit(100),
+      supabaseClient.from('ledger_entries').select('transaction_id,direction,amount').limit(1000)
+    ]);
+    if(balances.error)throw balances.error;if(txns.error)throw txns.error;if(entries.error)throw entries.error;
+    const b=balances.data||[],t=txns.data||[],e=entries.data||[];
+    const sellerPayable=b.filter(x=>x.owner_type==='seller').reduce((sum,x)=>sum+Number(x.balance||0),0);
+    const sums=new Map();
+    e.forEach(x=>{const z=sums.get(x.transaction_id)||{debit:0,credit:0};z[x.direction]=(z[x.direction]||0)+Number(x.amount||0);sums.set(x.transaction_id,z);});
+    const unbalanced=t.filter(x=>{const z=sums.get(x.id)||{debit:0,credit:0};return z.debit!==z.credit;}).length;
+    $('adminLedgerTransactions').textContent=String(t.length);
+    $('adminLedgerEntries').textContent=String(e.length);
+    $('adminLedgerSellerPayable').textContent=formatRupiah(sellerPayable);
+    $('adminLedgerUnbalanced').textContent=String(unbalanced);
+    root.innerHTML=t.length?'<div class="table-wrap"><table><thead><tr><th>Waktu</th><th>Tipe</th><th>Order</th><th>Nominal</th><th>Status</th><th>Balance</th></tr></thead><tbody>'+
+      t.map(x=>{const z=sums.get(x.id)||{debit:0,credit:0};const ok=z.debit===z.credit;return '<tr><td>'+escapeHtml(formatDate(x.created_at))+'</td><td><strong>'+escapeHtml(x.transaction_type)+'</strong></td><td>'+escapeHtml(x.order_id?String(x.order_id).slice(0,12)+'…':'—')+'</td><td>'+formatRupiah(x.amount)+'</td><td>'+escapeHtml(x.status)+'</td><td><span class="status '+(ok?'paid':'failed')+'">'+(ok?'Balanced':'SELISIH')+'</span></td></tr>';}).join('')+
+      '</tbody></table></div>':'<div class="empty">Belum ada transaksi ledger.</div>';
+  }catch(e){root.innerHTML='<div class="error">'+escapeHtml(e.message||'Gagal memuat financial ledger.')+'</div>';}
+}
+
 async function loadAdminHealth(){
   const root=$('adminHealthContainer');if(!root)return;
   try{
@@ -3913,6 +3948,7 @@ $('adminReviewsRefresh').addEventListener('click',loadAdminReviews);
 $('adminShippingRefresh').addEventListener('click',loadAdminShipping);
 $('adminRefundsRefresh').addEventListener('click',loadAdminRefunds);
 $('adminAuditRefresh').addEventListener('click',loadAdminAudit);
+$('adminLedgerRefresh').addEventListener('click',loadAdminLedger);
 $('adminHealthRefresh').addEventListener('click',loadAdminHealth);
 $('p3AdminRefresh').addEventListener('click',loadPhase3Dashboard);
 $('p3VoucherRefresh').addEventListener('click',loadPhase3Vouchers);
