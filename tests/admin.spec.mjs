@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 const BASE_URL =
   process.env.MARKETKITA_BASE_URL ||
-  "https://91c96265.marketkita.pages.dev";
+  "https://marketkita.pages.dev";
 
 async function loginAsAdmin(page) {
   const emailValue = process.env.MARKETKITA_ADMIN_EMAIL;
@@ -84,7 +84,7 @@ test.describe("MarketKita Admin Center", () => {
 
     await loginAsAdmin(page);
 
-    await expect(page.locator("text=Admin Center")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Admin Center", exact: true })).toBeVisible();
 
     expect(
       errors,
