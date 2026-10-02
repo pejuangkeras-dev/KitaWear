@@ -2429,11 +2429,13 @@ function renderLocationPicker(){
   if(!rows.length){list.innerHTML='<div class="kw-location-empty">Lokasi tidak ditemukan.</div>';return;}
   list.innerHTML=rows.map((x,i)=>{
     const name=x.name||x.city_name||x.district_name||x.subdistrict_name||"Lokasi";
-    const detail=x._city
-      ? [x.name,x._city.name,x._province.name].filter(Boolean).join(" · ")
-      : (x._province
-        ? [x.name,x.city_name,x.province_name].filter(Boolean).join(" · ")
-        : (x.label||[x.province_name,x.city_name,x.district_name,x.subdistrict_name].filter(Boolean).join(" · ")||((x.postal_code||x.zip_code)?("Kode pos "+(x.postal_code||x.zip_code)):"")));
+    const detail=x.province_name
+      ? (x.label||[x.subdistrict_name,x.district_name,x.city_name,x.province_name].filter(Boolean).join(" · ")||((x.postal_code||x.zip_code)?("Kode pos "+(x.postal_code||x.zip_code)):""))
+      : (x._city
+        ? [x.name,x._city.name,x._province.name].filter(Boolean).join(" · ")
+        : (x._province
+          ? [x.name,x.city_name,x.province_name].filter(Boolean).join(" · ")
+          : (x.label||[x.province_name,x.city_name,x.district_name,x.subdistrict_name].filter(Boolean).join(" · ")||((x.postal_code||x.zip_code)?("Kode pos "+(x.postal_code||x.zip_code)):""))));
     return '<button class="kw-location-item" type="button" onclick="selectLocationPickerRow('+i+')"><strong>'+escDetail(name)+'</strong><small>'+escDetail(detail)+(x.postal_code||x.zip_code?' · Kode pos '+escDetail(x.postal_code||x.zip_code):'')+'</small></button>';
   }).join("");
   const sel=document.getElementById("locationPickerSelected");if(sel){const p=kwLocationPicker;sel.innerHTML=p.subdistrict?'<strong>'+escDetail([p.subdistrict.name,p.district?.name,p.city?.name,p.province?.name,p.postal].filter(Boolean).join(", "))+'</strong>':"Belum ada lokasi dipilih.";}
@@ -2475,6 +2477,34 @@ async function selectLocationPickerRow(index){
     // Search results must continue the same four-step flow instead of
     // treating every search hit as a completed address.
     if(kwLocationPicker.searchMode){
+      // Global destination search can return city, district, or village
+      // records. Fill all known parent levels from the selected result.
+      if(kwLocationPicker.searchMode==="global-destination"){
+        const province={id:x.province_id||"",name:x.province_name||""};
+        const city={id:x.city_id||"",name:x.city_name||""};
+        const district={id:x.district_id||"",name:x.district_name||""};
+        const subdistrict={id:x.subdistrict_id||"",name:x.subdistrict_name||""};
+        kwLocationPicker.province=province.name?province:null;
+        kwLocationPicker.city=city.name?city:null;
+        kwLocationPicker.district=district.name?district:null;
+        kwLocationPicker.subdistrict=subdistrict.name?subdistrict:null;
+        kwLocationPicker.postal=String(x.zip_code||"");
+        kwLocationPicker.searchMode=false;kwLocationPicker.searchRows=[];
+        const q=document.getElementById("locationPickerSearch");if(q)q.value="";
+        if(kwLocationPicker.subdistrict&&kwLocationPicker.district&&kwLocationPicker.city&&kwLocationPicker.province&&/^\d{5}$/.test(kwLocationPicker.postal)){
+          await applyPickedLocation();return;
+        }
+        if(kwLocationPicker.district&&kwLocationPicker.city&&kwLocationPicker.province){
+          kwLocationPicker.subdistrictRows=await locationPickerFetch("/api/location-subdistricts/"+encodeURIComponent(district.id));
+          kwLocationPicker.level="postal";
+        }else if(kwLocationPicker.city&&kwLocationPicker.province){
+          kwLocationPicker.districtRows=await locationPickerFetch("/api/location-districts/"+encodeURIComponent(city.id));
+          kwLocationPicker.level="district";
+        }else{
+          kwLocationPicker.level="province";
+        }
+        renderLocationPicker();return;
+      }
       // When the customer searches from the District step, resolve the
       // district's city/regency and province automatically.
       if(kwLocationPicker.searchMode==="global-district" && (kwLocationPicker.level==="district" || kwLocationPicker.level==="province")){
@@ -2558,75 +2588,19 @@ async function filterLocationPicker(value){
   window.kwLocationSearchTimer=setTimeout(async()=>{
     const list=document.getElementById("locationPickerList");
     try{
-      // From the Province tab, allow the customer to type a city OR
-      // kecamatan name. Results always show their parent city/regency and province.
+      // Global search from the Province tab is the authoritative
+      // destination lookup. It includes city, district, village and postal
+      // records, so names such as "Gedang Anak" are searchable.
       if(kwLocationPicker.level==="province"){
-        if(!kwLocationPicker.provinceRows.length){
-          kwLocationPicker.provinceRows=await locationPickerFetch("/api/location-provinces");
-        }
-        list&&(list.innerHTML='<div class="kw-location-loading">Mencari kota/kabupaten atau kecamatan di seluruh Indonesia...</div>');
-        const provinces=kwLocationPicker.provinceRows;
-        const cityResults=[];
-        const districtResults=[];
-        const norm=s=>String(s||"").toLowerCase().replace(/[^a-z0-9]/g,"");
-        const nq=norm(q);
-        // Search tolerant terhadap spasi tambahan, awalan wilayah, dan
-        // query seperti "gedang anak" -> "Gedangan".
-        const matchName=(name)=>{
-          const n=norm(name);
-          if(!n||!nq)return false;
-          return n.includes(nq)||nq.includes(n);
-        };
-        const matchLocation=(x)=>{
-          return matchName(x.name)||matchName(x.city_name)||matchName(x.province_name);
-        };
-
-        // First resolve cities/regencies. This is relatively small (all
-        // Indonesian regencies/cities), then only fetch districts for matches
-        // when the query is not itself a city/regency.
-        for(let pi=0;pi<provinces.length;pi+=8){
-          const batch=provinces.slice(pi,pi+8);
-          const result=await Promise.all(batch.map(async p=>{
-            const cities=await locationPickerFetch("/api/location-cities/"+encodeURIComponent(p.id));
-            return cities.map(city=>({...city,_province:{id:p.id,name:p.name},province_name:p.name}));
-          }));
-          cityResults.push(...result.flat());
-        }
-
-        const matchedCities=cityResults.filter(x=>matchName(x.name));
-        const exactCity=cityResults.find(x=>norm(x.name)===nq);
-        if(!exactCity || !matchedCities.length){
-          // Search districts globally when the query does not exactly resolve
-          // to a city/regency. Results carry both parent levels.
-          for(let ci=0;ci<cityResults.length;ci+=12){
-            const batch=cityResults.slice(ci,ci+12);
-            const groups=await Promise.all(batch.map(async city=>{
-              const districts=await locationPickerFetch("/api/location-districts/"+encodeURIComponent(city.id));
-              return districts.map(d=>({
-                ...d,
-                _province:city._province,
-                _city:{id:city.id,name:city.name},
-                province_name:city._province.name,
-                city_name:city.name
-              }));
-            }));
-            districtResults.push(...groups.flat());
-            const current=norm(q);
-            const found=districtResults.filter(x=>matchName(x.name)||matchName(x.city_name)||matchName(x.province_name));
-            if(found.length>=80)break;
-          }
-        }
-
-        const cityRows=matchedCities.slice(0,40);
-        const districtRows=districtResults.filter(x=>matchLocation(x)).slice(0,80);
-        const rows=[
-          ...districtRows,
-          ...cityRows
-        ];
+        list&&(list.innerHTML='<div class="kw-location-loading">Mencari kota, kecamatan, kelurahan, dan kode pos...</div>');
+        const r=await fetch("/api/location-search?search="+encodeURIComponent(q),{cache:"no-store"});
+        const d=await r.json().catch(()=>({}));
+        if(!r.ok||d?.ok===false)throw new Error(d?.error||"Gagal mencari lokasi.");
+        const rows=Array.isArray(d.data)?d.data:[];
         kwLocationPicker.searchRows=rows;
-        kwLocationPicker.searchMode=rows.some(x=>x._city) ? "global-district" : "global-city";
-        if(list && !rows.length){
-          list.innerHTML='<div class="kw-location-empty">Kota/kabupaten atau kecamatan tidak ditemukan.</div>';
+        kwLocationPicker.searchMode="global-destination";
+        if(!rows.length){
+          list.innerHTML='<div class="kw-location-empty">Lokasi tidak ditemukan. Coba nama kota, kecamatan, kelurahan, atau kode pos.</div>';
           return;
         }
         renderLocationPicker();return;
