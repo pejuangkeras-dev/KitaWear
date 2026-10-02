@@ -2351,11 +2351,14 @@ async function loadCheckoutPostalCodes(cityName){
     const res=await fetch("/api/location-postal?search="+encodeURIComponent(cityName),{cache:"no-store"});
     const data=await res.json().catch(()=>({}));
     if(!res.ok)throw new Error(data.error||"Gagal memuat kode pos.");
-    const province=String(document.getElementById("buyerManualProvince")?.selectedOptions?.[0]?.textContent||"").trim().toLowerCase();
-    const city=String(cityName).trim().toLowerCase();
+    const normalizeLocation=v=>String(v||"").trim().toLowerCase()
+      .replace(/^kota\s+/,"").replace(/^kabupaten\s+/,"").replace(/^kab\.?\s+/,"")
+      .replace(/\s+/g," ");
+    const province=normalizeLocation(document.getElementById("buyerManualProvince")?.selectedOptions?.[0]?.textContent||"");
+    const city=normalizeLocation(cityName);
     const rows=(Array.isArray(data.data)?data.data:[]).filter(x=>{
-      const p=String(x.province_name||x.province||"").trim().toLowerCase();
-      const c=String(x.city_name||x.city||x.name||"").trim().toLowerCase();
+      const p=normalizeLocation(x.province_name||x.province||"");
+      const c=normalizeLocation(x.city_name||x.city||x.name||"");
       return (!p||!province||p===province)&&(!c||c===city);
     });
     const unique=[...new Map(rows.filter(x=>/^\d{5}$/.test(String(x.zip_code||""))).map(x=>[String(x.zip_code),x])).values()];
