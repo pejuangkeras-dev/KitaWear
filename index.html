@@ -2489,16 +2489,51 @@ async function selectLocationPickerRow(index){
         kwLocationPicker.district=district.name?district:null;
         kwLocationPicker.subdistrict=subdistrict.name?subdistrict:null;
         kwLocationPicker.postal=String(x.zip_code||"");
+
+        // Some search sources return names/postal but no administrative IDs.
+        // Resolve those IDs before requesting child endpoints. This prevents
+        // invalid /villages/undefined calls and the resulting 404 message.
+        if((!kwLocationPicker.province?.id||!kwLocationPicker.city?.id||!kwLocationPicker.district?.id||!kwLocationPicker.subdistrict?.id) && /^\d{5}$/.test(kwLocationPicker.postal)){
+          try{
+            const rr=await fetch("/api/location-postal?search="+encodeURIComponent(kwLocationPicker.postal),{cache:"no-store"});
+            const dd=await rr.json().catch(()=>({}));
+            const candidates=Array.isArray(dd.data)?dd.data:[];
+            const norm=v=>String(v||"").toLowerCase().replace(/^kabupaten\s+/,"").replace(/^kota\s+/,"").replace(/[^a-z0-9]/g,"");
+            const wantedSub=norm(kwLocationPicker.subdistrict?.name);
+            const wantedCity=norm(kwLocationPicker.city?.name);
+            const wantedProv=norm(kwLocationPicker.province?.name);
+            const match=candidates.find(r=>
+              (!wantedSub||norm(r.subdistrict_name||r.subdistrict||r.village_name||r.village)===wantedSub) &&
+              (!wantedCity||norm(r.city_name||r.city||r.regency_name||r.regency)===wantedCity) &&
+              (!wantedProv||norm(r.province_name||r.province||r.state)===wantedProv)
+            ) || candidates.find(r=>norm(r.zip_code||r.postal_code)===norm(kwLocationPicker.postal)) || candidates[0];
+            if(match){
+              const mn=v=>String(v||"").trim();
+              kwLocationPicker.province.id=kwLocationPicker.province.id||mn(match.province_id);
+              kwLocationPicker.city.id=kwLocationPicker.city.id||mn(match.city_id||match.regency_id);
+              kwLocationPicker.district.id=kwLocationPicker.district.id||mn(match.district_id);
+              kwLocationPicker.subdistrict.id=kwLocationPicker.subdistrict.id||mn(match.subdistrict_id||match.village_id);
+              kwLocationPicker.district.name=kwLocationPicker.district.name||mn(match.district_name||match.district);
+              kwLocationPicker.subdistrict.name=kwLocationPicker.subdistrict.name||mn(match.subdistrict_name||match.subdistrict||match.village_name||match.village);
+            }
+          }catch(_){}
+        }
+
         kwLocationPicker.searchMode=false;kwLocationPicker.searchRows=[];
         const q=document.getElementById("locationPickerSearch");if(q)q.value="";
-        if(kwLocationPicker.subdistrict&&kwLocationPicker.district&&kwLocationPicker.city&&kwLocationPicker.province&&/^\d{5}$/.test(kwLocationPicker.postal)){
+
+        // A result with a complete administrative name and 5-digit postal code
+        // is already sufficient to continue checkout. Do not request a child
+        // endpoint unless the required parent ID exists.
+        if(kwLocationPicker.city?.name&&kwLocationPicker.province?.name&&/^\d{5}$/.test(kwLocationPicker.postal) &&
+           (kwLocationPicker.subdistrict?.name||kwLocationPicker.district?.name)){
           await applyPickedLocation();return;
         }
-        if(kwLocationPicker.district&&kwLocationPicker.city&&kwLocationPicker.province){
-          kwLocationPicker.subdistrictRows=await locationPickerFetch("/api/location-subdistricts/"+encodeURIComponent(district.id));
+        if(kwLocationPicker.district?.id&&kwLocationPicker.city?.name&&kwLocationPicker.province?.name){
+          kwLocationPicker.subdistrictRows=await locationPickerFetch("/api/location-subdistricts/"+encodeURIComponent(kwLocationPicker.district.id));
           kwLocationPicker.level="postal";
-        }else if(kwLocationPicker.city&&kwLocationPicker.province){
-          kwLocationPicker.districtRows=await locationPickerFetch("/api/location-districts/"+encodeURIComponent(city.id));
+        }else if(kwLocationPicker.city?.id&&kwLocationPicker.province?.name){
+          kwLocationPicker.districtRows=await locationPickerFetch("/api/location-districts/"+encodeURIComponent(kwLocationPicker.city.id));
           kwLocationPicker.level="district";
         }else{
           kwLocationPicker.level="province";
