@@ -136,12 +136,17 @@ export async function onRequestPost(context){
     const courierList=String(body.couriers||"jne:sicepat:jnt:ninja:tiki:lion:anteraja:pos:wahana").trim().replace(/,/g,":");
     const selections=[];
     const sellerQuotes=[];
+    // Resolve the destination once per checkout, not once per seller.
+    // This is important because every destination lookup consumes an API hit.
+    const destination=await rajaDestination(env,String(address.postal_code));
+    const originCache=new Map();
     for(const [storeId,g] of groups){
-      const origin=await rajaDestination(env,String(g.store.pickup_postal_code));
-      // EMSIFA regional IDs are for address navigation only. RajaOngkir
-      // uses its own destination IDs, so resolve the selected 5-digit postal
-      // code once here and use that RajaOngkir ID for the actual cost request.
-      const destination=await rajaDestination(env,String(address.postal_code));
+      const originPostal=String(g.store.pickup_postal_code);
+      let origin=originCache.get(originPostal);
+      if(!origin){
+        origin=await rajaDestination(env,originPostal);
+        originCache.set(originPostal,origin);
+      }
       const weight=Math.max(1,Math.ceil(g.items.reduce((sum,item)=>sum+Number(item.weight||500)*Number(item.quantity||1),0)));
       const form=new URLSearchParams();
       form.set("origin",String(origin.id));
