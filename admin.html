@@ -1209,7 +1209,7 @@ tr:last-child td{
 <section class="panel" style="margin-top:26px" id="adminCatalogPanel">
   <div class="panel-head"><div><h2 class="panel-title">Catalog & Stores</h2><div class="muted">Pantau produk, toko, harga, status, dan kesehatan katalog.</div></div><button id="adminCatalogRefresh" class="btn" type="button">↻ Refresh</button></div>
   <div class="stats" style="padding:18px;margin:0"><div class="stat"><div class="stat-label">Produk Aktif</div><div id="catalogActiveProducts" class="stat-value">0</div></div><div class="stat"><div class="stat-label">Toko Aktif</div><div id="catalogActiveStores" class="stat-value">0</div></div><div class="stat"><div class="stat-label">Produk Bermasalah</div><div id="catalogInvalidProducts" class="stat-value">0</div></div><div class="stat"><div class="stat-label">Seller Pending</div><div id="catalogPendingSellers" class="stat-value">0</div></div></div>
-  <div class="panel-tools" style="padding:0 18px 14px"><input id="adminCatalogSearch" class="search" type="search" placeholder="Cari produk / toko"><select id="adminCatalogStatus" class="select"><option value="all">Semua produk</option><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+  <div class="panel-tools" style="padding:0 18px 14px"><input id="adminCatalogSearch" class="search" type="search" placeholder="Cari produk / toko"><select id="adminCatalogStatus" class="select"><option value="all">Semua produk</option><option value="draft">Draft</option><option value="active">Active</option><option value="archived">Archived</option></select></div>
   <div id="adminCatalogContainer"><div class="loading">Memuat katalog...</div></div>
 </section>
 
@@ -3726,7 +3726,34 @@ async function loadAdminCatalog(){
 function renderAdminCatalog(){
   const root=$('adminCatalogContainer'),q=String($('adminCatalogSearch')?.value||'').toLowerCase(),filter=$('adminCatalogStatus')?.value||'all',stores=new Map((window.adminStores||[]).map(x=>[x.id,x]));
   let rows=(window.adminProducts||[]).filter(x=>filter==='all'||String(x.status)===filter).filter(x=>{const st=stores.get(x.store_id);return !q||[x.name,x.slug,x.category,st?.name,st?.slug].some(v=>String(v||'').toLowerCase().includes(q));});
-  root.innerHTML=rows.length?'<div class="table-wrap"><table><thead><tr><th>Produk</th><th>Toko</th><th>Kategori</th><th>Harga</th><th>Status</th><th>Update</th></tr></thead><tbody>'+rows.map(x=>'<tr><td><strong>'+escapeHtml(x.name)+'</strong><div class="muted">'+escapeHtml(x.slug)+'</div></td><td>'+escapeHtml(stores.get(x.store_id)?.name||'—')+'</td><td>'+escapeHtml(x.category||'—')+'</td><td>'+formatRupiah(x.price)+'</td><td><span class="status '+(String(x.status)==='active'?'paid':'pending')+'">'+escapeHtml(x.status)+'</span></td><td>'+escapeHtml(formatDate(x.updated_at))+'</td></tr>').join('')+'</tbody></table></div>':'<div class="empty">Tidak ada produk.</div>';
+  const productRows=rows.map(x=>{
+    const status=String(x.status||"draft");
+    const next=status==="draft"?"active":status==="active"?"archived":"draft";
+    return '<tr><td><strong>'+escapeHtml(x.name)+'</strong><div class="muted">'+escapeHtml(x.slug)+'</div></td><td>'+escapeHtml(stores.get(x.store_id)?.name||'—')+'</td><td>'+escapeHtml(x.category||'—')+'</td><td>'+formatRupiah(x.price)+'</td><td><span class="status '+(status==="active"?"paid":status==="archived"?"refunded":"pending")+'">'+escapeHtml(status)+'</span></td><td><button class="small-btn" type="button" onclick="setAdminProductStatus(''+x.id+'',''+next+'')">→ '+escapeHtml(next)+'</button></td></tr>';
+  }).join("");
+  const storeRows=(window.adminStores||[]).map(st=>{
+    const status=String(st.status||"pending");
+    const next=status==="pending"?"active":status==="active"?"suspended":"active";
+    return '<tr><td><strong>'+escapeHtml(st.name||"Tanpa nama")+'</strong><div class="muted">'+escapeHtml(st.slug||"—")+'</div></td><td>'+escapeHtml(String(st.owner_id||"").slice(0,12))+'…</td><td><span class="status '+(status==="active"?"paid":status==="suspended"?"failed":"pending")+'">'+escapeHtml(status)+'</span></td><td>'+escapeHtml(formatDate(st.updated_at))+'</td><td><button class="small-btn" type="button" onclick="setAdminStoreStatus(''+st.id+'',''+next+'')">→ '+escapeHtml(next)+'</button></td></tr>';
+  }).join("");
+  root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Produk</th><th>Toko</th><th>Kategori</th><th>Harga</th><th>Status</th><th>Aksi</th></tr></thead><tbody>'+productRows+'</tbody></table></div>'+
+    '<div style="padding:18px 0 0"><h3 class="panel-title" style="font-size:15px;margin:0 0 10px">Toko</h3><div class="table-wrap"><table><thead><tr><th>Toko</th><th>Owner</th><th>Status</th><th>Update</th><th>Aksi</th></tr></thead><tbody>'+ (storeRows||'<tr><td colspan="5" class="empty">Tidak ada toko.</td></tr>') +'</tbody></table></div></div>';
+}
+async function setAdminProductStatus(productId,status){
+  try{
+    const q=await supabaseClient.rpc("admin_set_product_status",{p_product_id:productId,p_status:status});
+    if(q.error)throw q.error;
+    showNotice("Status produk diperbarui.","success");
+    await loadAdminCatalog();
+  }catch(e){showNotice(e.message||"Gagal mengubah status produk.","error");}
+}
+async function setAdminStoreStatus(storeId,status){
+  try{
+    const q=await supabaseClient.rpc("admin_set_store_status",{p_store_id:storeId,p_status:status});
+    if(q.error)throw q.error;
+    showNotice("Status toko diperbarui.","success");
+    await loadAdminCatalog();
+  }catch(e){showNotice(e.message||"Gagal mengubah status toko.","error");}
 }
 async function loadAdminReviews(){
   const root=$('adminReviewsContainer');if(!root)return;
