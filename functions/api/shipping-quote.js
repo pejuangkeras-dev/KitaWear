@@ -109,17 +109,20 @@ export async function onRequestPost(context){
     const sellerQuotes=[];
     for(const [storeId,g] of groups){
       const origin=await rajaDestination(env,String(g.store.pickup_postal_code));
-      const destination=address.destination_id
+      let destination=address.destination_id
         ? {id:address.destination_id,zip_code:address.postal_code}
         : await rajaDestination(env,String(address.postal_code));
       const weight=Math.max(1,Math.ceil(g.items.reduce((sum,item)=>sum+Number(item.weight||500)*Number(item.quantity||1),0)));
-      const form=new URLSearchParams();
-      form.set("origin",String(origin.id));
-      form.set("destination",String(destination.id));
-      form.set("weight",String(weight));
-      form.set("courier",courierList);
-      form.set("price","lowest");
-      const rate=await raja(env,"/calculate/domestic-cost","POST",form.toString());
+      const makeCostForm=(dest)=>{const form=new URLSearchParams();form.set("origin",String(origin.id));form.set("destination",String(dest.id));form.set("weight",String(weight));form.set("courier",courierList);form.set("price","lowest");return form.toString();};
+      let rate;
+      try{
+        rate=await raja(env,"/calculate/domestic-cost","POST",makeCostForm(destination));
+      }catch(firstError){
+        if(address.destination_id){
+          destination=await rajaDestination(env,String(address.postal_code));
+          rate=await raja(env,"/calculate/domestic-cost","POST",makeCostForm(destination));
+        }else throw firstError;
+      }
       const pricing=Array.isArray(rate?.data)?rate.data:[];
       if(!pricing.length)throw new Error("Tidak ada layanan kurir tersedia untuk toko "+(g.store.name||storeId)+".");
       const options=pricing.map(x=>({
