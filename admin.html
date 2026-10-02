@@ -3813,27 +3813,25 @@ async function loadAdminAudit(){
 async function loadAdminLedger(){
   const root=$('adminLedgerContainer'); if(!root)return;
   try{
-    const [balances,txns,entries]=await Promise.all([
-      supabaseClient.from('ledger_balance_summary').select('account_key,account_type,owner_type,owner_id,name,balance').order('account_key',{ascending:true}),
+    const [summary,txns,entries]=await Promise.all([
+      supabaseClient.rpc('admin_ledger_summary'),
       supabaseClient.from('ledger_transactions').select('id,transaction_key,transaction_type,order_id,seller_id,amount,status,description,created_at').order('created_at',{ascending:false}).limit(100),
       supabaseClient.from('ledger_entries').select('transaction_id,direction,amount').limit(1000)
     ]);
-    if(balances.error)throw balances.error;if(txns.error)throw txns.error;if(entries.error)throw entries.error;
-    const b=balances.data||[],t=txns.data||[],e=entries.data||[];
-    const sellerPayable=b.filter(x=>x.owner_type==='seller').reduce((sum,x)=>sum+Number(x.balance||0),0);
+    if(summary.error)throw summary.error;if(txns.error)throw txns.error;if(entries.error)throw entries.error;
+    const x=summary.data||{},t=txns.data||[],e=entries.data||[];
     const sums=new Map();
-    e.forEach(x=>{const z=sums.get(x.transaction_id)||{debit:0,credit:0};z[x.direction]=(z[x.direction]||0)+Number(x.amount||0);sums.set(x.transaction_id,z);});
-    const unbalanced=t.filter(x=>{const z=sums.get(x.id)||{debit:0,credit:0};return z.debit!==z.credit;}).length;
-    $('adminLedgerTransactions').textContent=String(t.length);
-    $('adminLedgerEntries').textContent=String(e.length);
-    $('adminLedgerSellerPayable').textContent=formatRupiah(sellerPayable);
-    $('adminLedgerUnbalanced').textContent=String(unbalanced);
-    root.innerHTML=t.length?'<div class="table-wrap"><table><thead><tr><th>Waktu</th><th>Tipe</th><th>Order</th><th>Nominal</th><th>Status</th><th>Balance</th></tr></thead><tbody>'+
-      t.map(x=>{const z=sums.get(x.id)||{debit:0,credit:0};const ok=z.debit===z.credit;return '<tr><td>'+escapeHtml(formatDate(x.created_at))+'</td><td><strong>'+escapeHtml(x.transaction_type)+'</strong></td><td>'+escapeHtml(x.order_id?String(x.order_id).slice(0,12)+'…':'—')+'</td><td>'+formatRupiah(x.amount)+'</td><td>'+escapeHtml(x.status)+'</td><td><span class="status '+(ok?'paid':'failed')+'">'+(ok?'Balanced':'SELISIH')+'</span></td></tr>';}).join('')+
-      '</tbody></table></div>':'<div class="empty">Belum ada transaksi ledger.</div>';
+    e.forEach(row=>{const z=sums.get(row.transaction_id)||{debit:0,credit:0};z[row.direction]=(z[row.direction]||0)+Number(row.amount||0);sums.set(row.transaction_id,z);});
+    $('adminLedgerTransactions').textContent=String(x.transactions||0);
+    $('adminLedgerEntries').textContent=String(x.entries||0);
+    $('adminLedgerSellerPayable').textContent=formatRupiah(x.seller_payable||0);
+    $('adminLedgerUnbalanced').textContent=String(x.unbalanced||0);
+    root.innerHTML='<div class="stats" style="padding:0 18px 18px;margin:0"><div class="stat"><div class="stat-label">Payment</div><div class="stat-value">'+formatRupiah(x.payments||0)+'</div></div><div class="stat"><div class="stat-label">Refund</div><div class="stat-value">'+formatRupiah(x.refunds||0)+'</div></div><div class="stat"><div class="stat-label">Payout</div><div class="stat-value">'+formatRupiah(x.payouts||0)+'</div></div><div class="stat"><div class="stat-label">Cash Ledger</div><div class="stat-value">'+formatRupiah(x.cash||0)+'</div></div></div>'+
+      (t.length?'<div class="table-wrap"><table><thead><tr><th>Waktu</th><th>Tipe</th><th>Order</th><th>Nominal</th><th>Status</th><th>Balance</th></tr></thead><tbody>'+
+      t.map(row=>{const z=sums.get(row.id)||{debit:0,credit:0};const ok=z.debit===z.credit;return '<tr><td>'+escapeHtml(formatDate(row.created_at))+'</td><td><strong>'+escapeHtml(row.transaction_type)+'</strong></td><td>'+escapeHtml(row.order_id?String(row.order_id).slice(0,12)+'…':'—')+'</td><td>'+formatRupiah(row.amount)+'</td><td>'+escapeHtml(row.status)+'</td><td><span class="status '+(ok?'paid':'failed')+'">'+(ok?'Balanced':'SELISIH')+'</span></td></tr>';}).join('')+
+      '</tbody></table></div>':'<div class="empty">Belum ada transaksi ledger.</div>');
   }catch(e){root.innerHTML='<div class="error">'+escapeHtml(e.message||'Gagal memuat financial ledger.')+'</div>';}
 }
-
 async function loadAdminHealth(){
   const root=$('adminHealthContainer');if(!root)return;
   try{
