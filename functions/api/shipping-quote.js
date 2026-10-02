@@ -110,30 +110,18 @@ export async function onRequestPost(context){
     const sellerQuotes=[];
     for(const [storeId,g] of groups){
       const origin=await rajaDestination(env,String(g.store.pickup_postal_code));
-      const destinationId=String(address.destination_id||"").trim();
-      const districtIdForCalc=String(address.district_id_for_calc||"").trim();
+      // EMSIFA regional IDs are for address navigation only. RajaOngkir
+      // uses its own destination IDs, so resolve the selected 5-digit postal
+      // code once here and use that RajaOngkir ID for the actual cost request.
+      const destination=await rajaDestination(env,String(address.postal_code));
       const weight=Math.max(1,Math.ceil(g.items.reduce((sum,item)=>sum+Number(item.weight||500)*Number(item.quantity||1),0)));
-      const makeCostForm=(dest)=>{const form=new URLSearchParams();form.set("origin",String(origin.id));form.set("destination",String(dest.id));form.set("weight",String(weight));form.set("courier",courierList);form.set("price","lowest");return form.toString();};
-      const makeDistrictCostForm=()=>{const form=new URLSearchParams();form.set("origin",String(origin.id));form.set("destination",districtIdForCalc);form.set("weight",String(weight));form.set("courier",courierList);form.set("price","lowest");return form.toString();};
-      let rate;
-      // If the picker supplies a RajaOngkir-compatible destination ID, use
-      // the precise subdistrict calculation. Otherwise use the selected
-      // district ID, which is also a supported calculation level.
-      if(districtIdForCalc){
-        try{
-          rate=await raja(env,"/calculate/district/domestic-cost","POST",makeDistrictCostForm());
-        }catch(districtError){
-          const destination=destinationId
-            ? {id:destinationId,zip_code:address.postal_code}
-            : await rajaDestination(env,String(address.postal_code));
-          rate=await raja(env,"/calculate/domestic-cost","POST",makeCostForm(destination));
-        }
-      }else{
-        const destination=destinationId
-          ? {id:destinationId,zip_code:address.postal_code}
-          : await rajaDestination(env,String(address.postal_code));
-        rate=await raja(env,"/calculate/domestic-cost","POST",makeCostForm(destination));
-      }
+      const form=new URLSearchParams();
+      form.set("origin",String(origin.id));
+      form.set("destination",String(destination.id));
+      form.set("weight",String(weight));
+      form.set("courier",courierList);
+      form.set("price","lowest");
+      const rate=await raja(env,"/calculate/domestic-cost","POST",form.toString());
       const pricing=Array.isArray(rate?.data)?rate.data:[];
       if(!pricing.length)throw new Error("Tidak ada layanan kurir tersedia untuk toko "+(g.store.name||storeId)+".");
       const options=pricing.map(x=>({
