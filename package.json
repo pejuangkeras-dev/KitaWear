@@ -7,10 +7,11 @@
     "test:admin": "npx --yes playwright test tests/admin.spec.mjs",
     "test:shipping": "npx --yes playwright test tests/shipping.spec.mjs",
     "test:priority10": "npx --yes playwright test tests/priority10.spec.mjs",
-    "test:all": "npx --yes playwright test tests/admin.spec.mjs tests/shipping.spec.mjs tests/priority10.spec.mjs tests/priority12.spec.mjs tests/priority13.spec.mjs tests/priority14.spec.mjs",
+    "test:all": "npx --yes playwright test tests/admin.spec.mjs tests/shipping.spec.mjs tests/priority10.spec.mjs tests/priority12.spec.mjs tests/priority13.spec.mjs tests/priority14.spec.mjs tests/priority15.spec.mjs",
     "test:priority12": "npx --yes playwright test tests/priority12.spec.mjs",
     "test:priority13": "npx --yes playwright test tests/priority13.spec.mjs",
-    "test:priority14": "npx --yes playwright test tests/priority14.spec.mjs"
+    "test:priority14": "npx --yes playwright test tests/priority14.spec.mjs",
+    "test:priority15": "npx --yes playwright test tests/priority15.spec.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0"
