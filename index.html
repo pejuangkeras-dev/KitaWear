@@ -2240,6 +2240,16 @@ function openCheckout(){
     return;
   }
 
+  // Checkout wajib melalui akun agar alamat, pesanan, pembayaran,
+  // voucher, dan riwayat transaksi terikat ke pelanggan.
+  if(!kwCurrentUser){
+    setAuthMode("login");
+    const authMessage=document.getElementById("authMessage");
+    if(authMessage) authMessage.textContent="Silakan masuk atau daftar akun MarketKita terlebih dahulu sebelum checkout.";
+    openAccount();
+    return;
+  }
+
   document.getElementById("checkoutItems").innerHTML=cart.map(x=>`
     <div class="checkout-summary-row">
       <span>
