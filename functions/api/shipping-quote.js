@@ -102,7 +102,9 @@ export async function onRequestPost(context){
     const sellerQuotes=[];
     for(const [storeId,g] of groups){
       const origin=await rajaDestination(env,String(g.store.pickup_postal_code));
-      const destination=await rajaDestination(env,String(address.postal_code));
+      const destination=address.destination_id
+        ? {id:address.destination_id,zip_code:address.postal_code}
+        : await rajaDestination(env,String(address.postal_code));
       const weight=Math.max(1,Math.ceil(g.items.reduce((sum,item)=>sum+Number(item.weight||500)*Number(item.quantity||1),0)));
       const form=new URLSearchParams();
       form.set("origin",String(origin.id));
@@ -129,7 +131,7 @@ export async function onRequestPost(context){
       const snapshot={
         buyer_id:buyer.id,
         address_id:addressId||null,
-        manual_address:addressId?null:{recipient_name:String(address.recipient_name||""),phone:String(address.phone||""),address_line:String(address.address_line||""),city:String(address.city||""),province:String(address.province||""),postal_code:String(address.postal_code||"")},
+        manual_address:addressId?null:{recipient_name:String(address.recipient_name||""),phone:String(address.phone||""),address_line:String(address.address_line||""),city:String(address.city||""),province:String(address.province||""),district:String(address.district||""),subdistrict:String(address.subdistrict||""),postal_code:String(address.postal_code||"")},
         postal_code:String(address.postal_code||""),
         items:rawItems.map(item=>({
           product_id:String(item.product_id||""),
