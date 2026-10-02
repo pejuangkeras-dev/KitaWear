@@ -2186,7 +2186,7 @@ async function calculateCheckoutShipping(){
       phone:String(document.getElementById("buyerPhone")?.value||"").trim(),
       address_line:String(document.getElementById("buyerManualAddressLine")?.value||"").trim(),
       city:String(document.getElementById("buyerManualCity")?.value||"").trim(),
-      province:String(document.getElementById("buyerManualProvince")?.value||"").trim(),
+      province:String(document.getElementById("buyerManualProvince")?.selectedOptions?.[0]?.textContent||"").trim(),
       postal_code:String(document.getElementById("buyerManualPostalCode")?.value||"").trim()
     };
     if(!manualAddress.address_line||!manualAddress.city||!manualAddress.province||!/^\d{5}$/.test(manualAddress.postal_code)){
