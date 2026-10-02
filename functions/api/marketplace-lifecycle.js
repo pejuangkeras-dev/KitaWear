@@ -100,10 +100,11 @@ export async function onRequestGet(context) {
         ? "&seller_id=eq." + encodeURIComponent(user.id)
         : "&buyer_id=eq." + encodeURIComponent(user.id);
 
-    const [returns, disputes, payouts] = await Promise.all([
+    const [returns, disputes, payouts, refunds] = await Promise.all([
       supabase(context, "/rest/v1/return_requests?select=*&order=created_at.desc&limit=50" + filter),
       supabase(context, "/rest/v1/disputes?select=*&order=created_at.desc&limit=50" + (role === "admin" ? "" : "&buyer_id=eq." + encodeURIComponent(user.id))),
-      supabase(context, "/rest/v1/seller_payout_requests?select=*&order=requested_at.desc&limit=50" + (role === "admin" ? "" : "&seller_id=eq." + encodeURIComponent(user.id)))
+      supabase(context, "/rest/v1/seller_payout_requests?select=*&order=requested_at.desc&limit=50" + (role === "admin" ? "" : "&seller_id=eq." + encodeURIComponent(user.id))),
+      supabase(context, "/rest/v1/refund_requests?select=*&order=created_at.desc&limit=50" + (role === "admin" ? "" : "&buyer_id=eq." + encodeURIComponent(user.id)))
     ]);
 
     return json({
@@ -111,7 +112,8 @@ export async function onRequestGet(context) {
       role,
       returns: Array.isArray(returns) ? returns : [],
       disputes: Array.isArray(disputes) ? disputes : [],
-      payout_requests: Array.isArray(payouts) ? payouts : []
+      payout_requests: Array.isArray(payouts) ? payouts : [],
+      refund_requests: Array.isArray(refunds) ? refunds : []
     });
   } catch (error) {
     console.error("MarketKita lifecycle GET:", error);
@@ -150,8 +152,21 @@ export async function onRequestPost(context) {
 
     const args = { ...body };
     delete args.action;
-
-    const result = await callRpc(context, RPC[action], args);
+    const maps = {
+      request_return: { p_order_item_id: body.order_item_id, p_type: body.type, p_reason: body.reason, p_description: body.description || null, p_evidence_urls: Array.isArray(body.evidence_urls) ? body.evidence_urls : [] },
+      seller_update_return: { p_return_id: body.return_id, p_status: body.status, p_tracking_number: body.tracking_number || null, p_note: body.note || null },
+      admin_resolve_return: { p_request_id: body.return_id || body.request_id, p_status: body.status, p_approved_amount: body.approved_amount ?? null, p_note: body.note || null },
+      buyer_create_dispute: { p_order_id: body.order_id, p_reason: body.reason, p_description: body.description || null },
+      admin_begin_dispute_refund: { p_dispute_id: body.dispute_id, p_reason: body.reason || "Refund sengketa MarketKita" },
+      admin_resolve_dispute: { p_dispute_id: body.dispute_id, p_resolution: body.resolution, p_admin_note: body.admin_note || body.note || null },
+      seller_request_payout: { p_amount: body.amount, p_note: body.note || null },
+      admin_review_payout_request: { p_request_id: body.request_id, p_decision: body.decision, p_admin_note: body.admin_note || body.note || null }
+    };
+    const rpcArgs = maps[action];
+    if (!rpcArgs || Object.values(rpcArgs).some(v => v === undefined)) {
+      return json({ error: "Parameter action lifecycle belum lengkap." }, 400);
+    }
+    const result = await callRpc(context, RPC[action], rpcArgs);
     return json({ ok: true, action, result });
   } catch (error) {
     console.error("MarketKita lifecycle POST:", error);
