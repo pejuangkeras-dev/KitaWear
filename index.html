@@ -2218,7 +2218,9 @@ async function calculateCheckoutShipping(){
   const postalFromInput=String(document.getElementById("buyerManualPostalCode")?.value||"").trim();
   const postal=/^\d{5}$/.test(postalFromPicker)?postalFromPicker:(/^\d{5}$/.test(postalFromInput)?postalFromInput:"");
   if(postal)picker.postal=postal;
-  const line=String(document.getElementById("buyerManualAddressLine")?.value||"").trim();
+  const street=String(document.getElementById("buyerManualAddressLine")?.value||"").trim();
+  const house=String(document.getElementById("buyerManualHouseNumber")?.value||"").trim();
+  const line=[street,house].filter(Boolean).join(", ");
   const summary=document.getElementById("checkoutShippingSummary");
   if(!/^\d{5}$/.test(postal)){
     if(root)root.innerHTML='<div class="checkout-shipping-empty">Pilih kelurahan dan pastikan kode pos 5 digit sudah terisi.</div>';
