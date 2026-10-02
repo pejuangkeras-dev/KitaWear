@@ -712,7 +712,7 @@ body{background:var(--bg);color:var(--ink)}
         </button>
       </div>
       <div class="field kw-co-full kw-address-autocomplete-field"><label for="buyerManualAddressLine">Nama jalan</label><input id="buyerManualAddressLine" type="text" placeholder="Ketik nama jalan, contoh: Jalan Ahmad Yani..." autocomplete="street-address" oninput="handleStreetAddressInput(this)" onfocus="handleStreetAddressInput(this)"><div id="buyerStreetSuggestions" class="kw-street-suggestions" hidden></div><small class="kw-address-attribution">Pilih nama jalan resmi yang direkomendasikan sesuai kota/kabupaten yang dipilih.</small></div>
-      <div class="field kw-co-half"><label for="buyerManualHouseNumber">Nomor rumah / blok</label><input id="buyerManualHouseNumber" type="text" placeholder="Contoh: Blok A No. 12 / No. 5" autocomplete="address-line2" oninput="updateManualCheckoutAddressSummary()"></div>
+      <div class="field kw-co-half"><label for="buyerManualHouseNumber">Nomor rumah / blok</label><input id="buyerManualHouseNumber" type="text" placeholder="Contoh: Blok A No. 12 / No. 5" autocomplete="address-line2" onfocus="closeStreetSuggestions()" onclick="closeStreetSuggestions()" oninput="closeStreetSuggestions();updateManualCheckoutAddressSummary()"></div>
       <select id="buyerManualProvince" aria-hidden="true" tabindex="-1" style="display:none"></select>
       <select id="buyerManualCity" aria-hidden="true" tabindex="-1" style="display:none"></select>
       <input id="buyerManualDistrictId" type="hidden"><input id="buyerManualSubdistrictId" type="hidden">
@@ -2383,7 +2383,8 @@ function selectStreetSuggestion(index){
 }
 document.addEventListener("click",function(e){
   const field=document.querySelector(".kw-address-autocomplete-field");
-  if(field&&!field.contains(e.target))closeStreetSuggestions();
+  const house=document.getElementById("buyerManualHouseNumber");
+  if((field&&!field.contains(e.target)) && !(house&&house.contains(e.target)))closeStreetSuggestions();
 });
 function updateManualCheckoutAddressSummary(){
   const street=String(document.getElementById("buyerManualAddressLine")?.value||"").trim();
