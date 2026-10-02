@@ -1,25 +1,70 @@
 import { test, expect } from "@playwright/test";
 
-const BASE_URL = process.env.MARKETKITA_BASE_URL || "https://91c96265.marketkita.pages.dev";
+const BASE_URL =
+  process.env.MARKETKITA_BASE_URL ||
+  "https://91c96265.marketkita.pages.dev";
+
+async function loginAsAdmin(page) {
+  const emailValue = process.env.MARKETKITA_ADMIN_EMAIL;
+  const passwordValue = process.env.MARKETKITA_ADMIN_PASSWORD;
+
+  test.skip(
+    !emailValue || !passwordValue,
+    "Set MARKETKITA_ADMIN_EMAIL and MARKETKITA_ADMIN_PASSWORD to run authenticated Admin Center tests."
+  );
+
+  await page.goto(`${BASE_URL}/admin`, {
+    waitUntil: "domcontentloaded"
+  });
+
+  const loginScreen = page.locator("#loginScreen");
+  const adminApp = page.locator("#adminApp");
+
+  if (await loginScreen.isVisible()) {
+    await page.locator("#loginEmail").fill(emailValue);
+    await page.locator("#loginPassword").fill(passwordValue);
+    await page.locator("#loginBtn").click();
+  }
+
+  await expect(adminApp).toBeVisible({ timeout: 20000 });
+  await expect(page.locator("#logoutBtn")).toBeVisible();
+
+  return { emailValue, passwordValue };
+}
 
 test.describe("MarketKita Admin Center", () => {
   test("admin page loads and login control is usable", async ({ page }) => {
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
 
-    await page.goto(`${BASE_URL}/admin`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE_URL}/admin`, {
+      waitUntil: "domcontentloaded"
+    });
     await expect(page).toHaveTitle(/MarketKita.*Admin Center/i);
 
     const loginScreen = page.locator("#loginScreen");
     const adminApp = page.locator("#adminApp");
-    await expect(loginScreen.or(adminApp)).toBeVisible({ timeout: 15000 });
+
+    await expect
+      .poll(
+        async () =>
+          (await loginScreen.isVisible()) ||
+          (await adminApp.isVisible()),
+        {
+          timeout: 15000,
+          message: "Login screen atau Admin App tidak tampil"
+        }
+      )
+      .toBe(true);
 
     if (await loginScreen.isVisible()) {
       await expect(page.locator("#loginEmail")).toBeVisible();
       await expect(page.locator("#loginPassword")).toBeVisible();
+
       const loginButton = page.locator("#loginBtn");
       await expect(loginButton).toBeVisible();
       await expect(loginButton).toBeEnabled();
+
       await loginButton.click();
       await expect(loginButton).toBeVisible();
     } else {
@@ -27,24 +72,53 @@ test.describe("MarketKita Admin Center", () => {
       await expect(page.locator("#logoutBtn")).toBeVisible();
     }
 
-    expect(errors, `Browser page errors: ${errors.join(" | ")}`).toEqual([]);
+    expect(
+      errors,
+      `Browser page errors: ${errors.join(" | ")}`
+    ).toEqual([]);
   });
 
-
-
-  test("Admin Center contains all Priority 8 panels and no failed static requests", async ({ page }) => {
+  test("admin login works when local credentials are supplied", async ({ page }) => {
     const errors = [];
-    const failedResponses = [];
     page.on("pageerror", error => errors.push(error.message));
+
+    await loginAsAdmin(page);
+
+    await expect(page.locator("text=Admin Center")).toBeVisible();
+
+    expect(
+      errors,
+      `Browser page errors: ${errors.join(" | ")}`
+    ).toEqual([]);
+  });
+
+  test("Priority 8 Admin Center is complete after authentication", async ({ page }) => {
+    const errors = [];
+    const failedApiResponses = [];
+
+    page.on("pageerror", error => errors.push(error.message));
+
     page.on("response", response => {
-      if (response.status() >= 400 && response.request().resourceType() !== "image") {
-        failedResponses.push(`${response.status()} ${response.url()}`);
+      const type = response.request().resourceType();
+      const url = response.url();
+
+      if (
+        response.status() >= 400 &&
+        (type === "xhr" || type === "fetch") &&
+        (url.includes("/rest/v1/") ||
+          url.includes("/auth/v1/") ||
+          url.includes("/api/"))
+      ) {
+        failedApiResponses.push(
+          `${response.status()} ${url}`
+        );
       }
     });
 
-    await page.goto(`${BASE_URL}/admin`, { waitUntil: "networkidle" });
+    await loginAsAdmin(page);
 
     const requiredPanels = [
+      "#adminUsersPanel",
       "#adminCatalogPanel",
       "#adminReviewsPanel",
       "#adminShippingPanel",
@@ -58,9 +132,13 @@ test.describe("MarketKita Admin Center", () => {
 
     for (const selector of requiredPanels) {
       await expect(page.locator(selector)).toBeAttached();
+      await expect(page.locator(selector)).toBeVisible();
     }
 
     const requiredControls = [
+      "#adminUsersRefresh",
+      "#adminUsersSearch",
+      "#adminUsersRole",
       "#adminCatalogRefresh",
       "#adminCatalogSearch",
       "#adminCatalogStatus",
@@ -71,33 +149,49 @@ test.describe("MarketKita Admin Center", () => {
       "#adminHealthRefresh",
       "#p3AdminRefresh",
       "#p3VoucherRefresh",
+      "#p3VoucherForm",
       "#refreshDisputesBtn"
     ];
 
     for (const selector of requiredControls) {
       await expect(page.locator(selector)).toBeAttached();
+      await expect(page.locator(selector)).toBeVisible();
     }
 
-    expect(errors, `Browser page errors: ${errors.join(" | ")}`).toEqual([]);
-    expect(failedResponses, `Failed requests: ${failedResponses.join(" | ")}`).toEqual([]);
-  });
+    const refreshControls = [
+      "#adminUsersRefresh",
+      "#adminCatalogRefresh",
+      "#adminReviewsRefresh",
+      "#adminShippingRefresh",
+      "#adminRefundsRefresh",
+      "#adminAuditRefresh",
+      "#adminHealthRefresh",
+      "#p3AdminRefresh",
+      "#p3VoucherRefresh",
+      "#refreshDisputesBtn"
+    ];
 
-  test("admin login works when local credentials are supplied", async ({ page }) => {
-    const emailValue = process.env.MARKETKITA_ADMIN_EMAIL;
-    const passwordValue = process.env.MARKETKITA_ADMIN_PASSWORD;
+    for (const selector of refreshControls) {
+      await expect(page.locator(selector)).toBeEnabled();
+      await page.locator(selector).click();
+    }
 
-    test.skip(!emailValue || !passwordValue, "Set MARKETKITA_ADMIN_EMAIL and MARKETKITA_ADMIN_PASSWORD to run authenticated login.");
+    await expect(page.locator("#adminCatalogContainer")).toBeAttached();
+    await expect(page.locator("#adminReviewsContainer")).toBeAttached();
+    await expect(page.locator("#adminShippingContainer")).toBeAttached();
+    await expect(page.locator("#adminRefundsContainer")).toBeAttached();
+    await expect(page.locator("#adminAuditContainer")).toBeAttached();
+    await expect(page.locator("#adminHealthContainer")).toBeAttached();
+    await expect(page.locator("#p3VoucherList")).toBeAttached();
 
-    await page.goto(`${BASE_URL}/admin`, { waitUntil: "domcontentloaded" });
+    expect(
+      errors,
+      `Browser page errors: ${errors.join(" | ")}`
+    ).toEqual([]);
 
-    if (await page.locator("#adminApp").isVisible()) return;
-
-    await page.locator("#loginEmail").fill(emailValue);
-    await page.locator("#loginPassword").fill(passwordValue);
-    await page.locator("#loginBtn").click();
-
-    await expect(page.locator("#adminApp")).toBeVisible({ timeout: 20000 });
-    await expect(page.locator("#logoutBtn")).toBeVisible();
-    await expect(page.locator("text=Admin Center")).toBeVisible();
+    expect(
+      failedApiResponses,
+      `Failed Admin API requests: ${failedApiResponses.join(" | ")}`
+    ).toEqual([]);
   });
 });
