@@ -2172,7 +2172,7 @@ function renderCheckoutShippingOptions(data){
   const root=document.getElementById("checkoutShippingOptions"); if(!root)return;
   const sellers=Array.isArray(data?.sellers)?data.sellers:[];
   if(!sellers.length){root.innerHTML='<div class="checkout-shipping-empty">Tidak ada layanan pengiriman untuk tujuan ini.</div>';return;}
-  root.innerHTML=sellers.map((seller,si)=>{
+  root.innerHTML=(data?.warning?'<div class="checkout-shipping-warning" style="margin-bottom:10px;padding:9px 11px;border:1px solid #e6dfd3;border-radius:10px;background:#faf7f0;color:#6b6257;font-size:11px">'+escDetail(data.warning)+'</div>':"")+sellers.map((seller,si)=>{
     const opts=Array.isArray(seller.options)?seller.options:[];
     const cheapest=opts.reduce((best,o,i)=>!best||Number(o.price||0)<Number(best.price||0)?{...o,__index:i}:best,null);
     const selectedIndex=cheapest?cheapest.__index:-1;
