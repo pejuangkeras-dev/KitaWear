@@ -30,10 +30,11 @@ export async function onRequest(context){
     if(!rows.length)return json({ok:true,ignored:true});
     const shipment=rows[0],marketStatus=mapStatus(incomingStatus);
     const patch={status:incomingStatus||marketStatus,waybill_id:awb||null,last_webhook_at:new Date().toISOString(),raw_response:body};
+    if(!awb){patch.waybill_id=undefined;delete patch.waybill_id;}
     await sb(u,k,`/rest/v1/shipping_shipments?id=eq.${encodeURIComponent(shipment.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(patch)});
     await sb(u,k,`/rest/v1/order_sellers?id=eq.${encodeURIComponent(shipment.order_seller_id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({
       shipping_status:marketStatus,
-      tracking_number:awb||null,
+      ...(awb?{tracking_number:awb}:{}),
       seller_status:marketStatus==="delivered"?"completed":marketStatus
     })});
     const sellers=await sb(u,k,`/rest/v1/order_sellers?select=id,seller_status,shipping_status&order_id=eq.${encodeURIComponent(shipment.order_id)}`);
