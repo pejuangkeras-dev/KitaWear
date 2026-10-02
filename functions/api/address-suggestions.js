@@ -18,50 +18,69 @@ function addRow(map,row,source){
     lat:row.lat??null,lon:row.lon??null
   });
 }
-async function cityPoint(city,province,headers){
+async function searchPoint(q,city,province,district,headers){
   const n=new URL("https://nominatim.openstreetmap.org/search");
-  n.searchParams.set("q",[city,province,"Indonesia"].filter(Boolean).join(", "));
+  n.searchParams.set("q",[q,district,city,province,"Indonesia"].filter(Boolean).join(", "));
   n.searchParams.set("countrycodes","id");n.searchParams.set("format","jsonv2");n.searchParams.set("limit","1");
-  const r=await fetch(n.toString(),{headers});
-  if(!r.ok)return null;
+  const r=await fetch(n.toString(),{headers}); if(!r.ok)return null;
   const d=await r.json().catch(()=>[]);
   return Array.isArray(d)&&d[0]?[Number(d[0].lon),Number(d[0].lat)]:null;
 }
-async function queryBIG(map,q,city,province,headers){
-  // BIG's RBI road layer exposes NAMRJL (Nama Segmen Jalan). It is the
-  // authoritative geospatial source used here instead of treating OSM as
-  // the official street-name master.
-  const point=await cityPoint(city,province,headers);
+async function cityPoint(city,province,headers){
+  return searchPoint("",city,province,"",headers);
+}
+async function queryBIG(map,q,city,province,district,headers){
+  const point=q?await searchPoint(q,city,province,district,headers):await cityPoint(city,province,headers);
   const u=new URL("https://geoservices.big.go.id/rbi/rest/services/BASEMAP/Rupabumi_Indonesia/MapServer/791/query");
+  const safeQ=q.toUpperCase().replace(/'/g,"''");
+  // If the typed text is a housing complex, neighborhood, landmark, or
+  // incomplete address rather than an official road name, locate that text
+  // first and then return official BIG roads around that location.
   const where=q
-    ? "UPPER(NAMRJL) LIKE '%"+q.toUpperCase().replace(/'/g,"''")+"%'"
+    ? "UPPER(NAMRJL) LIKE '%"+safeQ+"%'"
     : "1=1";
   u.searchParams.set("where",where);
   u.searchParams.set("outFields","OBJECTID,NAMRJL,AUTRJL,STARJL,UPDATED");
-  u.searchParams.set("returnGeometry","true");
-  u.searchParams.set("f","json");
+  u.searchParams.set("returnGeometry","true");u.searchParams.set("f","json");
   u.searchParams.set("resultRecordCount","100");
   if(point){
     u.searchParams.set("geometry",JSON.stringify({x:point[0],y:point[1]}));
-    u.searchParams.set("geometryType","esriGeometryPoint");
-    u.searchParams.set("inSR","4326");
+    u.searchParams.set("geometryType","esriGeometryPoint");u.searchParams.set("inSR","4326");
     u.searchParams.set("spatialRel","esriSpatialRelIntersects");
-    u.searchParams.set("distance","30000");
-    u.searchParams.set("units","esriSRUnit_Meter");
+    u.searchParams.set("distance",q?"3000":"30000");u.searchParams.set("units","esriSRUnit_Meter");
   }
-  const r=await fetch(u.toString(),{headers});
-  if(!r.ok)return;
+  const r=await fetch(u.toString(),{headers});if(!r.ok)return 0;
   const d=await r.json().catch(()=>({}));
+  let count=0;
   for(const x of Array.isArray(d.features)?d.features:[]){
-    const a=x?.attributes||{};
-    const g=x?.geometry||{};
+    const a=x?.attributes||{},g=x?.geometry||{};
+    if(!clean(a.NAMRJL))continue;
     const xy=g.paths?.[0]?.[0]||[];
-    addRow(map,{street:a.NAMRJL,city,district:"",province,lat:null,lon:null}, "BIG-RBI");
-    // Preserve the official BIG road name and metadata in a lightweight
-    // field without exposing the entire geometry to the browser.
+    addRow(map,{street:a.NAMRJL,city,district,province,lat:null,lon:null},"BIG-RBI");
     const key=clean(a.NAMRJL).toLowerCase();
-    for(const [k,v] of map){if(k.startsWith(key+"|")){v.official=true;v.road_id=a.OBJECTID;v.road_status=a.STARJL??null;v.road_owner=a.AUTRJL??null;v.updated=a.UPDATED??null;break;}}
+    for(const [k,v] of map){
+      if(k.startsWith(key+"|")){
+        v.official=true;v.road_id=a.OBJECTID;v.road_status=a.STARJL??null;v.road_owner=a.AUTRJL??null;v.updated=a.UPDATED??null;break;
+      }
+    }
+    count++;
   }
+  // No exact road-name match: fetch nearby official roads and let the UI
+  // show them as recommendations for the searched locality.
+  if(q&&count===0&&point){
+    u.searchParams.set("where","1=1");
+    u.searchParams.set("distance","5000");
+    const rr=await fetch(u.toString(),{headers});if(!rr.ok)return 0;
+    const dd=await rr.json().catch(()=>({}));
+    for(const x of Array.isArray(dd.features)?dd.features:[]){
+      const a=x?.attributes||{};
+      if(!clean(a.NAMRJL))continue;
+      addRow(map,{street:a.NAMRJL,city,district,province},"BIG-RBI");
+      const key=clean(a.NAMRJL).toLowerCase();
+      for(const [k,v] of map)if(k.startsWith(key+"|")){v.official=true;v.nearby=true;v.road_id=a.OBJECTID;break;}
+    }
+  }
+  return count;
 }
 async function queryNominatimAndPhoton(map,q,city,province,district,headers){
   const n=new URL("https://nominatim.openstreetmap.org/search");
@@ -100,7 +119,7 @@ export async function onRequestGet(context){
   const headers={"Accept":"application/json","User-Agent":"MarketKita/1.0 address autocomplete"};
   const results=new Map();
   try{
-    await queryBIG(results,q,city,province,headers);
+    await queryBIG(results,q,city,province,district,headers);
     // OSM remains a fallback/completion source for streets that are not
     // present in the current RBI road layer.
     if(results.size<20 || q) await queryNominatimAndPhoton(results,q,city,province,district,headers);
