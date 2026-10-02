@@ -17,6 +17,10 @@ function mapMidtransStatus(transactionStatus, fraudStatus) {
   if (fraud === "deny" || status === "deny" || status === "failure") {
     return { orderStatus: "cancelled", paymentStatus: "failed" };
   }
+  // Do not fulfill a challenged card capture until Midtrans/FDS approves it.
+  if (status === "capture" && fraud === "challenge") {
+    return { orderStatus: "pending_payment", paymentStatus: "pending" };
+  }
   if (status === "settlement" || status === "capture") {
     return { orderStatus: "paid", paymentStatus: "paid" };
   }
