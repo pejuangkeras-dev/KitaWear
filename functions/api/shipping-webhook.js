@@ -37,10 +37,17 @@ export async function onRequest(context){
     if(eventKey){
       const existingEvent=await sb(u,k,"/rest/v1/webhook_events?select=id&provider=eq.rajaongkir_delivery&event_key=eq."+encodeURIComponent(eventKey)+"&limit=1");
       if(existingEvent?.length)return json({ok:true,duplicate:true,event_key:eventKey});
-      await sb(u,k,"/rest/v1/webhook_events",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({
-        provider:"rajaongkir_delivery",event_key:eventKey,order_id:shipment.order_id,
-        received_at:new Date().toISOString(),payload:body
-      })});
+      try{
+        await sb(u,k,"/rest/v1/webhook_events",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({
+          provider:"rajaongkir_delivery",event_key:eventKey,order_id:shipment.order_id,
+          received_at:new Date().toISOString(),payload:body
+        })});
+      }catch(insertError){
+        if(String(insertError?.message||"").includes("duplicate")||String(insertError?.message||"").includes("409")){
+          return json({ok:true,duplicate:true,event_key:eventKey});
+        }
+        throw insertError;
+      }
     }
     const patch={status:incomingStatus||marketStatus,waybill_id:awb||null,last_webhook_at:new Date().toISOString(),raw_response:body};
     if(!awb){patch.waybill_id=undefined;delete patch.waybill_id;}
