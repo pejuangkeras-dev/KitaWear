@@ -2480,10 +2480,38 @@ async function selectLocationPickerRow(index){
       // Global destination search can return city, district, or village
       // records. Fill all known parent levels from the selected result.
       if(kwLocationPicker.searchMode==="global-destination"){
-        const province={id:x.province_id||"",name:x.province_name||""};
-        const city={id:x.city_id||"",name:x.city_name||""};
-        const district={id:x.district_id||"",name:x.district_name||""};
-        const subdistrict={id:x.subdistrict_id||"",name:x.subdistrict_name||""};
+        // A search hit may be a city, district, village, or postal record.
+        // Always preserve its administrative parents instead of resetting the
+        // picker back to the Province step.
+        let province={id:String(x.province_id||""),name:String(x.province_name||"")};
+        let city={id:String(x.city_id||""),name:String(x.city_name||"")};
+        const district={id:String(x.district_id||""),name:String(x.district_name||"")};
+        const subdistrict={id:String(x.subdistrict_id||""),name:String(x.subdistrict_name||"")};
+
+        // If the search provider omitted province/city IDs, recover them from
+        // the official regional dataset using the returned names.
+        const normName=v=>String(v||"").toLowerCase().replace(/^kabupaten\s+/,"").replace(/^kota\s+/,"").replace(/[^a-z0-9]/g,"");
+        if(!province.name || !city.name){
+          const rawLabel=String(x.label||"");
+          const parts=rawLabel.split(" · ").map(v=>v.trim()).filter(Boolean);
+          if(!province.name && parts.length) province.name=parts[parts.length-2]||"";
+          if(!city.name && parts.length) city.name=parts[parts.length-3]||"";
+        }
+        if(!province.id && province.name){
+          try{
+            if(!kwLocationPicker.provinceRows.length) kwLocationPicker.provinceRows=await locationPickerFetch("/api/location-provinces");
+            const pr=kwLocationPicker.provinceRows.find(p=>normName(p.name)===normName(province.name));
+            if(pr) province.id=String(pr.id);
+          }catch(_){}
+        }
+        if(!city.id && city.name && province.id){
+          try{
+            const cities=await locationPickerFetch("/api/location-cities/"+encodeURIComponent(province.id));
+            const cr=cities.find(v=>normName(v.name)===normName(city.name));
+            if(cr) city.id=String(cr.id);
+          }catch(_){}
+        }
+
         kwLocationPicker.province=province.name?province:null;
         kwLocationPicker.city=city.name?city:null;
         kwLocationPicker.district=district.name?district:null;
@@ -2529,12 +2557,17 @@ async function selectLocationPickerRow(index){
            (kwLocationPicker.subdistrict?.name||kwLocationPicker.district?.name)){
           await applyPickedLocation();return;
         }
-        if(kwLocationPicker.district?.id&&kwLocationPicker.city?.name&&kwLocationPicker.province?.name){
+        if(kwLocationPicker.district?.id&&kwLocationPicker.city?.id&&kwLocationPicker.province?.id){
           kwLocationPicker.subdistrictRows=await locationPickerFetch("/api/location-subdistricts/"+encodeURIComponent(kwLocationPicker.district.id));
           kwLocationPicker.level="postal";
-        }else if(kwLocationPicker.city?.id&&kwLocationPicker.province?.name){
+        }else if(kwLocationPicker.city?.id&&kwLocationPicker.province?.id){
           kwLocationPicker.districtRows=await locationPickerFetch("/api/location-districts/"+encodeURIComponent(kwLocationPicker.city.id));
           kwLocationPicker.level="district";
+        }else if(kwLocationPicker.province?.id){
+          // We know the selected province, so remain inside that province and
+          // never send the customer back to the first step.
+          kwLocationPicker.cityRows=await locationPickerFetch("/api/location-cities/"+encodeURIComponent(kwLocationPicker.province.id));
+          kwLocationPicker.level="city";
         }else{
           kwLocationPicker.level="province";
         }
