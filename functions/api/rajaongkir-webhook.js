@@ -10,8 +10,10 @@ function marketStatus(s){
   return"processing";
 }
 async function handle(context){
-  const e=context.env,u=clean(e.SUPABASE_URL).replace(/\/+$/,""),k=clean(e.SUPABASE_SERVICE_ROLE_KEY);
+  const e=context.env,u=clean(e.SUPABASE_URL).replace(/\/+$/,""),k=clean(e.SUPABASE_SERVICE_ROLE_KEY),secret=clean(e.RAJAONGKIR_WEBHOOK_SECRET||e.BITESHIP_WEBHOOK_SECRET),header=clean(e.RAJAONGKIR_WEBHOOK_HEADER)||"X-MarketKita-Shipping-Secret";
   if(!u||!k)return json({error:"Konfigurasi Supabase server belum lengkap."},500);
+  if(!secret)return json({error:"Konfigurasi webhook shipping belum lengkap."},500);
+  if(context.request.headers.get(header)!==secret)return json({error:"Unauthorized"},401);
   const body=await context.request.json().catch(()=>({}));
   const orderNo=clean(body.order_no),awb=clean(body.cnote),status=clean(body.status);
   if(!orderNo&&!awb)return json({ok:true,ignored:true,reason:"Payload tidak memiliki order_no maupun cnote."});
