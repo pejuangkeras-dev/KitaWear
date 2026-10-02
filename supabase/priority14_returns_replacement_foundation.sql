@@ -1,0 +1,3 @@
+-- MarketKita P14: Returns & Replacement foundation
+-- Applied to Supabase production as priority14_returns_replacement_foundation.
+-- See database migration history for the canonical applied SQL.
