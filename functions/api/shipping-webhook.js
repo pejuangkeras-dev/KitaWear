@@ -37,6 +37,14 @@ export async function onRequest(context){
    catch(e){if(String(e?.message||"").includes("duplicate")||String(e?.message||"").includes("409"))return json({ok:true,duplicate:true,event_key:eventKey});throw e;}
   }
   const patch={status:nextShipmentStatus,last_webhook_at:new Date().toISOString(),raw_response:body};
+  if(nextShipmentStatus==="delivered"){
+    patch.delivered_at=new Date().toISOString();
+    patch.delivery_proof_at=new Date().toISOString();
+    const proof=clean(body.delivery_proof_url||body.proof_url||body.photo_url||body.pod_url||body.pod);
+    const recipient=clean(body.delivery_recipient||body.recipient||body.received_by);
+    if(proof)patch.delivery_proof_url=proof;
+    if(recipient)patch.delivery_recipient=recipient;
+  }
   if(awb)patch.waybill_id=awb;
   await sb(u,k,`/rest/v1/shipping_shipments?id=eq.${encodeURIComponent(shipment.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(patch)});
   await sb(u,k,`/rest/v1/order_sellers?id=eq.${encodeURIComponent(shipment.order_seller_id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({shipping_status:marketStatus,...(awb?{tracking_number:awb}:{}),seller_status:marketStatus==="delivered"?"completed":marketStatus})});
