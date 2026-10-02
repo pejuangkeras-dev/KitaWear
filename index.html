@@ -2358,14 +2358,14 @@ function renderLocationPicker(){
   if(!rows.length){list.innerHTML='<div class="kw-location-empty">Lokasi tidak ditemukan.</div>';return;}
   list.innerHTML=rows.map((x,i)=>{
     const name=x.name||x.city_name||x.district_name||x.subdistrict_name||"Lokasi";
-    const detail=x.label||[x.province_name,x.city_name,x.district_name,x.subdistrict_name,x.postal_code||x.zip_code].filter(Boolean).join(" · ");
-    return '<button class="kw-location-item" type="button" onclick="selectLocationPickerRow('+i+')"><strong>'+escDetail(name)+'</strong><small>'+escDetail(detail)+'</small></button>';
+    const detail=x.label||[x.province_name,x.city_name,x.district_name,x.subdistrict_name].filter(Boolean).join(" · ")||((x.postal_code||x.zip_code)?("Kode pos "+(x.postal_code||x.zip_code)):"");
+    return '<button class="kw-location-item" type="button" onclick="selectLocationPickerRow('+i+')"><strong>'+escDetail(name)+'</strong><small>'+escDetail(detail)+(x.postal_code||x.zip_code?' · Kode pos '+escDetail(x.postal_code||x.zip_code):'')+'</small></button>';
   }).join("");
   const sel=document.getElementById("locationPickerSelected");if(sel){const p=kwLocationPicker;sel.innerHTML=p.subdistrict?'<strong>'+escDetail([p.subdistrict.name,p.district?.name,p.city?.name,p.province?.name,p.postal].filter(Boolean).join(", "))+'</strong>':"Belum ada lokasi dipilih.";}
 }
 async function locationPickerFetch(path){
-  // Data wilayah untuk picker berasal dari API statis, bukan RajaOngkir,
-  // sehingga membuka checkout tidak menghabiskan quota shipping API.
+  // Location picker reads the static regional dataset directly. RajaOngkir
+  // is reserved for the actual shipping-cost request after the address is chosen.
   const base="https://www.emsifa.com/api-wilayah-indonesia/v2";
   let url="";
   if(path==="/api/location-provinces") url=base+"/provinces.json";
@@ -2380,9 +2380,9 @@ async function locationPickerFetch(path){
     });
     return rows;
   }
-  const r=await fetch(url,{cache:"force-cache"});
+  const r=await fetch(url,{cache:"no-store"});
   const d=await r.json().catch(()=>({}));
-  if(!r.ok)throw new Error("Gagal memuat data wilayah.");
+  if(!r.ok)throw new Error("Gagal memuat data wilayah ("+r.status+").");
   return Array.isArray(d.data)?d.data:[];
 }
 async function openLocationPicker(){
