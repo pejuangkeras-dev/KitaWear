@@ -2206,6 +2206,8 @@ function updateCheckoutShippingSelection(){
   const total=document.getElementById("checkoutTotal");
   if(total)total.textContent=rupiah(base+fee);
 }
+let kwShippingCalcKey="";
+let kwShippingCalcPromise=null;
 async function calculateCheckoutShipping(){
   const root=document.getElementById("checkoutShippingOptions");
   window.marketCheckoutShippingQuoteId=null; window.marketCheckoutShippingSelections=[]; window.marketCheckoutShippingFee=0;
@@ -2222,6 +2224,17 @@ async function calculateCheckoutShipping(){
   const house=String(document.getElementById("buyerManualHouseNumber")?.value||"").trim();
   const line=[street,house].filter(Boolean).join(", ");
   const summary=document.getElementById("checkoutShippingSummary");
+  // Shipping price depends on destination postal code + cart, not the
+  // descriptive street/house text. Reuse the current quote when those inputs
+  // have not changed so typing an address cannot consume API quota repeatedly.
+  const calcKey=JSON.stringify({
+    postal,items:cart.map(x=>({product_id:x.product_id||products[x.productIndex]?.id,size:x.size,quantity:x.quantity}))
+      .sort((a,b)=>(String(a.product_id)+String(a.size)).localeCompare(String(b.product_id)+String(b.size)))
+  });
+  if(kwShippingCalcKey===calcKey && window.marketCheckoutShippingQuoteId && Array.isArray(window.marketCheckoutShippingSelections) && window.marketCheckoutShippingSelections.length){
+    updateManualCheckoutAddressSummary();
+    return;
+  }
   if(!/^\d{5}$/.test(postal)){
     if(root)root.innerHTML='<div class="checkout-shipping-empty">Pilih kelurahan dan pastikan kode pos 5 digit sudah terisi.</div>';
     if(summary)summary.innerHTML='<span>Ongkir</span><strong>Rp0 <small>(menunggu kode pos)</small></strong>';
@@ -2233,17 +2246,21 @@ async function calculateCheckoutShipping(){
     const session=(await kwSupabase.auth.getSession()).data?.session;
     if(!session)throw new Error("Silakan login terlebih dahulu.");
     const manualAddress={recipient_name:String(document.getElementById("buyerName")?.value||"").trim(),phone:String(document.getElementById("buyerPhone")?.value||"").trim(),address_line:line,city,province,district:district,subdistrict:subdistrict,postal_code:postal,destination_id:""};
-    const res=await fetch("/api/shipping-quote",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},body:JSON.stringify({
+    const requestItems=cart.map(x=>({product_id:x.product_id||products[x.productIndex]?.id,size:x.size,quantity:x.quantity}));
+    const requestBody={
       address_id:null,manual_address:manualAddress,
       location:{province_id:picker.province?.id||"",city_id:picker.city?.id||"",district_id:picker.district?.id||"",subdistrict_id:picker.subdistrict?.id||"",destination_id:"",subdistrict:subdistrict,postal_code:postal},
-      items:cart.map(x=>({product_id:x.product_id||products[x.productIndex]?.id,size:x.size,quantity:x.quantity})),
+      items:requestItems,
       couriers:"jne:sicepat:jnt:ninja:tiki:lion:anteraja:pos:wahana"
-    })});
+    };
+    const res=await fetch("/api/shipping-quote",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},body:JSON.stringify(requestBody)});
     const data=await res.json().catch(()=>({}));
     if(!res.ok)throw new Error(data.error||"Gagal menghitung ongkir.");
     window.marketCheckoutShippingQuoteId=data.quote_id||null;
+    kwShippingCalcKey=calcKey;
     renderCheckoutShippingOptions(data); updateCheckoutShippingSelection();
   }catch(error){
+    kwShippingCalcKey="";
     if(root)root.innerHTML='<div class="checkout-shipping-empty">'+escDetail(error.message||"Gagal menghitung ongkir.")+'</div>';
   }
 }
