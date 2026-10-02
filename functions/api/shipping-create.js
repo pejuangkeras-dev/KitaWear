@@ -51,8 +51,8 @@ export async function onRequestPost(context){
  try{
   const e=context.env,u=clean(e.SUPABASE_URL).replace(/\/+$/,""),k=clean(e.SUPABASE_SERVICE_ROLE_KEY),a=clean(e.SUPABASE_ANON_KEY),apiKey=clean(e.RAJAONGKIR_DELIVERY_API_KEY),base=clean(e.RAJAONGKIR_DELIVERY_BASE_URL)||"https://api-sandbox.collaborator.komerce.id";
   if(!u||!k||!a)return json({error:"Konfigurasi Supabase server belum lengkap."},500);
-  if(!apiKey)return json({error:"RAJAONGKIR_DELIVERY_API_KEY belum dipasang di Cloudflare. Gunakan API key Shipping Delivery, bukan Shipping Cost."},500);
   const user=await authUser(context.request,u,a);if(!user)return json({error:"Silakan login sebagai seller."},401);
+  if(!apiKey)return json({error:"RAJAONGKIR_DELIVERY_API_KEY belum dipasang di Cloudflare. Gunakan API key Shipping Delivery, bukan Shipping Cost."},500);
   const body=await context.request.json().catch(()=>({})),orderId=clean(body.order_id),requestedSellerId=clean(body.order_seller_id);
   if(!orderId)return json({error:"order_id wajib."},400);
   const profile=await sb(u,k,"/rest/v1/profiles?select=id,role&id=eq."+encodeURIComponent(user.id)+"&limit=1"),role=clean(profile?.[0]?.role).toLowerCase(),isAdmin=role==="admin";
