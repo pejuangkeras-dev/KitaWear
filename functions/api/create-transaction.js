@@ -301,6 +301,8 @@ export async function onRequestPost(context) {
       address_line: String(manualRaw.address_line || "").trim(),
       city: String(manualRaw.city || "").trim(),
       province: String(manualRaw.province || "").trim(),
+      district: String(manualRaw.district || "").trim(),
+      subdistrict: String(manualRaw.subdistrict || "").trim(),
       postal_code: String(manualRaw.postal_code || "").trim()
     };
     const hasManualAddress = Boolean(manualAddress.address_line || manualAddress.city || manualAddress.province || manualAddress.postal_code);
@@ -590,6 +592,8 @@ export async function onRequestPost(context) {
         String(quotedManual.address_line || "").trim() === String(shippingAddress.address_line || "").trim() &&
         String(quotedManual.city || "").trim() === String(shippingAddress.city || "").trim() &&
         String(quotedManual.province || "").trim() === String(shippingAddress.province || "").trim() &&
+        String(quotedManual.district || "").trim() === String(shippingAddress.district || "").trim() &&
+        String(quotedManual.subdistrict || "").trim() === String(shippingAddress.subdistrict || "").trim() &&
         String(quotedManual.postal_code || "").trim() === String(shippingAddress.postal_code || "").trim();
       if (!manualMatches) return json({ error: "Alamat manual berubah setelah ongkir dihitung. Silakan hitung ulang ongkir." }, 409);
     }
