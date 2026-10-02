@@ -2146,8 +2146,10 @@ function renderCheckoutShippingOptions(data){
   if(!sellers.length){root.innerHTML='<div class="checkout-shipping-empty">Tidak ada layanan pengiriman untuk tujuan ini.</div>';return;}
   root.innerHTML=sellers.map((seller,si)=>{
     const opts=Array.isArray(seller.options)?seller.options:[];
+    const cheapest=opts.reduce((best,o,i)=>!best||Number(o.price||0)<Number(best.price||0)?{...o,__index:i}:best,null);
+    const selectedIndex=cheapest?cheapest.__index:-1;
     return '<div class="kw-shipping-store"><strong>'+escDetail(seller.store_name||"Toko")+'</strong><select id="checkoutCourier-'+si+'" onchange="updateCheckoutShippingSelection()">'+
-      '<option value="">Pilih layanan</option>'+opts.map((o,oi)=>'<option value="'+si+'|'+oi+'">'+escDetail((o.courier_name||o.courier_company||"Kurir")+" · "+(o.service_name||o.courier_type||"Layanan")+" · "+rupiah(o.price))+'</option>').join("")+
+      '<option value="">Pilih layanan</option>'+opts.map((o,oi)=>'<option value="'+si+'|'+oi+'" '+(oi===selectedIndex?'selected':'')+'>'+escDetail((o.courier_name||o.courier_company||"Kurir")+" · "+(o.service_name||o.courier_type||"Layanan")+" · "+rupiah(o.price))+'</option>').join("")+
       '</select></div>';
   }).join("");
   root.dataset.payload=JSON.stringify(sellers);
@@ -2262,12 +2264,20 @@ async function loadCheckoutCities(provinceId){
     const rows=Array.isArray(data.data)?data.data:[];
     select.innerHTML='<option value="">Pilih kota/kabupaten</option>'+rows.map(x=>'<option value="'+escDetail(x.name)+'" data-id="'+escDetail(x.id)+'" data-postal="'+escDetail(x.postal_code||'')+'">'+escDetail(x.name)+'</option>').join('');
     select.disabled=false;
-    select.onchange=()=>{
+    select.onchange=async()=>{
       const opt=select.selectedOptions?.[0];
       const postal=document.getElementById("buyerManualPostalCode");
-      if(postal){
-        postal.value=String(opt?.dataset?.postal||"").trim();
+      let zip=String(opt?.dataset?.postal||"").trim();
+      if(!/^\d{5}$/.test(zip)){
+        try{
+          const res=await fetch("/api/location-postal?search="+encodeURIComponent(select.value),{cache:"no-store"});
+          const data=await res.json().catch(()=>({}));
+          const rows=Array.isArray(data.data)?data.data:[];
+          const match=rows.find(x=>String(x.city_name||x.city||x.name||"").trim().toLowerCase().replace(/^kota\s+/,"").replace(/^kabupaten\s+/,"")===select.value.trim().toLowerCase().replace(/^kota\s+/,"").replace(/^kabupaten\s+/,""));
+          zip=String(match?.zip_code||rows[0]?.zip_code||"").trim();
+        }catch{}
       }
+      if(postal)postal.value=/^\d{5}$/.test(zip)?zip:"";
       updateManualCheckoutAddressSummary();
       calculateCheckoutShipping();
     };
@@ -2436,7 +2446,7 @@ async function startPayment(e){
       phone:document.getElementById("buyerPhone").value.trim(),
       address_line:document.getElementById("buyerManualAddressLine").value.trim(),
       city:document.getElementById("buyerManualCity").value.trim(),
-      province:document.getElementById("buyerManualProvince").value.trim(),
+      province:document.getElementById("buyerManualProvince").selectedOptions?.[0]?.textContent?.trim()||"",
       postal_code:document.getElementById("buyerManualPostalCode").value.trim()
     }:null;
     const payload={
