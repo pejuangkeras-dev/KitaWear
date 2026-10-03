@@ -9,7 +9,33 @@ async function source(request, path) {
   return response.text();
 }
 
-test.describe("P26 — Midtrans payment engine & reconciliation", () => {
+test.describe("P26 — production readiness, payment engine & reconciliation", () => {
+  test("public health endpoint is reachable without exposing secrets", async ({ request }) => {
+    const response = await request.get(baseURL + "/api/health");
+    expect([200, 503]).toContain(response.status());
+    const body = await response.json();
+    expect(body.service).toBe("MarketKita health");
+    expect(body).not.toHaveProperty("supabase_service_role_key");
+    expect(JSON.stringify(body)).not.toMatch(/sk-[A-Za-z0-9]|SB_SERVICE_ROLE|MIDTRANS_SERVER_KEY|RAJAONGKIR_DELIVERY_API_KEY/i);
+  });
+
+  test("production readiness endpoint requires an authenticated admin", async ({ request }) => {
+    const response = await request.get(baseURL + "/api/production-readiness");
+    expect(response.status()).toBe(401);
+  });
+
+  test("production readiness implementation checks production payment and shipping gates", async ({ request }) => {
+    const text = await source(request, "functions/api/production-readiness.js");
+    for (const marker of [
+      "LOGIN_REQUIRED",
+      "ADMIN_REQUIRED",
+      "MIDTRANS_IS_PRODUCTION",
+      "RAJAONGKIR_DELIVERY_BASE_URL",
+      "shipping_production",
+      "midtrans_production"
+    ]) expect(text).toContain(marker);
+  });
+
   test("Midtrans notification endpoint is reachable without exposing secrets", async ({ request }) => {
     const response = await request.get(baseURL + "/api/midtrans-notification");
     expect(response.ok()).toBeTruthy();
