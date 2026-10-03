@@ -29,3 +29,4 @@ window.showAccountSection=function(section){if(typeof originalShow==="function")
 document.addEventListener("DOMContentLoaded",()=>setTimeout(()=>window.loadG3Social?.(),900));
 })();
 const g6=document.createElement("script");g6.src="/loyalty-g6.js?v=20261003-g6";g6.defer=true;document.head.appendChild(g6);const g7=document.createElement("script");g7.src="/communication-g7.js?v=20261003-g7";g7.defer=true;document.head.appendChild(g7);
+const g8=document.createElement("script");g8.src="/order-timeline-g8.js?v=20261003-g8";g8.defer=true;document.head.appendChild(g8);
