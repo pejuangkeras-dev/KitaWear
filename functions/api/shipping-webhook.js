@@ -12,6 +12,10 @@ function mapStatus(v){
 function shipmentStatus(v){
  return v==="delivered"?"delivered":v==="cancelled"?"cancelled":v==="shipped"?"in_transit":"created";
 }
+function statusRank(v){
+ const s=clean(v).toLowerCase();
+ return s==="processing"||s==="created"?1:s==="shipped"||s==="in_transit"?2:s==="delivered"?3:s==="cancelled"?4:0;
+}
 export async function onRequest(context){
  if(context.request.method==="GET")return json({ok:true,service:"MarketKita RajaOngkir Webhook"});
  if(!["POST","PUT"].includes(context.request.method))return json({error:"Method not allowed"},405);
@@ -29,12 +33,19 @@ export async function onRequest(context){
   if(!rows.length&&awb)rows=await sb(u,k,`/rest/v1/shipping_shipments?select=id,order_id,order_seller_id,provider_order_id,status&waybill_id=eq.${encodeURIComponent(awb)}&limit=1`);
   if(!rows.length)return json({ok:true,ignored:true});
   const shipment=rows[0],marketStatus=mapStatus(incomingStatus),nextShipmentStatus=shipmentStatus(marketStatus);
+  const currentMarket=mapStatus(shipment.status);
+  const currentRank=statusRank(currentMarket),incomingRank=statusRank(marketStatus);
+  const isTerminal=currentMarket==="delivered"||currentMarket==="cancelled";
+  const staleStatus=isTerminal || incomingRank<currentRank;
   const eventKey=clean(body.event_id||body.id||body.event||body.order_event_id||(orderNo+"|"+awb+"|"+incomingStatus+"|"+clean(body.updated_at||body.timestamp||"")));
   if(eventKey){
    const existing=await sb(u,k,"/rest/v1/webhook_events?select=id&provider=eq.rajaongkir_delivery&event_key=eq."+encodeURIComponent(eventKey)+"&limit=1");
    if(existing?.length)return json({ok:true,duplicate:true,event_key:eventKey});
    try{await sb(u,k,"/rest/v1/webhook_events",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({provider:"rajaongkir_delivery",event_key:eventKey,order_id:shipment.order_id,received_at:new Date().toISOString(),payload:body})});}
    catch(e){if(String(e?.message||"").includes("duplicate")||String(e?.message||"").includes("409"))return json({ok:true,duplicate:true,event_key:eventKey});throw e;}
+  }
+  if(staleStatus){
+    return json({ok:true,ignored:true,stale:true,event_key:eventKey,current_status:currentMarket,incoming_status:marketStatus});
   }
   const patch={status:nextShipmentStatus,last_webhook_at:new Date().toISOString(),raw_response:body};
   if(nextShipmentStatus==="delivered"){
