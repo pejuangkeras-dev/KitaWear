@@ -560,7 +560,7 @@ body{background:var(--bg);color:var(--ink)}
 </div></header>
 
 <main>
-  <section class="hero"><div class="container hero-grid"><div class="hero-photo"><img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1600&q=90" alt="MarketKita collection"></div><div class="hero-copy"><div><div class="eyebrow" data-i18n="hero_eyebrow">Koleksi terbaru MarketKita</div><h1 data-i18n="hero_title">Simple Style.<br>Everyday Confidence.</h1><p data-i18n="hero_text">Pakaian simpel, nyaman, dan mudah dipadukan untuk menemani aktivitas sehari-hari.</p><a class="hero-btn" href="#produk" data-i18n="hero_button">Belanja Sekarang →</a></div></div></div></section>
+  <section class="hero"><div class="container hero-grid"><div class="hero-photo"><img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1400&q=78" alt="MarketKita collection" width="1400" height="900" fetchpriority="high" decoding="async"></div><div class="hero-copy"><div><div class="eyebrow" data-i18n="hero_eyebrow">Koleksi terbaru MarketKita</div><h1 data-i18n="hero_title">Simple Style.<br>Everyday Confidence.</h1><p data-i18n="hero_text">Pakaian simpel, nyaman, dan mudah dipadukan untuk menemani aktivitas sehari-hari.</p><a class="hero-btn" href="#produk" data-i18n="hero_button">Belanja Sekarang →</a></div></div></div></section>
 
   <section class="section" style="padding-bottom:24px"><div class="container"><div class="section-head"><div class="eyebrow">MarketKita</div><h2>Cari Berdasarkan Kategori</h2></div><div class="category-grid">
 <a class="category-card" href="#produk"><img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=700&q=85" alt="Kaos"><div class="category-content"><strong>Kaos</strong><span>Lihat Semua →</span></div></a>
@@ -628,7 +628,7 @@ body{background:var(--bg);color:var(--ink)}
           <p data-i18n="about_text">Dirancang untuk menemani rutinitas sehari-hari dengan siluet yang simpel, pilihan warna yang mudah dipadukan, dan pengalaman belanja yang praktis.</p>
         </div>
         <div class="about-photo">
-          <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=85" alt="MarketKita everyday fashion">
+          <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1000&q=74" alt="MarketKita everyday fashion" width="1000" height="760" loading="lazy" decoding="async">
         </div>
       </div>
     </div>
@@ -1592,6 +1592,40 @@ async function loadMarketplaceStats(){
     });
   }catch(e){console.warn("MarketKita stats:",e);}
 }
+function optimizeProductImage(value,width=640,height=640,quality=75){
+  const raw=String(value||"").trim();
+  if(!raw)return "";
+  try{
+    const u=new URL(raw,window.location.href);
+    const clamp=n=>Math.max(1,Math.min(1200,Math.round(Number(n)||640)));
+    if(u.hostname.endsWith(".supabase.co")&&u.pathname.includes("/storage/v1/object/public/")){
+      u.pathname=u.pathname.replace("/storage/v1/object/public/","/storage/v1/render/image/public/");
+      u.searchParams.set("width",String(clamp(width)));
+      u.searchParams.set("height",String(clamp(height)));
+      u.searchParams.set("quality",String(Math.max(20,Math.min(90,Number(quality)||75))));
+      u.searchParams.set("resize","cover");
+      return u.toString();
+    }
+    if(u.hostname==="images.unsplash.com"){
+      u.searchParams.set("auto","format");
+      u.searchParams.set("fit","crop");
+      u.searchParams.set("w",String(clamp(width)));
+      u.searchParams.set("q",String(Math.max(45,Math.min(85,Number(quality)||75))));
+      return u.toString();
+    }
+  }catch{}
+  return raw;
+}
+document.addEventListener("error",event=>{
+  const img=event.target;
+  if(!(img instanceof HTMLImageElement))return;
+  const fallback=img.dataset.fallbackSrc;
+  if(!fallback||img.dataset.imageFallback==="1")return;
+  if(img.currentSrc===fallback||img.src===fallback)return;
+  img.dataset.imageFallback="1";
+  img.src=fallback;
+},true);
+
 function renderRecommendations(){
   const root=document.getElementById("recommendationProducts");if(!root)return;
   if(!products.length){root.innerHTML="";return;}
@@ -1605,7 +1639,7 @@ function renderRecommendations(){
   if(!ranked.length){root.innerHTML='<div class="wishlist-empty">Semua rekomendasi sedang ada di wishlist Anda.</div>';return;}
   root.innerHTML=ranked.map(p=>{
     const i=products.indexOf(p),rating=Number(p.productRating||0),reviews=Number(p.reviewCount||0);
-    return '<article class="recommendation-card" onclick="openProductDetail('+i+')"><img src="'+escDetail(p.img)+'" alt="'+escDetail(p.name)+'" loading="lazy"><div class="recommendation-card-body"><strong>'+escDetail(p.name)+'</strong><div class="recommendation-card-price">'+rupiah(p.price)+'</div><div class="market-rating"><span class="market-rating-stars">'+stars(rating)+'</span><strong>'+(rating?rating.toFixed(1):"—")+'</strong><span>('+reviews+')</span></div><div class="recommendation-card-meta">🏪 '+escDetail(p.store?.name||"MarketKita Store")+'</div></div></article>';
+    return '<article class="recommendation-card" onclick="openProductDetail('+i+')"><img src="'+escDetail(optimizeProductImage(p.img,480,480,72))+'" data-fallback-src="'+escDetail(p.img)+'" alt="'+escDetail(p.name)+'" loading="lazy" decoding="async"><div class="recommendation-card-body"><strong>'+escDetail(p.name)+'</strong><div class="recommendation-card-price">'+rupiah(p.price)+'</div><div class="market-rating"><span class="market-rating-stars">'+stars(rating)+'</span><strong>'+(rating?rating.toFixed(1):"—")+'</strong><span>('+reviews+')</span></div><div class="recommendation-card-meta">🏪 '+escDetail(p.store?.name||"MarketKita Store")+'</div></div></article>';
   }).join('');
 }
 
@@ -1617,7 +1651,7 @@ function render(){
   root.innerHTML=rows.length?rows.map(function(p){
     const i=products.indexOf(p),w=isWishlisted(p),sn=p.store&&p.store.name||"MarketKita Store",ss=p.store&&p.store.slug||"";
     const rating=Number(p.productRating||0),reviews=Number(p.reviewCount||0);
-    return "<article class=\"card\" onclick=\"openProductDetail("+i+")\" style=\"cursor:pointer\"><div class=\"photo\" data-product-index=\""+i+"\" role=\"button\" tabindex=\"0\"><img src=\""+escDetail(p.img)+"\" alt=\""+escDetail(p.name)+"\" loading=\"lazy\"><button class=\"product-wishlist "+(w?"active":"")+"\" type=\"button\" onclick=\"toggleWishlist("+i+",event)\" aria-label=\"Wishlist\">"+(w?"♥":"♡")+"</button>"+(p.badge?"<span class=\"badge\">"+escDetail(p.badge)+"</span>":"")+"</div><div class=\"body\"><h3>"+escDetail(p.name)+"</h3><div class=\"price\">"+rupiah(p.price)+"</div><div class=\"market-rating\"><span class=\"market-rating-stars\">"+stars(rating)+"</span><strong>"+(rating?rating.toFixed(1):"—")+"</strong><span>("+reviews+")</span></div>"+(ss?"<a class=\"product-store-link\" href=\"/store.html?slug="+encodeURIComponent(ss)+"\" onclick=\"event.stopPropagation()\">🏪 "+escDetail(sn)+"</a>":"<div class=\"product-store-link\">🏪 "+escDetail(sn)+"</div>")+"<div class=\"swatches\">"+(p.colors||[]).map(col=>"<span class=\"sw\" style=\"background:"+escDetail(col)+"\"></span>").join("")+"</div><div class=\"product-card-actions\"><button class=\"smallbtn product-card-btn\" type=\"button\" onclick=\"event.stopPropagation();addFromProductCard("+i+")\">"+t("add_cart")+"</button><button class=\"smallbtn product-card-btn product-card-buy\" type=\"button\" onclick=\"event.stopPropagation();openProductDetail("+i+")\">Beli Sekarang</button></div></div></article>";
+    return "<article class=\"card\" onclick=\"openProductDetail("+i+")\" style=\"cursor:pointer\"><div class=\"photo\" data-product-index=\""+i+"\" role=\"button\" tabindex=\"0\"><img src=\""+escDetail(optimizeProductImage(p.img,640,640,75))+"\" data-fallback-src=\""+escDetail(p.img)+"\" alt=\""+escDetail(p.name)+"\" loading=\"lazy\" decoding=\"async\"><button class=\"product-wishlist "+(w?"active":"")+"\" type=\"button\" onclick=\"toggleWishlist("+i+",event)\" aria-label=\"Wishlist\">"+(w?"♥":"♡")+"</button>"+(p.badge?"<span class=\"badge\">"+escDetail(p.badge)+"</span>":"")+"</div><div class=\"body\"><h3>"+escDetail(p.name)+"</h3><div class=\"price\">"+rupiah(p.price)+"</div><div class=\"market-rating\"><span class=\"market-rating-stars\">"+stars(rating)+"</span><strong>"+(rating?rating.toFixed(1):"—")+"</strong><span>("+reviews+")</span></div>"+(ss?"<a class=\"product-store-link\" href=\"/store.html?slug="+encodeURIComponent(ss)+"\" onclick=\"event.stopPropagation()\">🏪 "+escDetail(sn)+"</a>":"<div class=\"product-store-link\">🏪 "+escDetail(sn)+"</div>")+"<div class=\"swatches\">"+(p.colors||[]).map(col=>"<span class=\"sw\" style=\"background:"+escDetail(col)+"\"></span>").join("")+"</div><div class=\"product-card-actions\"><button class=\"smallbtn product-card-btn\" type=\"button\" onclick=\"event.stopPropagation();addFromProductCard("+i+")\">"+t("add_cart")+"</button><button class=\"smallbtn product-card-btn product-card-buy\" type=\"button\" onclick=\"event.stopPropagation();openProductDetail("+i+")\">Beli Sekarang</button></div></div></article>";
   }).join(""):"<div class=\"wishlist-empty\" style=\"grid-column:1/-1\">Produk tidak ditemukan. Coba ubah kata kunci atau filter.</div>";
 }
 
@@ -1657,8 +1691,8 @@ function openProductDetail(i){
   const html=`
     <div class="product-detail-grid">
       <div class="product-detail-gallery">
-        <img id="detailMainImage" class="product-detail-main-image" src="${escDetail(imgs[0])}" alt="${escDetail(p.name)}">
-        <div class="product-detail-thumbs">${imgs.map((src,j)=>`<img class="product-detail-thumb ${j===0?"active":""}" src="${escDetail(src)}" onclick="setProductDetailImage(${j},event)" alt="${escDetail(p.name)} ${j+1}">`).join("")}</div>
+        <img id="detailMainImage" class="product-detail-main-image" src="${escDetail(optimizeProductImage(imgs[0],900,900,78))}" data-fallback-src="${escDetail(imgs[0])}" alt="${escDetail(p.name)}" decoding="async">
+        <div class="product-detail-thumbs">${imgs.map((src,j)=>`<img class="product-detail-thumb ${j===0?"active":""}" src="${escDetail(optimizeProductImage(src,220,220,70))}" data-fallback-src="${escDetail(src)}" loading="lazy" decoding="async" onclick="setProductDetailImage(${j},event)" alt="${escDetail(p.name)} ${j+1}">`).join("")}</div>
       </div>
       <div class="product-detail-info">
         <div class="product-detail-eyebrow">MarketKita · Detail Produk</div>
@@ -1708,7 +1742,7 @@ function openProductDetail(i){
         <div id="sellerReviewList" class="review-list"><div class="review-empty">Memuat ulasan seller...</div></div>
       </div>
       <h3>Produk Lain dari ${escDetail(storeName)}</h3>
-      <div class="detail-store-products">${productStoreProducts(p.store_id).filter(x=>x.id!==p.id).slice(0,4).map(x=>`<div class="detail-mini-product" onclick="openProductDetailById('${escDetail(x.id)}')"><img src="${escDetail(x.img)}" alt="${escDetail(x.name)}"><div><strong>${escDetail(x.name)}</strong><span>${rupiah(x.price)}</span></div></div>`).join("") || `<div class="review-empty" style="grid-column:1/-1">Belum ada produk lain dari toko ini.</div>`}</div>
+      <div class="detail-store-products">${productStoreProducts(p.store_id).filter(x=>x.id!==p.id).slice(0,4).map(x=>`<div class="detail-mini-product" onclick="openProductDetailById('${escDetail(x.id)}')"><img src="${escDetail(optimizeProductImage(x.img,220,220,70))}" data-fallback-src="${escDetail(x.img)}" loading="lazy" decoding="async" alt="${escDetail(x.name)}"><div><strong>${escDetail(x.name)}</strong><span>${rupiah(x.price)}</span></div></div>`).join("") || `<div class="review-empty" style="grid-column:1/-1">Belum ada produk lain dari toko ini.</div>`}</div>
     </div>`;
   document.getElementById("productDetailContent").innerHTML=html;
   const modal=document.getElementById("productDetailModal");
@@ -1993,7 +2027,7 @@ function updateCart(){
     ? cart.map((x,i)=>`
       <div class="item">
         <div class="item-thumb">
-          <img src="${products[x.productIndex]?.img || ""}" alt="${x.name}" loading="lazy" onerror="this.style.opacity=0">
+          <img src="${optimizeProductImage(products[x.productIndex]?.img || "",180,180,68)}" data-fallback-src="${products[x.productIndex]?.img || ""}" alt="${x.name}" loading="lazy" decoding="async">
         </div>
         <div class="item-content">
           <div class="item-name">${x.name}</div>
@@ -3117,7 +3151,7 @@ function openLightbox(i){
   img.alt=p.name;
   updateLightboxInfo(p);
   document.getElementById("lightboxThumbs").innerHTML=imgs.map((src,j)=>`
-    <img class="lightbox-thumb ${j===0?"active":""}" src="${src}" onclick="setLightboxImage(${i},${j},event)" alt="${p.name} ${j+1}">
+    <img class="lightbox-thumb ${j===0?"active":""}" src="${optimizeProductImage(src,180,180,68)}" data-fallback-src="${src}" loading="lazy" decoding="async" onclick="setLightboxImage(${i},${j},event)" alt="${p.name} ${j+1}">
   `).join("");
   document.getElementById("lightbox").classList.add("show");
 }
