@@ -68,4 +68,14 @@ test.describe("P25 — security and authorization hardening", () => {
     }
   });
 
+
+  test("P25 final audit migration removes only verified duplicate indexes", async ({ request }) => {
+    const text = await source(request, "supabase/migrations/20261003112000_priority25_final_production_audit_index_cleanup.sql");
+    for (const marker of [
+      "DROP INDEX IF EXISTS public.buyer_addresses_one_default_idx",
+      "DROP INDEX IF EXISTS public.chat_threads_buyer_store_unique_idx",
+      "DROP INDEX IF EXISTS public.shipping_shipments_order_seller_unique_idx"
+    ]) expect(text).toContain(marker);
+    expect(text).toContain("Constraint-backed unique indexes are intentionally retained");
+  });
 });
