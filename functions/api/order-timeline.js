@@ -24,7 +24,7 @@ export async function onRequestGet(context){
     const order=orders?.[0];if(!order)return json({error:"Pesanan tidak ditemukan."},404);
     const profiles=await sb(u,k,"/rest/v1/profiles?select=id,role&id=eq."+encodeURIComponent(me.id)+"&limit=1");
     const role=clean(profiles?.[0]?.role).toLowerCase();
-    const sellers=await sb(u,k,"/rest/v1/order_sellers?select=id,seller_id&id=eq."+encodeURIComponent(id));
+    const sellers=await sb(u,k,"/rest/v1/order_sellers?select=id,seller_id&order_id=eq."+encodeURIComponent(id));
     const allowed=String(order.buyer_id)===String(me.id)||role==="admin"||sellers.some(x=>String(x.seller_id)===String(me.id));
     if(!allowed)return json({error:"Akses ditolak."},403);
     const timeline=await sb(u,k,"/rest/v1/rpc/get_order_timeline",{method:"POST",body:JSON.stringify({p_order_id:id})});
