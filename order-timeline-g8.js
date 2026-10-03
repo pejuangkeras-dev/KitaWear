@@ -22,12 +22,12 @@ async function open(order){
 }
 function decorate(){
  const root=document.getElementById("buyerOrdersList");if(!root)return;
- const cache=Array.isArray(window.buyerOrdersCache)?window.buyerOrdersCache:[];
+
  root.querySelectorAll(".buyer-order-card").forEach(card=>{
    if(card.querySelector("[data-g8-timeline]"))return;
-   const orderNo=card.querySelector(".buyer-order-head strong")?.textContent?.trim();
-   const order=cache.find(x=>String(x.order_number||"")===String(orderNo||""));
-   if(!order)return;
+   const orderId=card.dataset.orderId||"";
+   if(!orderId)return;
+   const order={id:orderId,order_number:card.querySelector(".buyer-order-head strong")?.textContent?.trim()||"",status:""};
    const box=card.querySelector(".buyer-tracking");if(!box)return;
    const b=document.createElement("button");b.type="button";b.dataset.g8Timeline="1";b.className="buyer-order-confirm";b.style.cssText="margin-top:8px;background:#fff;border:1px solid var(--line);color:#222";b.textContent="🕒 Lihat Timeline Lengkap";b.onclick=()=>open(order);box.appendChild(b);
  });
