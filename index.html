@@ -1761,6 +1761,175 @@ a{color:inherit}
   z-index:999999!important;
 }
 </style>
+
+<style id="marketkita-account-banner-final">
+/* ACCOUNT BANNER FINAL — banner besar dipulihkan, strip kecil di belakang X dihilangkan */
+.auth-overlay.account-expanded .auth-head{
+  position:fixed!important;
+  top:14px!important;
+  right:18px!important;
+  z-index:9999!important;
+  display:flex!important;
+  width:auto!important;
+  height:auto!important;
+  padding:0!important;
+  margin:0!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+.auth-overlay.account-expanded .auth-head::before,
+.auth-overlay.account-expanded .auth-head::after{
+  content:none!important;
+  display:none!important;
+}
+.auth-overlay.account-expanded .auth-close{
+  width:42px!important;
+  height:42px!important;
+  padding:0!important;
+  margin:0!important;
+  display:grid!important;
+  place-items:center!important;
+  background:#fff!important;
+  color:#183056!important;
+  border:1px solid #d9e5f2!important;
+  border-radius:50%!important;
+  box-shadow:0 8px 24px rgba(18,55,95,.16)!important;
+  position:relative!important;
+  z-index:10000!important;
+}
+.account-main .account-hero{
+  position:relative!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  min-height:190px!important;
+  margin:0 0 18px!important;
+  padding:32px 38px!important;
+  overflow:hidden!important;
+  border-radius:18px!important;
+  border:1px solid #c7e1fb!important;
+  background:linear-gradient(105deg,#dff1ff 0%,#c9e7ff 52%,#eef8ff 100%)!important;
+  box-shadow:0 10px 28px rgba(35,117,190,.10)!important;
+  color:#123b72!important;
+}
+.account-main .account-hero::before{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  pointer-events:none!important;
+  background:linear-gradient(115deg,rgba(255,255,255,.5),rgba(255,255,255,0) 58%)!important;
+}
+.account-main .account-hero-copy{
+  position:relative!important;
+  z-index:4!important;
+  max-width:590px!important;
+}
+.account-main .account-hero-kicker{
+  color:#0878f8!important;
+  font-size:11px!important;
+  letter-spacing:.16em!important;
+  text-transform:uppercase!important;
+  font-weight:950!important;
+  margin-bottom:8px!important;
+}
+.account-main .account-hero h3{
+  margin:0 0 8px!important;
+  color:#102f5e!important;
+  font-size:31px!important;
+  line-height:1.08!important;
+  letter-spacing:-.045em!important;
+}
+.account-main .account-hero p{
+  margin:0!important;
+  max-width:500px!important;
+  color:#4e6d91!important;
+  font-size:12px!important;
+  line-height:1.55!important;
+}
+.account-main .account-hero-art{
+  position:absolute!important;
+  right:18px!important;
+  top:0!important;
+  bottom:0!important;
+  width:44%!important;
+  pointer-events:none!important;
+  z-index:2!important;
+}
+.mk-hero-circle{
+  position:absolute!important;
+  border:1px solid rgba(255,255,255,.75)!important;
+  border-radius:50%!important;
+}
+.mk-hero-circle-1{width:270px!important;height:270px!important;right:20px!important;top:-80px!important}
+.mk-hero-circle-2{width:210px!important;height:210px!important;right:75px!important;top:12px!important}
+.mk-hero-bag{
+  position:absolute!important;
+  width:86px!important;
+  height:96px!important;
+  border-radius:10px 10px 15px 15px!important;
+  bottom:25px!important;
+  box-shadow:0 10px 18px rgba(31,91,140,.14)!important;
+}
+.mk-hero-bag::before{
+  content:""!important;
+  position:absolute!important;
+  width:38px!important;
+  height:20px!important;
+  left:24px!important;
+  top:-13px!important;
+  border:5px solid currentColor!important;
+  border-bottom:0!important;
+  border-radius:18px 18px 0 0!important;
+}
+.mk-hero-bag-blue{right:125px!important;background:#0878f8!important;color:#0878f8!important}
+.mk-hero-bag-blue{display:flex!important;align-items:center!important;justify-content:center!important;color:#fff!important;font-size:10px!important;font-weight:900!important}
+.mk-hero-bag-orange{right:45px!important;background:#ff9d3d!important;color:#ff9d3d!important;transform:rotate(7deg)!important}
+.mk-hero-cart{
+  position:absolute!important;
+  right:195px!important;
+  bottom:28px!important;
+  width:105px!important;
+  height:70px!important;
+  border-bottom:9px solid #0878f8!important;
+  border-left:8px solid #0878f8!important;
+  border-radius:4px 4px 18px 12px!important;
+  transform:skew(-7deg)!important;
+}
+.mk-hero-cart span{
+  position:absolute!important;
+  width:55px!important;
+  height:9px!important;
+  background:#0878f8!important;
+  left:-24px!important;
+  top:-13px!important;
+  border-radius:8px!important;
+  transform:rotate(-18deg)!important;
+}
+.mk-hero-cart i{
+  position:absolute!important;
+  width:13px!important;
+  height:13px!important;
+  border-radius:50%!important;
+  background:#102f5e!important;
+  bottom:-20px!important;
+}
+.mk-hero-cart i:first-of-type{left:17px!important}
+.mk-hero-cart i:last-of-type{right:10px!important}
+@media(max-width:650px){
+  .account-main .account-hero{
+    min-height:165px!important;
+    padding:24px 20px!important;
+  }
+  .account-main .account-hero h3{font-size:24px!important;max-width:62%!important}
+  .account-main .account-hero p{font-size:10px!important;max-width:58%!important}
+  .account-main .account-hero-art{right:-45px!important;width:62%!important;opacity:.9!important}
+  .mk-hero-bag-blue{right:85px!important;transform:scale(.8)!important;transform-origin:bottom right!important}
+  .mk-hero-bag-orange{right:25px!important;transform:scale(.75) rotate(7deg)!important;transform-origin:bottom right!important}
+  .mk-hero-cart{right:130px!important;transform:scale(.75)!important;transform-origin:bottom right!important}
+}
+</style>
+
 </head>
 
 <body>
@@ -2204,7 +2373,21 @@ a{color:inherit}
           </div>
         </aside>
 
-        <section class="account-main">
+                <section class="account-main">
+          <div class="account-hero" aria-label="Banner MarketKita">
+            <div class="account-hero-copy">
+              <div class="account-hero-kicker">MarketKita</div>
+              <h3>Belanja Mudah, Jualan Makin Berkembang</h3>
+              <p>Temukan produk pilihan dari penjual terpercaya di seluruh Indonesia.</p>
+            </div>
+            <div class="account-hero-art" aria-hidden="true">
+              <div class="mk-hero-circle mk-hero-circle-1"></div>
+              <div class="mk-hero-circle mk-hero-circle-2"></div>
+              <div class="mk-hero-bag mk-hero-bag-blue">MarketKita</div>
+              <div class="mk-hero-bag mk-hero-bag-orange"></div>
+              <div class="mk-hero-cart"><span></span><i></i><i></i></div>
+            </div>
+          </div>
           <div id="accountSection-profile" class="account-section active">
             <div class="account-page-head">
               <h3>Profil Saya</h3>
