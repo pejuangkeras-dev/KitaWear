@@ -48,6 +48,21 @@ export async function onRequest(context){
     return json({ok:true,ignored:true,stale:true,event_key:eventKey,current_status:currentMarket,incoming_status:marketStatus});
   }
   const patch={status:nextShipmentStatus,last_webhook_at:new Date().toISOString(),raw_response:body};
+  const eventDescription=clean(body.description||body.message||body.status_description||incomingStatus||marketStatus)||"Status pengiriman diperbarui";
+  const eventCity=clean(body.city||body.city_name||body.location||"");
+  const eventAtRaw=clean(body.updated_at||body.timestamp||body.event_at||"");
+  const parsedEventAt=eventAtRaw && !Number.isNaN(Date.parse(eventAtRaw)) ? new Date(eventAtRaw).toISOString() : new Date().toISOString();
+  if(eventKey){
+    try{
+      await sb(u,k,"/rest/v1/shipping_tracking_events",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({
+        shipment_id:shipment.id,order_id:shipment.order_id,order_seller_id:shipment.order_seller_id,
+        event_key:eventKey,status:marketStatus,description:eventDescription,city:eventCity||null,event_at:parsedEventAt,raw:body
+      })});
+    }catch(e){
+      const msg=String(e?.message||"");
+      if(!msg.includes("duplicate")&&!msg.includes("409")) throw e;
+    }
+  }
   if(nextShipmentStatus==="delivered"){
     patch.delivered_at=new Date().toISOString();
     patch.delivery_proof_at=new Date().toISOString();
