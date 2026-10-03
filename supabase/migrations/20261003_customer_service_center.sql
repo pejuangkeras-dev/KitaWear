@@ -23,7 +23,7 @@ create index if not exists cs_messages_thread_idx on public.cs_messages(thread_i
 alter table public.cs_threads enable row level security;
 alter table public.cs_messages enable row level security;
 create or replace function public.cs_touch_thread()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path=public as $
 begin
   update public.cs_threads set updated_at=now(),last_message_at=new.created_at where id=new.thread_id;
   return new;
@@ -31,7 +31,7 @@ end $$;
 drop trigger if exists cs_messages_touch_thread on public.cs_messages;
 create trigger cs_messages_touch_thread after insert on public.cs_messages for each row execute function public.cs_touch_thread();
 create or replace function public.cs_customer_notification()
-returns trigger language plpgsql security definer set search_path=public as $$
+returns trigger language plpgsql set search_path=public as $
 declare cid uuid;
 begin
   select customer_id into cid from public.cs_threads where id=new.thread_id;
@@ -43,3 +43,5 @@ begin
 end $$;
 drop trigger if exists cs_message_customer_notification on public.cs_messages;
 create trigger cs_message_customer_notification after insert on public.cs_messages for each row execute function public.cs_customer_notification();
+revoke all on function public.cs_touch_thread() from public,anon,authenticated;
+revoke all on function public.cs_customer_notification() from public,anon,authenticated;
