@@ -5,3 +5,8 @@ create index if not exists orders_shipping_address_idx on public.orders (shippin
 create index if not exists refund_requests_buyer_created_idx on public.refund_requests (buyer_id, created_at desc);
 create index if not exists seller_payout_audit_admin_created_idx on public.seller_payout_audit (admin_id, created_at desc);
 create index if not exists shipping_reconciliation_runs_order_idx on public.shipping_reconciliation_runs (order_id, created_at desc);
+create index if not exists product_reviews_order_idx on public.product_reviews (order_id, created_at desc);
+create index if not exists refund_requests_admin_created_idx on public.refund_requests (admin_id, created_at desc);
+create index if not exists safety_moderation_actions_admin_created_idx on public.safety_moderation_actions (admin_id, created_at desc);
+create index if not exists safety_reports_resolved_by_created_idx on public.safety_reports (resolved_by, created_at desc);
+create index if not exists seller_payouts_order_item_idx on public.seller_payouts (order_item_id);
