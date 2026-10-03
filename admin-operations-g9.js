@@ -4,6 +4,7 @@ const rp=v=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maxim
 async function token(){try{return (await window.kwSupabase?.auth?.getSession())?.data?.session?.access_token||""}catch{return""}}
 async function load(){
  const box=document.getElementById("g9OperationsBody");if(!box)return;
+ const nav=document.getElementById("g9BiLink");if(nav)nav.innerHTML='<a href="/admin-bi-g10.html">📊 Buka Marketplace BI (G10)</a>';
  box.innerHTML='<div class="g9-loading">Memuat operational health...</div>';
  try{
   const t=await token();if(!t)throw Error("Sesi admin tidak ditemukan.");
