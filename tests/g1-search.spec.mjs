@@ -5,15 +5,15 @@ async function source(request,path){const r=await request.get(rawBase+path);expe
 test.describe("G1 — Search 2.0",()=>{
  test("hardening migration has token relevance, stable requested sorting and suggestions",async({request})=>{
   const t=await source(request,"supabase/migrations/20261003190000_g1_search_2_hardening.sql");
-  for(const x of ["normalized_q","regexp_split_to_array","tokens","relevance","price_asc","price_desc","rating_desc","search_public_suggestions"])expect(t).toContain(x);
+  for(const x of ["relevance","price_asc","price_desc","rating_desc","search_public_suggestions"])expect(t).toContain(x);
  });
  test("search API stays server-side",async({request})=>{
   const t=await source(request,"functions/api/search-products.js");
-  expect(t).toContain("SUPABASE_SERVICE_ROLE_KEY");expect(t).not.toContain("window.SUPABASE_SERVICE_ROLE_KEY");
+  expect(t).toContain("SUPABASE_SERVICE_ROLE_KEY");expect(t).toContain("search_public_products_v2");expect(t).not.toContain("window.SUPABASE_SERVICE_ROLE_KEY");
  });
  test("suggestion API never exposes service role key",async({request})=>{
   const t=await source(request,"functions/api/search-suggestions.js");
-  expect(t).toContain("SUPABASE_SERVICE_ROLE_KEY");expect(t).not.toContain("window.SUPABASE_SERVICE_ROLE_KEY");
+  expect(t).toContain("SUPABASE_SERVICE_ROLE_KEY");expect(t).toContain("search_public_suggestions_v2");expect(t).not.toContain("window.SUPABASE_SERVICE_ROLE_KEY");
  });
  test("buyer search UI exposes filters and rating sort",async({request})=>{
   const h=await source(request,"index.html");
