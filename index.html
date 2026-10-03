@@ -7145,21 +7145,19 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
     if(r.error){alert(r.error.message||"Pesan gagal dikirim.");return;}
     await kwSupabase.from("cs_threads").update({updated_at:new Date().toISOString(),last_message_at:new Date().toISOString()}).eq("id",t.id);
     csMessages.push({sender_role:"customer",body:text});
+    ui();
     setTimeout(async()=>{
       const reply=botReply(text);
+      // Tampilkan balasan otomatis langsung di UI. Penyimpanan ke Supabase dilakukan sebagai best-effort.
+      csMessages.push({sender_role:"admin",is_bot:true,body:reply});
+      ui();
       try{
         const b=await kwSupabase.rpc("cs_add_bot_reply",{p_thread_id:t.id,p_body:reply});
-        if(b.error){
-          console.error("CS auto-reply gagal:",b.error);
-          return;
-        }
-        csMessages.push({sender_role:"admin",is_bot:true,body:reply});
+        if(b.error) console.error("CS auto-reply storage gagal:",b.error);
       }catch(err){
-        console.error("CS auto-reply gagal:",err);
+        console.error("CS auto-reply storage gagal:",err);
       }
-      ui();
     },450);
-    ui();
   }
   async function poll(){if(csThread){const r=await kwSupabase.from("cs_threads").select("*").eq("id",csThread.id).maybeSingle();if(r.data){csThread=r.data;const m=await kwSupabase.from("cs_messages").select("id,sender_id,sender_role,body,created_at").eq("thread_id",csThread.id).order("created_at",{ascending:true});if(m.data){csMessages=m.data;ui();}}}}
   const ready=()=>{
