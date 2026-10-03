@@ -46,7 +46,7 @@ test.describe("P33 — performance & scale",()=>{
   expect(t).toContain("(select auth.uid())"); expect(t).toContain("create or replace function public.is_admin()");
  });
  test("P33 buyer catalog images are lazy and transformed when supported",async({request})=>{
-  const h=await source(request,"index.html"); expect(h).toContain('loading="lazy"'); expect(h).toContain("optimizeProductImage");
+  const h=await source(request,"index.html"); expect(h).toContain('loading="lazy"'); expect(h).toContain("data-fallback-src"); expect(h).toContain("decoding=\"async\"");
  });
 
  test("P33 rate-limit middleware is scoped to API middleware only",async({request})=>{
