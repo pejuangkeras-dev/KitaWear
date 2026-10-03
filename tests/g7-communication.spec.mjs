@@ -17,6 +17,8 @@ test("G7 communication center is hardened",async()=>{
 });
 test("G7 buyer/seller chat surfaces exist",async()=>{
  const index=read("index.html"),seller=read("seller.html");
- for(const x of ["accountSection-messages","buyerChatInbox","sendBuyerChatMessage","open_chat_thread"]) expect(index).toContain(x);
+ for(const x of ["accountSection-messages","buyerChatInbox","sendBuyerChatMessage","open_chat_thread","social-g3.js"]) expect(index).toContain(x);
  for(const x of ["sellerChatThreads","sendSellerChat","seller-chat-"]) expect(seller).toContain(x);
+ const ui=read("communication-g7.js");
+ for(const x of ["get_chat_unread_count","g7RefreshChatUnread","g7-chat-unread"]) expect(ui).toContain(x);
 });
