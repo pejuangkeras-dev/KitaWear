@@ -1,7 +1,21 @@
-function json(data,status=200){return new Response(JSON.stringify(data),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"public, max-age=15, s-maxage=15"}});}
+function json(data,status=200,cache="public, max-age=15, s-maxage=30, stale-while-revalidate=60"){return new Response(JSON.stringify(data),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":cache,"X-MarketKita-Cache":"MISS"}});}
 function clean(v,max=160){return String(v??"").trim().slice(0,max);}
 function intParam(v,fallback=0){const n=Number.parseInt(String(v??""),10);return Number.isFinite(n)&&n>=0?n:fallback;}
 function normalizeUrl(v){return String(v||"").trim().replace(/\/+$/,"");}
+function cacheKey(request){const u=new URL(request.url);u.searchParams.sort();return new Request(u.toString(),{method:"GET"});}
+async function cachedFetch(request,producer){
+  const cache=globalThis.caches?.default;
+  if(!cache)return producer(false);
+  const key=cacheKey(request);
+  const hit=await cache.match(key);
+  if(hit){
+    const headers=new Headers(hit.headers);headers.set("X-MarketKita-Cache","HIT");
+    return new Response(await hit.text(),{status:hit.status,headers});
+  }
+  const fresh=await producer(false);
+  if(fresh.ok){try{const headers=new Headers(fresh.headers);headers.set("Cache-Control","public, max-age=15, s-maxage=30, stale-while-revalidate=60");headers.set("X-MarketKita-Cache","MISS");const body=await fresh.text();const stored=new Response(body,{status:fresh.status,headers});await cache.put(key,stored.clone());return stored;}catch{}}
+  return fresh;
+}
 export async function onRequestGet({request,env}){
   try{
     const url=new URL(request.url);
@@ -13,13 +27,15 @@ export async function onRequestGet({request,env}){
     const sort=clean(url.searchParams.get("sort")||"relevance",30);
     const page=Math.max(1,intParam(url.searchParams.get("page"),1));
     const pageSize=Math.min(48,Math.max(1,intParam(url.searchParams.get("page_size"),24)));
-    if(max>0&&min>max)return json({error:"Harga minimum tidak boleh lebih besar dari harga maksimum."},400);
-    if(!env.SUPABASE_URL||!env.SUPABASE_SERVICE_ROLE_KEY)return json({error:"Konfigurasi Supabase server belum lengkap."},500);
+    if(max>0&&min>max)return json({error:"Harga minimum tidak boleh lebih besar dari harga maksimum."},400,"no-store");
+    if(!env.SUPABASE_URL||!env.SUPABASE_SERVICE_ROLE_KEY)return json({error:"Konfigurasi Supabase server belum lengkap."},500,"no-store");
     const endpoint=normalizeUrl(env.SUPABASE_URL)+"/rest/v1/rpc/search_public_products";
-    const response=await fetch(endpoint,{method:"POST",headers:{apikey:env.SUPABASE_SERVICE_ROLE_KEY,Authorization:"Bearer "+env.SUPABASE_SERVICE_ROLE_KEY,"Content-Type":"application/json"},body:JSON.stringify({p_query:query,p_category:category,p_store_slug:store,p_min_price:min,p_max_price:max,p_sort:sort,p_page:page,p_page_size:pageSize})});
-    const text=await response.text();let data;try{data=text?JSON.parse(text):null;}catch{data=null;}
-    if(!response.ok)return json({error:data?.message||data?.details||"Pencarian produk gagal."},502);
-    const result=data?.products!==undefined?data:{products:[]};
-    return json(result);
-  }catch(error){console.error("MarketKita search-products:",error);return json({error:error?.message||"Pencarian produk gagal."},500);}
+    const response=await cachedFetch(request,async()=>{
+      const r=await fetch(endpoint,{method:"POST",headers:{apikey:env.SUPABASE_SERVICE_ROLE_KEY,Authorization:"Bearer "+env.SUPABASE_SERVICE_ROLE_KEY,"Content-Type":"application/json"},body:JSON.stringify({p_query:query,p_category:category,p_store_slug:store,p_min_price:min,p_max_price:max,p_sort:sort,p_page:page,p_page_size:pageSize})});
+      const text=await r.text();let data;try{data=text?JSON.parse(text):null;}catch{data=null;}
+      if(!r.ok)return json({error:data?.message||data?.details||"Pencarian produk gagal."},502,"no-store");
+      return json(data?.products!==undefined?data:{products:[]});
+    });
+    return response;
+  }catch(error){console.error("MarketKita search-products:",error);return json({error:error?.message||"Pencarian produk gagal."},500,"no-store");}
 }
