@@ -56,4 +56,16 @@ test.describe("P25 — security and authorization hardening", () => {
       expect(text).not.toMatch(/SUPABASE_SERVICE_ROLE_KEY|MIDTRANS_SERVER_KEY|RAJAONGKIR_DELIVERY_API_KEY/i);
     }
   });
+
+  test("P25 migrations harden SECURITY DEFINER access and address helpers", async ({ request }) => {
+    const hardening = await source(request, "supabase/migrations/20261003110000_priority25_security_access_hardening.sql");
+    for (const marker of ["set search_path = ''''", "from anon", "address_street_import_batches_no_client_access"]) {
+      expect(hardening).toContain(marker);
+    }
+    const address = await source(request, "supabase/migrations/20261003111000_priority25_address_security_cleanup.sql");
+    for (const marker of ["normalize_address_text(text) set search_path=''", "address_street_set_normalized() set search_path=''", "address_alias_set_normalized() set search_path=''", "revoke execute on function public.search_address_streets"]) {
+      expect(address).toContain(marker);
+    }
+  });
+
 });
