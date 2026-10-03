@@ -47,3 +47,11 @@ test.describe('Priority 20 Shipment Transaction', () => {
     expect(body).not.toMatch(/SUPABASE_SERVICE_ROLE_KEY|RAJAONGKIR_DELIVERY_API_KEY|RAJAONGKIR_WEBHOOK_SECRET|MIDTRANS_SERVER_KEY/i);
   });
 });
+
+
+test('checkout idempotency accepts the first request and rejects only a concurrent replay', async () => {
+  const source = await fetch('https://raw.githubusercontent.com/pejuangkeras-dev/MarketKita/main/functions/api/create-transaction.js').then(r => r.text());
+  expect(source).toContain('const idempotencyRecordCreated = Boolean(idem);');
+  expect(source).toContain('if (!idempotencyRecordCreated && idem.status === "processing")');
+  expect(source).not.toContain('if (idem.status === "processing") {');
+});
