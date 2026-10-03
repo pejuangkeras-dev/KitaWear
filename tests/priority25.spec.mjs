@@ -9,7 +9,7 @@ async function source(request, path) {
   return response.text();
 }
 
-test.describe("P25 — security and authorization hardening", () => {
+test.describe("P25 — final production audit", () => {
   test("protected marketplace lifecycle API rejects anonymous access", async ({ request }) => {
     const response = await request.get(baseURL + "/api/marketplace-lifecycle");
     expect(response.status()).toBe(401);
