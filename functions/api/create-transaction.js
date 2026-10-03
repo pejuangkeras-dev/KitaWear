@@ -672,10 +672,7 @@ export async function onRequestPost(context) {
     let voucherRow = null;
 
     if (voucherId) {
-      if (!buyerUser?.id) {
-        return json({ error: "Voucher hanya dapat digunakan setelah login." }, 401);
-      }
-
+      if (!buyerUser?.id) return json({ error: "Voucher hanya dapat digunakan setelah login." }, 401);
       const voucherRows = await supabaseRequest(
         supabaseUrl,
         serviceRoleKey,
@@ -683,46 +680,38 @@ export async function onRequestPost(context) {
           "&id=eq." + encodeURIComponent(voucherId) + "&active=eq.true&limit=1",
         { method: "GET" }
       );
-
       voucherRow = Array.isArray(voucherRows) ? voucherRows[0] : null;
       if (!voucherRow) return json({ error: "Voucher tidak tersedia." }, 400);
 
-      const now = Date.now();
-      if (voucherRow.starts_at && new Date(voucherRow.starts_at).getTime() > now) {
-        return json({ error: "Voucher belum dapat digunakan." }, 400);
-      }
-      if (voucherRow.expires_at && new Date(voucherRow.expires_at).getTime() <= now) {
-        return json({ error: "Voucher sudah kedaluwarsa." }, 400);
-      }
-      if (voucherRow.usage_limit != null && Number(voucherRow.used_count || 0) >= Number(voucherRow.usage_limit)) {
-        return json({ error: "Kuota voucher sudah habis." }, 400);
-      }
-
-      const claimedRows = await supabaseRequest(
+      const promotionResult = await supabaseRequest(
         supabaseUrl,
         serviceRoleKey,
-        "/rest/v1/user_vouchers?select=id,used_at&voucher_id=eq." + encodeURIComponent(voucherId) +
-          "&user_id=eq." + encodeURIComponent(buyerUser.id) + "&limit=1",
-        { method: "GET" }
+        "/rest/v1/rpc/validate_promotion_for_checkout",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            p_voucher_id: voucherId,
+            p_user_id: buyerUser.id,
+            p_subtotal: subtotal,
+            p_product_ids: [...new Set(items.map(x => x.product_id))],
+            p_store_ids: [...new Set(items.map(x => x.store_id))]
+          })
+        }
       );
-      const claim = Array.isArray(claimedRows) ? claimedRows[0] : null;
-      if (!claim) return json({ error: "Klaim voucher terlebih dahulu dari Voucher Saya." }, 400);
-      if (claim.used_at) return json({ error: "Voucher ini sudah digunakan." }, 400);
 
-      if (subtotal < Number(voucherRow.min_order_amount || 0)) {
-        return json({ error: "Minimum transaksi voucher belum terpenuhi." }, 400);
+      if (!promotionResult?.valid) {
+        const code = String(promotionResult?.code || "VOUCHER_INVALID");
+        const messages = {
+          VOUCHER_NOT_CLAIMED: "Klaim voucher terlebih dahulu dari Voucher Saya.",
+          VOUCHER_ALREADY_USED: "Voucher ini sudah digunakan.",
+          VOUCHER_UNAVAILABLE: "Voucher tidak tersedia atau sudah kedaluwarsa.",
+          MIN_ORDER_NOT_MET: "Minimum transaksi voucher belum terpenuhi.",
+          PROMOTION_NOT_ELIGIBLE: "Voucher tidak berlaku untuk produk/toko pada keranjang ini.",
+          FIRST_ORDER_ONLY: "Voucher ini hanya berlaku untuk pesanan pertama."
+        };
+        return json({ error: messages[code] || "Voucher tidak dapat digunakan.", code }, 400);
       }
-
-      if (voucherRow.discount_type === "percent") {
-        discountAmount = Math.floor(subtotal * Number(voucherRow.discount_value || 0) / 100);
-      } else {
-        discountAmount = Number(voucherRow.discount_value || 0);
-      }
-
-      if (voucherRow.max_discount != null) {
-        discountAmount = Math.min(discountAmount, Number(voucherRow.max_discount));
-      }
-      discountAmount = Math.max(0, Math.min(discountAmount, subtotal));
+      discountAmount = safeInteger(promotionResult.discount_amount, 0);
     }
 
     const total = subtotal - discountAmount + shippingFee;
