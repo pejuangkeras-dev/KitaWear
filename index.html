@@ -1045,6 +1045,247 @@ a{color:inherit}
  .detail-full-section{padding:0 16px 22px!important}
 }
 </style>
+<style id="marketkita-final-design-v5">
+/* FINAL MARKETKITA DESIGN SYSTEM — remove remaining legacy beige/black auth visuals */
+:root{
+ --mk5-blue:#0878f8;--mk5-blue-dark:#0666d8;--mk5-blue-light:#eaf4ff;
+ --mk5-ink:#10254a;--mk5-text:#334563;--mk5-muted:#7d8da5;
+ --mk5-line:#dfe8f2;--mk5-bg:#f5f9fd;--mk5-red:#ff3340;
+}
+/* Login/register modal */
+#authOverlay{
+ background:rgba(7,28,55,.62)!important;
+ backdrop-filter:blur(4px)!important;
+ padding:20px!important;
+}
+#authOverlay .auth-box{
+ width:min(430px,calc(100vw - 32px))!important;
+ max-height:min(720px,calc(100vh - 32px))!important;
+ padding:0!important;
+ overflow:auto!important;
+ background:#fff!important;
+ border:1px solid #dbe6f1!important;
+ border-radius:18px!important;
+ box-shadow:0 30px 90px rgba(7,43,84,.24)!important;
+ color:var(--mk5-text)!important;
+}
+#authOverlay:not(.account-expanded) .auth-head{
+ position:relative!important;
+ display:block!important;
+ margin:0!important;
+ padding:28px 28px 20px!important;
+ background:linear-gradient(135deg,#f8fcff 0%,#eaf5ff 100%)!important;
+ border-bottom:1px solid var(--mk5-line)!important;
+}
+#authOverlay:not(.account-expanded) .auth-head:before{
+ content:"MK"!important;
+ display:grid!important;place-items:center!important;
+ width:42px!important;height:42px!important;margin-bottom:14px!important;
+ border-radius:12px!important;
+ background:linear-gradient(135deg,#0878f8,#21a0ff)!important;
+ color:#fff!important;font-size:16px!important;font-weight:950!important;
+ box-shadow:0 8px 18px rgba(8,120,248,.2)!important;
+}
+#authOverlay:not(.account-expanded) .auth-head h3{
+ display:block!important;margin:0!important;
+ color:var(--mk5-ink)!important;font-size:25px!important;line-height:1.1!important;
+ letter-spacing:-.04em!important;font-weight:900!important;
+}
+#authOverlay:not(.account-expanded) .auth-head:after{
+ content:"Belanja mudah, aman, dan nyaman bersama MarketKita."!important;
+ display:block!important;margin-top:7px!important;
+ color:var(--mk5-muted)!important;font-size:11px!important;line-height:1.5!important;
+}
+#authOverlay:not(.account-expanded) .auth-close{
+ position:absolute!important;right:18px!important;top:18px!important;
+ width:36px!important;height:36px!important;border-radius:50%!important;
+ border:1px solid #d8e4ef!important;background:#fff!important;
+ color:#52647d!important;font-size:20px!important;line-height:1!important;
+ cursor:pointer!important;
+}
+#authOverlay:not(.account-expanded) .auth-close:hover{
+ background:var(--mk5-blue-light)!important;color:var(--mk5-blue)!important;border-color:#bcdcff!important;
+}
+#authOverlay:not(.account-expanded) #authGuest{
+ padding:20px 28px 25px!important;
+}
+#authOverlay:not(.account-expanded) .auth-tabs{
+ display:grid!important;grid-template-columns:1fr 1fr!important;
+ gap:6px!important;padding:4px!important;margin:0 0 20px!important;
+ background:#f1f5f9!important;border:1px solid #e4ebf3!important;border-radius:10px!important;
+}
+#authOverlay:not(.account-expanded) .auth-tab{
+ height:38px!important;border:0!important;border-radius:7px!important;
+ background:transparent!important;color:#6f8098!important;
+ font-size:11px!important;font-weight:850!important;cursor:pointer!important;
+}
+#authOverlay:not(.account-expanded) .auth-tab.active{
+ background:#fff!important;color:var(--mk5-blue)!important;
+ box-shadow:0 2px 8px rgba(20,65,110,.08)!important;
+ border:1px solid #dce8f3!important;
+}
+#authOverlay:not(.account-expanded) .auth-form .field{
+ margin:0 0 13px!important;
+}
+#authOverlay:not(.account-expanded) .auth-form .field label,
+#authOverlay:not(.account-expanded) .field label{
+ display:block!important;margin:0 0 6px!important;
+ color:#42536d!important;font-size:10px!important;font-weight:800!important;
+}
+#authOverlay:not(.account-expanded) .auth-form .field input,
+#authOverlay:not(.account-expanded) .reset-password-panel input{
+ width:100%!important;height:43px!important;box-sizing:border-box!important;
+ border:1px solid #d6e2ee!important;border-radius:9px!important;
+ background:#fff!important;color:var(--mk5-ink)!important;
+ padding:0 12px!important;font-size:11px!important;outline:none!important;
+}
+#authOverlay:not(.account-expanded) .auth-form .field input::placeholder{
+ color:#a0adbc!important;
+}
+#authOverlay:not(.account-expanded) .auth-form .field input:focus{
+ border-color:#65adfa!important;
+ box-shadow:0 0 0 3px rgba(8,120,248,.09)!important;
+}
+#authOverlay:not(.account-expanded) .auth-submit{
+ width:100%!important;height:44px!important;margin-top:3px!important;
+ border:0!important;border-radius:9px!important;
+ background:linear-gradient(135deg,#0878f8,#0870ea)!important;
+ color:#fff!important;font-size:11px!important;font-weight:900!important;
+ box-shadow:0 8px 18px rgba(8,120,248,.18)!important;
+ cursor:pointer!important;
+}
+#authOverlay:not(.account-expanded) .auth-submit:hover{
+ background:var(--mk5-blue-dark)!important;transform:translateY(-1px)!important;
+}
+#authOverlay:not(.account-expanded) .auth-submit:disabled{
+ opacity:.65!important;cursor:wait!important;transform:none!important;
+}
+#authOverlay:not(.account-expanded) .auth-forgot{
+ display:block!important;margin:13px auto 0!important;
+ width:auto!important;padding:3px!important;
+ color:var(--mk5-blue)!important;background:transparent!important;
+ font-size:10px!important;font-weight:750!important;text-decoration:none!important;
+}
+#authOverlay:not(.account-expanded) .auth-forgot:hover{text-decoration:underline!important}
+#authOverlay:not(.account-expanded) .auth-message{
+ margin:11px 0 0!important;min-height:18px!important;
+ color:#d13c45!important;font-size:10px!important;text-align:center!important;
+}
+#authOverlay:not(.account-expanded) .auth-note{
+ margin:18px 0 0!important;padding:12px!important;
+ border:1px solid #e3edf7!important;border-radius:9px!important;
+ background:#f7fbff!important;color:#8493a8!important;
+ font-size:9px!important;line-height:1.55!important;
+}
+#authOverlay:not(.account-expanded) .reset-password-panel{
+ margin-top:16px!important;padding-top:16px!important;
+ border-top:1px solid var(--mk5-line)!important;
+}
+#authOverlay:not(.account-expanded) .reset-password-panel .field{margin-bottom:10px!important}
+
+/* Any legacy black buttons in auth are forcibly removed */
+#authOverlay:not(.account-expanded) button:not(.auth-close){
+ font-family:inherit!important;
+}
+#authOverlay:not(.account-expanded) .auth-tab.active,
+#authOverlay:not(.account-expanded) .auth-submit{
+ background-color:var(--mk5-blue)!important;
+}
+
+/* User/account dashboard — same current marketplace language */
+#authOverlay.account-expanded{
+ background:rgba(7,28,55,.62)!important;
+ backdrop-filter:blur(4px)!important;
+}
+#authOverlay.account-expanded .auth-box{
+ width:min(1220px,calc(100vw - 28px))!important;
+ height:min(860px,calc(100vh - 28px))!important;
+ background:var(--mk5-bg)!important;
+ border:1px solid #d9e6f2!important;
+ border-radius:18px!important;
+ box-shadow:0 30px 90px rgba(7,43,84,.24)!important;
+}
+#authOverlay.account-expanded .auth-close{
+ width:36px!important;height:36px!important;border-radius:50%!important;
+ background:#fff!important;border:1px solid #d7e3ee!important;
+ color:#53647b!important;
+}
+#authOverlay.account-expanded .account-sidebar{
+ background:#fff!important;border-right:1px solid var(--mk5-line)!important;
+}
+#authOverlay.account-expanded .account-user-card:before{
+ content:"MarketKita"!important;
+ display:block!important;color:var(--mk5-blue)!important;font-size:18px!important;
+ font-weight:950!important;letter-spacing:-.04em!important;margin-bottom:16px!important;
+}
+#authOverlay.account-expanded .account-user-card{
+ display:block!important;padding:22px 18px 18px!important;
+ border-bottom:1px solid #edf2f7!important;background:#fff!important;
+}
+#authOverlay.account-expanded .account-avatar{
+ width:54px!important;height:54px!important;border-radius:15px!important;
+ background:linear-gradient(135deg,#0878f8,#24a0ff)!important;
+ box-shadow:0 8px 18px rgba(8,120,248,.18)!important;
+}
+#authOverlay.account-expanded .account-user-text{margin-top:10px!important}
+#authOverlay.account-expanded .account-user-text strong{color:var(--mk5-ink)!important;font-size:14px!important}
+#authOverlay.account-expanded .account-user-text button{color:var(--mk5-blue)!important}
+#authOverlay.account-expanded .account-nav-title{
+ color:#94a1b3!important;font-size:9px!important;text-transform:uppercase!important;
+ letter-spacing:.1em!important;font-weight:900!important;
+}
+#authOverlay.account-expanded .account-nav-item{
+ color:#52647c!important;border-radius:9px!important;
+ padding:10px 12px!important;font-size:10px!important;font-weight:650!important;
+}
+#authOverlay.account-expanded .account-nav-item:hover{
+ background:#f1f7ff!important;color:var(--mk5-blue)!important;
+}
+#authOverlay.account-expanded .account-nav-item.active{
+ background:var(--mk5-blue-light)!important;color:var(--mk5-blue)!important;
+ font-weight:900!important;
+}
+#authOverlay.account-expanded .account-main{
+ background:var(--mk5-bg)!important;padding:26px 28px 38px!important;
+}
+#authOverlay.account-expanded .account-hero{
+ min-height:160px!important;border-radius:16px!important;
+ background:linear-gradient(110deg,#075fcf,#0878f8 58%,#43acff)!important;
+ box-shadow:0 12px 28px rgba(8,120,248,.15)!important;
+}
+#authOverlay.account-expanded .account-hero h3{color:#fff!important}
+#authOverlay.account-expanded .account-hero p{color:rgba(255,255,255,.84)!important}
+#authOverlay.account-expanded .account-section{
+ background:#fff!important;border:1px solid var(--mk5-line)!important;border-radius:14px!important;
+ box-shadow:0 4px 18px rgba(25,75,130,.035)!important;
+}
+#authOverlay.account-expanded .account-page-head{
+ border-color:#edf2f7!important;
+}
+#authOverlay.account-expanded .account-page-head h3{color:var(--mk5-ink)!important}
+#authOverlay.account-expanded .profile-row>label{color:#435570!important}
+#authOverlay.account-expanded .profile-row input{
+ border-color:#d7e3ee!important;border-radius:9px!important;
+ background:#fff!important;color:var(--mk5-ink)!important;
+}
+#authOverlay.account-expanded .profile-row input:focus{
+ border-color:#65adfa!important;box-shadow:0 0 0 3px rgba(8,120,248,.08)!important;
+}
+#authOverlay.account-expanded .profile-save{
+ background:var(--mk5-blue)!important;border-radius:9px!important;
+}
+@media(max-width:650px){
+ #authOverlay:not(.account-expanded){padding:10px!important}
+ #authOverlay:not(.account-expanded) .auth-box{
+   width:calc(100vw - 20px)!important;border-radius:15px!important;
+ }
+ #authOverlay:not(.account-expanded) .auth-head{padding:22px 20px 17px!important}
+ #authOverlay:not(.account-expanded) #authGuest{padding:17px 20px 20px!important}
+ #authOverlay.account-expanded .auth-box{
+   width:100vw!important;height:100dvh!important;border-radius:0!important;
+ }
+}
+</style>
 </head>
 
 <body>
