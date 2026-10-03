@@ -53,6 +53,11 @@ export async function onRequestPost(context){
   if(!u||!k||!a)return json({error:"Konfigurasi Supabase server belum lengkap."},500);
   const user=await authUser(context.request,u,a);if(!user)return json({error:"Silakan login sebagai seller."},401);
   if(!apiKey)return json({error:"RAJAONGKIR_DELIVERY_API_KEY belum dipasang di Cloudflare. Gunakan API key Shipping Delivery, bukan Shipping Cost."},500);
+  // P21: enforce the production gate server-side as well as in seller.html.
+  // A browser/client must never be able to bypass the sandbox protection by
+  // calling POST /api/shipping-create directly.
+  const providerMode = base.toLowerCase().includes("sandbox") || base.toLowerCase().includes("collaborator.komerce.id") ? "sandbox" : "production";
+  if(providerMode !== "production")return json({error:"Automatic shipment creation is disabled while RajaOngkir Delivery is in sandbox mode.",mode:providerMode,safe_to_create:false},409);
   const body=await context.request.json().catch(()=>({})),orderId=clean(body.order_id),requestedSellerId=clean(body.order_seller_id);
   if(!orderId)return json({error:"order_id wajib."},400);
   const profile=await sb(u,k,"/rest/v1/profiles?select=id,role&id=eq."+encodeURIComponent(user.id)+"&limit=1"),role=clean(profile?.[0]?.role).toLowerCase(),isAdmin=role==="admin";
