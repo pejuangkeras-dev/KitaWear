@@ -3,9 +3,9 @@ const baseURL=process.env.MARKETKITA_URL||"https://marketkita.pages.dev";
 const rawBase="https://raw.githubusercontent.com/pejuangkeras-dev/MarketKita/main/";
 async function source(request,path){const r=await request.get(rawBase+path);expect(r.ok()).toBeTruthy();return r.text();}
 test.describe("G1 — Search 2.0",()=>{
- test("hardening migration has token relevance, stable requested sorting and suggestions",async({request})=>{
+ test("hardening migration has stable relevance, requested sorting and suggestions",async({request})=>{
   const t=await source(request,"supabase/migrations/20261003190000_g1_search_2_hardening.sql");
-  for(const x of ["relevance","price_asc","price_desc","rating_desc","search_public_suggestions"])expect(t).toContain(x);
+  for(const x of ["relevance","price_asc","price_desc","rating_desc","search_public_products_v2","search_public_suggestions_v2"])expect(t).toContain(x);
  });
  test("search API stays server-side",async({request})=>{
   const t=await source(request,"functions/api/search-products.js");
