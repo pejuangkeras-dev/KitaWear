@@ -2451,7 +2451,375 @@ body{background:#f4f7fb!important;color:#17233b!important}
   .mk2-mobile-nav button span{font-size:18px!important;line-height:1!important}
   .mk2-mobile-nav button.active{color:#1769e8!important}
 }
-</style></head>
+</style>
+<style id="marketkita-design-a-20261004">
+/* =========================================================
+   MARKETKITA DESIGN A — MODERN & CLEAN BLUE
+   Full visual pass based on the approved Design A reference.
+   Functional DOM/JS is preserved; this layer is visual only.
+   ========================================================= */
+:root{
+  --a-blue:#1769e8;
+  --a-blue-2:#2f8cff;
+  --a-blue-dark:#0d55c7;
+  --a-navy:#102b57;
+  --a-text:#243a5a;
+  --a-muted:#73839b;
+  --a-bg:#f3f8ff;
+  --a-card:#ffffff;
+  --a-line:#dfe9f5;
+  --a-soft:#eaf4ff;
+  --a-red:#ff3340;
+  --a-shadow:0 8px 24px rgba(30,73,130,.07);
+}
+
+/* Base */
+html,body{background:var(--a-bg)!important;color:var(--a-text)!important}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}
+.container{width:min(1440px,calc(100% - 56px))!important}
+button,input,select{font-family:inherit!important}
+
+/* Top utility strip */
+.mk2-top{height:30px!important;background:linear-gradient(90deg,#0d5ed5,#1769e8)!important}
+.mk2-top .container{height:30px!important;font-size:10px!important}
+
+/* Header */
+.mk2-header{
+  position:sticky!important;top:0!important;z-index:1000!important;
+  background:rgba(255,255,255,.98)!important;
+  border-bottom:1px solid var(--a-line)!important;
+  box-shadow:0 2px 14px rgba(28,68,120,.06)!important;
+}
+.mk2-header .container{min-height:68px!important;gap:20px!important}
+.mk2-logo img{width:178px!important;height:auto!important}
+.mk2-search{
+  height:42px!important;max-width:650px!important;
+  border:1px solid #cbd9ea!important;border-radius:10px!important;
+  box-shadow:none!important;background:#fff!important;
+}
+.mk2-search input{font-size:12px!important;color:var(--a-navy)!important}
+.mk2-search input::placeholder{color:#91a0b5!important}
+.mk2-search button{width:48px!important;background:var(--a-blue)!important}
+.mk2-search button:hover{background:var(--a-blue-dark)!important}
+.mk2-actions{gap:4px!important}
+.mk2-action{
+  min-width:56px!important;padding:5px 7px!important;
+  color:#425875!important;border-radius:9px!important;
+}
+.mk2-action:hover{background:var(--a-soft)!important;color:var(--a-blue)!important}
+.mk2-action i{font-size:17px!important;color:#17385f!important}
+.mk2-action span{font-size:9px!important}
+.mk2-account{
+  height:38px!important;padding:0 18px!important;
+  border-radius:9px!important;background:var(--a-blue)!important;color:#fff!important;
+}
+.mk2-account:hover{background:var(--a-blue-dark)!important}
+
+/* Category bar */
+.mk2-catnav{background:#fff!important;border-bottom:1px solid var(--a-line)!important}
+.mk2-catnav .container{height:44px!important;min-height:44px!important}
+.mk2-cat{
+  height:44px!important;padding:0 12px!important;
+  color:#52657f!important;font-size:10px!important;font-weight:700!important;
+}
+.mk2-cat:hover,.mk2-cat:focus{background:#f1f6fd!important;color:var(--a-blue)!important}
+.mk2-home-link{color:var(--a-blue)!important}
+
+/* Homepage shell */
+.mk2-main{max-width:1440px!important;margin:0 auto!important;padding:10px 18px 42px!important}
+
+/* Hero — Design A proportions */
+.mk2-hero-grid{
+  grid-template-columns:minmax(0,2.15fr) minmax(300px,.85fr)!important;
+  gap:10px!important;height:270px!important;min-height:270px!important;
+}
+.mk2-hero-main,.mk2-slider{
+  height:270px!important;min-height:270px!important;
+  border-radius:15px!important;box-shadow:var(--a-shadow)!important;
+}
+.mk2-slide>img{object-position:center!important}
+.mk2-slide:after{
+  background:linear-gradient(90deg,
+    rgba(229,243,255,.98) 0%,
+    rgba(229,243,255,.92) 30%,
+    rgba(229,243,255,.48) 55%,
+    rgba(229,243,255,.10) 78%,
+    rgba(229,243,255,0) 100%)!important;
+}
+.mk2-hero-copy{padding:30px 38px!important;max-width:580px!important}
+.mk2-kicker{font-size:10px!important;letter-spacing:.12em!important;color:var(--a-blue)!important}
+.mk2-hero-copy h1{
+  margin:6px 0 11px!important;
+  font-size:38px!important;line-height:1.01!important;
+  letter-spacing:-.055em!important;color:var(--a-navy)!important;
+}
+.mk2-hero-copy h1 span{color:var(--a-blue)!important}
+.mk2-hero-copy p{
+  max-width:405px!important;margin:0 0 16px!important;
+  font-size:11px!important;line-height:1.55!important;color:#25466f!important;
+}
+.mk2-primary{
+  padding:10px 17px!important;border-radius:9px!important;
+  background:var(--a-blue)!important;box-shadow:0 8px 18px rgba(23,105,232,.2)!important;
+  font-size:10px!important;font-weight:850!important;
+}
+.mk2-primary:hover{background:var(--a-blue-dark)!important}
+.mk2-slider-dots{bottom:9px!important}
+
+/* Right promotional cards */
+.mk2-side{height:270px!important;min-height:270px!important;gap:10px!important}
+.mk2-banner{
+  min-height:130px!important;padding:18px!important;
+  border-radius:14px!important;box-shadow:var(--a-shadow)!important;
+  background:#e9f5ff!important;color:var(--a-navy)!important;
+}
+.mk2-banner h3{font-size:19px!important;line-height:1.06!important}
+.mk2-banner p{font-size:9px!important;color:#315273!important}
+.mk2-banner strong{
+  margin-top:8px!important;padding:6px 10px!important;
+  border-radius:999px!important;background:var(--a-blue)!important;color:#fff!important;
+  font-size:9px!important;
+}
+.mk2-banner img{opacity:.96!important}
+.mk2-banner.local{
+  background:linear-gradient(135deg,#0f70eb,#2c96ff)!important;color:#fff!important;
+}
+.mk2-banner.local p{color:rgba(255,255,255,.85)!important}
+.mk2-banner.local strong{background:#fff!important;color:var(--a-blue)!important}
+
+/* Category tiles */
+.mk2-cats{gap:8px!important;padding:11px 0!important}
+.mk2-cat-card{
+  min-height:70px!important;border:1px solid var(--a-line)!important;
+  border-radius:11px!important;background:#fff!important;
+  box-shadow:0 3px 10px rgba(30,73,130,.04)!important;
+  color:#314866!important;font-size:9px!important;
+}
+.mk2-cat-card:hover{transform:translateY(-2px)!important;border-color:#bcd5f4!important}
+.mk2-cat-icon{
+  width:32px!important;height:32px!important;
+  border-radius:9px!important;background:#edf5ff!important;font-size:17px!important;
+}
+
+/* Trust strip */
+.mk2-trust{
+  margin-bottom:14px!important;border:1px solid var(--a-line)!important;
+  border-radius:12px!important;background:#fff!important;box-shadow:0 2px 9px rgba(30,73,130,.03)!important;
+}
+.mk2-trust-item{padding:12px 15px!important;border-color:#e8eef6!important}
+.mk2-trust-icon{font-size:19px!important}
+.mk2-trust strong{font-size:10px!important;color:var(--a-navy)!important}
+.mk2-trust span{font-size:8px!important;color:var(--a-muted)!important}
+
+/* Flash Sale */
+.mk2-flash{
+  padding:12px!important;margin-bottom:18px!important;
+  border:1px solid var(--a-line)!important;border-radius:14px!important;
+  background:#fff!important;box-shadow:var(--a-shadow)!important;
+}
+.mk2-flash-title h2{font-size:20px!important;color:var(--a-navy)!important}
+.mk2-timer b{background:var(--a-blue)!important;border-radius:5px!important;font-size:10px!important}
+.mk2-see{color:var(--a-blue)!important;font-size:9px!important}
+.mk2-flash-grid{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:8px!important}
+.mk2-sale-card{border:1px solid var(--a-line)!important;border-radius:10px!important;background:#fff!important}
+.mk2-sale-card .discount{background:var(--a-red)!important;border-radius:5px!important;font-size:8px!important}
+.mk2-sale-photo{background:#f7f9fc!important}
+.mk2-sale-body strong{font-size:9px!important;color:var(--a-navy)!important}
+.mk2-price{font-size:12px!important;color:#ef2837!important}
+.mk2-old{font-size:8px!important;color:#8997aa!important}
+.mk2-sold{font-size:7px!important;color:#7d8da5!important}
+
+/* Product section */
+.mk2-products-section{padding:14px 0 26px!important}
+.mk2-section-head{margin-bottom:10px!important}
+.mk2-section-head h2{font-size:23px!important;color:var(--a-navy)!important}
+.mk2-section-head p{font-size:9px!important;color:var(--a-muted)!important}
+#produk .marketplace-toolbar{
+  position:static!important;
+  display:flex!important;gap:7px!important;align-items:center!important;
+  padding:7px!important;margin-bottom:10px!important;
+  border:1px solid var(--a-line)!important;border-radius:11px!important;
+  background:#fff!important;box-shadow:none!important;overflow:auto!important;
+}
+#produk .marketplace-toolbar input,
+#produk .marketplace-toolbar select,
+#produk .marketplace-toolbar button{
+  height:34px!important;border:1px solid #d7e2ef!important;
+  border-radius:999px!important;background:#fff!important;
+  color:#4b607c!important;font-size:9px!important;
+}
+#produk .marketplace-toolbar button:hover{border-color:#a9c7eb!important;color:var(--a-blue)!important}
+#produk .marketplace-toolbar .filter-search{min-width:240px!important}
+#produk .products{
+  grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:9px!important;
+}
+#produk .card{
+  border:1px solid var(--a-line)!important;border-radius:11px!important;
+  background:#fff!important;box-shadow:0 2px 8px rgba(30,73,130,.035)!important;
+}
+#produk .card:hover{
+  transform:translateY(-3px)!important;
+  box-shadow:0 12px 28px rgba(30,73,130,.10)!important;
+  border-color:#c8dcf3!important;
+}
+#produk .photo{aspect-ratio:1/1!important;background:#f7f9fc!important}
+#produk .photo img{object-fit:cover!important}
+#produk .badge{
+  top:7px!important;left:7px!important;
+  padding:4px 6px!important;border-radius:5px!important;
+  background:var(--a-red)!important;font-size:8px!important;
+}
+#produk .body{padding:8px!important}
+#produk .body h3{
+  min-height:27px!important;margin-bottom:4px!important;
+  font-size:10px!important;line-height:1.3!important;color:var(--a-navy)!important;
+}
+#produk .price{font-size:13px!important;color:#ed2637!important;margin-bottom:4px!important}
+#produk .market-rating{font-size:8px!important}
+#produk .market-rating-stars{color:#f2a400!important;font-size:9px!important}
+#produk .product-store-link{font-size:8px!important;color:#7c8da3!important}
+#produk .product-card-actions{gap:5px!important;margin-top:7px!important}
+#produk .product-card-btn{height:31px!important;border-radius:7px!important;font-size:8px!important}
+#produk .product-card-buy{
+  background:#eef6ff!important;color:var(--a-blue)!important;border:1px solid #cfe2ff!important;
+}
+#produk .smallbtn,.smallbtn{background:var(--a-blue)!important;border-radius:8px!important}
+#produk .smallbtn:hover,.smallbtn:hover{background:var(--a-blue-dark)!important}
+
+/* Recommendations */
+#rekomendasi{padding:10px 0 28px!important}
+#rekomendasi .recommendation-grid{
+  grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:9px!important;
+}
+#rekomendasi .recommendation-grid .card{
+  border:1px solid var(--a-line)!important;border-radius:11px!important;
+  background:#fff!important;box-shadow:0 2px 8px rgba(30,73,130,.035)!important;
+}
+#rekomendasi .recommendation-grid .photo{aspect-ratio:1/1!important}
+
+/* Checkout, cart, auth, account and product detail share the same Design A language */
+.drawer-panel,.modal-box,.product-detail-box{background:#fff!important;border-color:var(--a-line)!important}
+.drawer-panel{box-shadow:-18px 0 45px rgba(20,55,100,.13)!important}
+.close-btn,.product-detail-close{
+  background:#f5f9fd!important;border-color:#d7e2ef!important;color:#294564!important;
+}
+.checkout-btn,.pay-btn,.product-detail-btn.dark,.profile-save{
+  background:var(--a-blue)!important;color:#fff!important;border-color:var(--a-blue)!important;
+}
+.checkout-btn:hover,.pay-btn:hover,.product-detail-btn.dark:hover,.profile-save:hover{background:var(--a-blue-dark)!important}
+.product-detail-modal,.modal,.drawer{background:rgba(10,38,75,.52)!important}
+.product-detail-gallery{background:#f4f8fd!important}
+.product-detail-info{background:#fff!important}
+.product-detail-title,.product-detail-head strong,.product-detail-section h4{color:var(--a-navy)!important}
+.product-detail-price{color:#ed2637!important}
+.product-detail-size.active{background:var(--a-blue)!important;border-color:var(--a-blue)!important}
+.seller-avatar{background:var(--a-blue)!important}
+.seller-actions button:last-child{background:var(--a-soft)!important;color:var(--a-blue)!important;border-color:#c7defb!important}
+.checkout-summary{background:#f5f9fd!important;border-color:var(--a-line)!important}
+.search-input,.field input,.field select,.size-select{
+  border-color:#d4e0ee!important;background:#fff!important;color:var(--a-navy)!important;
+}
+.search-input:focus,.field input:focus{border-color:#73aef0!important;box-shadow:0 0 0 3px rgba(23,105,232,.09)!important}
+
+/* Account center */
+#authOverlay.account-expanded .account-sidebar{background:#fff!important;border-color:var(--a-line)!important}
+#authOverlay.account-expanded .account-main{background:var(--a-bg)!important}
+#authOverlay.account-expanded .account-nav-item.active{background:var(--a-soft)!important;color:var(--a-blue)!important}
+#authOverlay.account-expanded .account-hero,
+#authOverlay.account-expanded .account-main > .account-hero{
+  background:linear-gradient(105deg,#e2f1ff 0%,#cfe8ff 55%,#eef8ff 100%)!important;
+  border-color:#c8e1fa!important;box-shadow:0 10px 28px rgba(35,117,190,.10)!important;
+}
+#authOverlay.account-expanded .account-hero h3{color:#102f5e!important}
+#authOverlay.account-expanded .account-hero-kicker{color:var(--a-blue)!important}
+#authOverlay.account-expanded .account-card,
+#authOverlay.account-expanded .profile-form,
+#authOverlay.account-expanded .account-page-head{background:#fff!important;border-color:var(--a-line)!important}
+#authOverlay.account-expanded .account-card-icon{background:var(--a-soft)!important;color:var(--a-blue)!important}
+#authOverlay.account-expanded .account-card-btn,
+#authOverlay.account-expanded .profile-save{background:var(--a-blue)!important;color:#fff!important}
+
+/* CS panel */
+#mk2CsPanel{border:1px solid var(--a-line)!important;border-radius:15px!important;box-shadow:0 16px 45px rgba(20,47,85,.18)!important}
+#mk2CsPanel .mk2-cs-head,#mk2CsPanel .cs-head{background:var(--a-blue)!important}
+#mk2CsMessages{background:#f6f9fd!important}
+#mk2CsForm{background:#fff!important;border-color:var(--a-line)!important}
+#mk2CsForm button,#mk2CsButton{background:var(--a-blue)!important}
+
+/* Remove legacy beige/black surfaces that can leak into visible marketplace UI */
+.footer{background:#092b61!important;color:#fff!important}
+.footer p,.footer-links a{color:#cfe2fa!important}
+.benefit{background:#fff!important;border-color:var(--a-line)!important}
+.about-block{background:linear-gradient(110deg,#0d5dcc,#2f8cff)!important}
+
+/* Mobile */
+@media(max-width:1200px){
+  .mk2-cats{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+  .mk2-flash-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  #produk .products,#rekomendasi .recommendation-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+}
+@media(max-width:900px){
+  .container{width:min(100% - 28px,1440px)!important}
+  .mk2-header .container{flex-wrap:wrap;padding:8px 0!important}
+  .mk2-logo img{width:140px!important}
+  .mk2-search{order:3;flex-basis:100%;max-width:none!important}
+  .mk2-hero-grid{height:240px!important;min-height:240px!important}
+  .mk2-hero-main,.mk2-slider{height:240px!important;min-height:240px!important}
+  .mk2-side{height:240px!important;min-height:240px!important}
+}
+@media(max-width:700px){
+  body{padding-bottom:62px!important}
+  .mk2-top{display:none!important}
+  .mk2-main{padding:7px 7px 22px!important}
+  .mk2-header .container{padding:7px!important;gap:7px!important}
+  .mk2-logo img{width:118px!important}
+  .mk2-action{min-width:38px!important;padding:4px!important}
+  .mk2-action span{font-size:7px!important}
+  .mk2-account{height:34px!important;padding:0 11px!important;font-size:9px!important}
+  .mk2-catnav .container{width:100%!important;padding:0 6px!important}
+  .mk2-cat{font-size:9px!important;padding:0 9px!important}
+  .mk2-hero-grid{height:205px!important;min-height:205px!important;display:block!important}
+  .mk2-hero-main,.mk2-slider{height:205px!important;min-height:205px!important;border-radius:13px!important}
+  .mk2-hero-copy{padding:20px 18px!important;max-width:75%!important}
+  .mk2-hero-copy h1{font-size:25px!important}
+  .mk2-hero-copy p{font-size:9px!important;max-width:245px!important}
+  .mk2-primary{padding:8px 12px!important;font-size:9px!important}
+  .mk2-side{display:grid!important;grid-template-columns:1fr 1fr!important;grid-template-rows:1fr!important;height:auto!important;min-height:0!important;margin-top:7px!important}
+  .mk2-banner{min-height:102px!important;padding:12px!important}
+  .mk2-banner h3{font-size:13px!important}
+  .mk2-banner p{font-size:8px!important}
+  .mk2-banner strong{font-size:7px!important}
+  .mk2-cats{display:flex!important;overflow-x:auto!important;gap:7px!important;padding:9px 1px!important}
+  .mk2-cat-card{flex:0 0 72px!important;min-height:68px!important}
+  .mk2-trust{grid-template-columns:repeat(2,1fr)!important}
+  .mk2-trust-item{padding:9px!important;min-height:50px!important}
+  .mk2-trust-item:nth-child(n+5){display:none!important}
+  .mk2-flash{padding:9px!important}
+  .mk2-flash-grid{display:flex!important;overflow-x:auto!important;gap:7px!important}
+  .mk2-sale-card{flex:0 0 132px!important}
+  #produk .marketplace-toolbar{margin-left:0!important;margin-right:0!important}
+  #produk .products,#rekomendasi .recommendation-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+  #produk .body h3{font-size:10px!important}
+  #produk .price{font-size:12px!important}
+  .mk2-mobile-nav{
+    position:fixed!important;display:grid!important;grid-template-columns:repeat(5,1fr)!important;
+    left:0!important;right:0!important;bottom:0!important;height:60px!important;
+    background:#fff!important;border-top:1px solid var(--a-line)!important;
+    box-shadow:0 -6px 20px rgba(20,55,100,.10)!important;z-index:5000!important;
+  }
+  .mk2-mobile-nav button{background:#fff!important;color:#718096!important}
+  .mk2-mobile-nav button.active{color:var(--a-blue)!important}
+}
+</style>
+<style id="marketkita-design-a-promo">
+.mk2-promo-discount{background:linear-gradient(135deg,#dceeff,#bfe0ff)!important;color:#0f315f!important}
+.mk2-promo-discount h3 b{display:block;font-size:30px;line-height:.9;color:var(--a-blue)!important;letter-spacing:-.05em}
+.mk2-promo-discount p{color:#45627f!important}
+.mk2-promo-discount strong{background:var(--a-blue)!important;color:#fff!important}
+.mk2-promo-discount img{width:53%!important;mix-blend-mode:multiply!important;opacity:.9!important}
+@media(max-width:700px){.mk2-promo-discount h3 b{font-size:21px!important}.mk2-promo-discount img{width:48%!important}}
+</style>
+</head>
 
 <body>
 <div class="mk2-top"><div class="container"><span>🚚 Gratis ongkir minimal pembelian Rp 200.000</span><span>Diskon 10% untuk pembelian pertama</span><span>Tersedia dalam 5 bahasa · ID · EN · VI · TH · CH</span></div></div>
@@ -2554,12 +2922,13 @@ body{background:#f4f7fb!important;color:#17233b!important}
       </div>
     </div>
     <div class="mk2-side">
-      <div class="mk2-banner">
-        <h3>Gratis Ongkir<br>ke Seluruh Indonesia</h3><p>Min. Belanja Rp 50.000 &nbsp; ➜</p><strong>FREE 🚚</strong>
-      </div>
       <div class="mk2-banner local">
         <h3>Produk Lokal<br>Kualitas Global</h3><p>Dukung UMKM Indonesia</p><strong>Lihat Koleksi →</strong>
         <img src="https://images.unsplash.com/photo-1523779917675-b6ed3a42a561?auto=format&fit=crop&w=700&q=78" alt="Produk lokal">
+      </div>
+      <div class="mk2-banner mk2-promo-discount">
+        <h3>Diskon Hingga<br><b>50%</b></h3><p>Belanja lebih hemat setiap hari</p><strong>Lihat Promo →</strong>
+        <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=700&q=78" alt="Headphone promo">
       </div>
     </div>
   </div>
