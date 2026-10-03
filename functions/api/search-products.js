@@ -1,4 +1,4 @@
-function json(data,status=200,cache="public, max-age=15, s-maxage=30, stale-while-revalidate=60"){return new Response(JSON.stringify(data),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":cache,"X-MarketKita-Cache":"MISS"}});}
+function json(data,status=200,cache="public, max-age=15, stale-while-revalidate=60"){return new Response(JSON.stringify(data),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":cache,"X-MarketKita-Cache":"MISS"}});}
 function clean(v,max=160){return String(v??"").trim().slice(0,max);}
 function intParam(v,fallback=0){const n=Number.parseInt(String(v??""),10);return Number.isFinite(n)&&n>=0?n:fallback;}
 function normalizeUrl(v){return String(v||"").trim().replace(/\/+$/,"");}
@@ -14,7 +14,7 @@ async function cachedFetch(request,producer){
   }
   const fresh=await producer();
   if(!fresh.ok)return fresh;
-  const headers=new Headers(fresh.headers);headers.set("Cache-Control","public, max-age=15, s-maxage=30, stale-while-revalidate=60");headers.set("X-MarketKita-Cache","MISS");
+  const headers=new Headers(fresh.headers);headers.set("Cache-Control","public, max-age=15, stale-while-revalidate=60");headers.set("CDN-Cache-Control","public, max-age=30, stale-while-revalidate=60");headers.set("X-MarketKita-Cache","MISS");
   const response=new Response(fresh.body,{status:fresh.status,headers});
   try{await cache.put(key,response.clone());}catch{}
   return response;
