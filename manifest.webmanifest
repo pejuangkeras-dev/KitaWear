@@ -9,8 +9,8 @@
   "display": "standalone",
   "display_override": ["window-controls-overlay","standalone","minimal-ui"],
   "orientation": "portrait-primary",
-  "background_color": "#f7f5f0",
-  "theme_color": "#171817",
+  "background_color": "#FFF9E9",
+  "theme_color": "#0878F9",
   "categories": ["shopping","lifestyle"],
   "icons": [
     {"src": "/icons/marketkita-pwa.svg","sizes": "any","type": "image/svg+xml","purpose": "any maskable"}
