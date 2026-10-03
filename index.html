@@ -7147,10 +7147,15 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
     csMessages.push({sender_role:"customer",body:text});
     setTimeout(async()=>{
       const reply=botReply(text);
-      const b=await kwSupabase.from("cs_messages").insert({thread_id:t.id,sender_id:user.id,sender_role:"admin",is_bot:true,body:reply});
-      if(!b.error){
-        await kwSupabase.from("cs_threads").update({updated_at:new Date().toISOString(),last_message_at:new Date().toISOString()}).eq("id",t.id);
+      try{
+        const b=await kwSupabase.rpc("cs_add_bot_reply",{p_thread_id:t.id,p_body:reply});
+        if(b.error){
+          console.error("CS auto-reply gagal:",b.error);
+          return;
+        }
         csMessages.push({sender_role:"admin",is_bot:true,body:reply});
+      }catch(err){
+        console.error("CS auto-reply gagal:",err);
       }
       ui();
     },450);
