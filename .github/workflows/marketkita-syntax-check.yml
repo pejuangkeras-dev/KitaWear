@@ -16,7 +16,7 @@ jobs:
           node <<'NODE'
           const fs=require('fs');
           const html=fs.readFileSync('index.html','utf8');
-          const scripts=[...html.matchAll(/<script[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m=>m[1]);
+          const scripts=[...html.matchAll(/<script[^>]*>([\\s\S]*?)<\/script>/gi)].map(m=>m[1]);
           console.log('inline scripts:',scripts.length);
           for (let i=0;i<scripts.length;i++) {
             try { new Function(scripts[i]); console.log('OK script',i+1); }
