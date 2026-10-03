@@ -41,3 +41,7 @@ jobs:
       - name: P29 Promotion Engine smoke tests
         run: |
           npx playwright test tests/priority29.spec.mjs
+
+      - name: P30 Search & Discovery smoke tests
+        run: |
+          npx playwright test tests/priority30.spec.mjs
