@@ -6893,7 +6893,7 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
 </style>
 <script>
 (function(){
-  const key=()=>{try{return "mk_account_payments_"+(window.kwCurrentUser?.id||"guest")}catch(e){return "mk_account_payments_guest"}};
+  const key=()=>{try{return "mk_account_payments_"+(kwCurrentUser?.id||"guest")}catch(e){return "mk_account_payments_guest"}};
   const privacyKey=()=>{try{return "mk_account_privacy_"+(window.kwCurrentUser?.id||"guest")}catch(e){return "mk_account_privacy_guest"}};
   function read(k, fallback){try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(fallback))}catch(e){return fallback}}
   function write(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
@@ -6944,7 +6944,44 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
     if(section==="bank"){setTimeout(renderAccountPayments,0)}
     if(section==="privacy"){setTimeout(loadAccountPrivacy,0)}
   };
+  window.loadG3Wishlist=function(){
+    const root=document.getElementById("g3WishlistList");if(!root)return;
+    const rows=(window.marketKitaProducts||[]).filter(p=>{try{return typeof isWishlisted==="function"&&isWishlisted(p)}catch(e){return false}});
+    if(!rows.length){root.innerHTML='<div class="account-empty">Belum ada produk di wishlist. Buka produk lalu tekan ♡ untuk menambahkannya.</div>';return}
+    root.innerHTML=rows.map(p=>{
+      const i=(window.marketKitaProducts||[]).indexOf(p);
+      const img=typeof escDetail==="function"?escDetail(p.img||""):String(p.img||"");
+      const name=typeof escDetail==="function"?escDetail(p.name||"Produk"):String(p.name||"Produk");
+      const price=typeof formatRupiah==="function"?formatRupiah(p.price||0):("Rp "+Number(p.price||0).toLocaleString("id-ID"));
+      return '<div class="account-payment-item"><div style="display:flex;align-items:center;gap:10px"><img src="'+img+'" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover"><div class="account-payment-meta"><strong>'+name+'</strong><span>'+price+'</span></div></div><div class="account-payment-actions"><button type="button" onclick="openProductDetail('+i+')">Lihat</button><button type="button" class="danger" onclick="removeAccountWishlist('+JSON.stringify(String(p.id||p.name))+')">Hapus</button></div></div>';
+    }).join("");
+  };
+  window.removeAccountWishlist=function(id){
+    try{
+      if(typeof wishlistIds!=="undefined"){wishlistIds.delete(String(id));if(typeof saveWishlist==="function")saveWishlist();if(typeof render==="function")render();}
+    }catch(e){}
+    loadG3Wishlist();
+  };
+  window.loadG3Follows=function(){
+    const root=document.getElementById("g3FollowedStoresList");if(!root)return;
+    let list=[];try{list=JSON.parse(localStorage.getItem("marketkita_followed_stores_v1")||"[]")}catch(e){}
+    if(!Array.isArray(list)||!list.length){
+      root.innerHTML='<div class="account-empty">Belum ada toko yang diikuti. Kunjungi halaman produk dan ikuti toko dari kartu toko jika tersedia.</div>';
+      return;
+    }
+    root.innerHTML=list.map((x,i)=>'<div class="account-payment-item"><div class="account-payment-meta"><strong>'+escapeAccountText(x.name||"Toko")+'</strong><span>'+escapeAccountText(x.category||"Toko MarketKita")+'</span></div><div class="account-payment-actions"><button type="button" class="danger" onclick="removeAccountFollow('+i+')">Hapus</button></div></div>').join("");
+  };
+  window.removeAccountFollow=function(index){
+    let list=[];try{list=JSON.parse(localStorage.getItem("marketkita_followed_stores_v1")||"[]")}catch(e){}
+    list.splice(Number(index),1);localStorage.setItem("marketkita_followed_stores_v1",JSON.stringify(list));loadG3Follows();
+  };
+  window.loadG6Loyalty=function(){
+    const root=document.getElementById("g6LoyaltyRoot");if(!root)return;
+    let coins=0;try{coins=Number(localStorage.getItem("marketkita_loyalty_coins_v1")||0)}catch(e){}
+    root.innerHTML='<div class="account-card"><div class="account-card-head"><div class="account-card-icon">◆</div><div><strong>'+coins.toLocaleString("id-ID")+' Koin MarketKita</strong><span>Koin tersimpan di akun browser ini.</span></div></div><div class="profile-actions"><button type="button" class="account-secondary-btn" onclick="loadG6Loyalty()">↻ Muat Ulang</button></div></div>';
+  };
   document.addEventListener("DOMContentLoaded",()=>{renderAccountPayments();loadAccountPrivacy()});
+
 })();
 </script>
 </body>
