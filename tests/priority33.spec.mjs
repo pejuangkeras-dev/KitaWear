@@ -22,6 +22,24 @@ test.describe("P33 — seller payout consistency",()=>{
   expect(t).toContain("revoke execute on function public.seller_request_payout(integer,text) from public,anon");
   expect(t).toContain("grant execute on function public.seller_request_payout(integer,text) to authenticated");
  });
+ test("P33 edge caching is enabled for public search and catalog",async({request})=>{
+  const search=await source(request,"functions/api/search-products.js"),catalog=await source(request,"functions/api/public-products.js");
+  expect(search).toContain("caches.default"); expect(search).toContain("stale-while-revalidate=60");
+  expect(catalog).toContain("caches.default"); expect(catalog).toContain("stale-while-revalidate=120");
+ });
+ test("P33 performance probe is admin-only",async({request})=>{
+  const api=await source(request,"functions/api/performance.js"),ui=await source(request,"performance-p33.js");
+  for(const x of ["LOGIN_REQUIRED","ADMIN_REQUIRED","database","catalog","search"]) expect(api).toContain(x);
+  expect(ui).toContain("/api/performance");
+ });
+ test("P33 verified foreign-key indexes are present in migration",async({request})=>{
+  const t=await source(request,"supabase/migrations/20261003160000_priority33_performance_scale.sql");
+  for(const x of ["admin_audit_logs_actor_created_idx","inventory_events_product_size_idx","orders_shipping_address_idx","refund_requests_buyer_created_idx","seller_payout_audit_admin_created_idx","shipping_reconciliation_runs_order_idx"]) expect(t).toContain(x);
+ });
+ test("P33 buyer catalog images remain lazy-loaded",async({request})=>{
+  const h=await source(request,"index.html"); expect(h).toContain('loading="lazy"');
+ });
+
  test("production marketplace remains reachable",async({request})=>{
   const r=await request.get(baseURL+"/");expect(r.ok()).toBeTruthy();
  });
