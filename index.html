@@ -2044,7 +2044,24 @@ a{color:inherit}
     if(file.size>5*1024*1024){if(msg)msg.textContent="Ukuran foto maksimal 5 MB.";event.target.value="";return;}
     if(!/^image\/(jpeg|png|webp)$/.test(file.type)){if(msg)msg.textContent="Format yang didukung: JPG, PNG, WebP.";event.target.value="";return;}
     const reader=new FileReader();
-    reader.onload=function(){ window.marketKitaPendingAvatar=String(reader.result||""); applyMarketKitaAvatar(window.marketKitaPendingAvatar); if(msg)msg.textContent="Foto dipilih. Tekan Simpan untuk menerapkan."; };
+    reader.onload=function(){
+      const img=new Image();
+      img.onload=function(){
+        const max=320, scale=Math.min(1,max/Math.max(img.width,img.height));
+        const canvas=document.createElement("canvas");
+        canvas.width=Math.max(1,Math.round(img.width*scale));
+        canvas.height=Math.max(1,Math.round(img.height*scale));
+        const ctx=canvas.getContext("2d");
+        ctx.drawImage(img,0,0,canvas.width,canvas.height);
+        let data=canvas.toDataURL("image/jpeg",.78);
+        if(data.length>8500)data=canvas.toDataURL("image/jpeg",.62);
+        window.marketKitaPendingAvatar=data;
+        applyMarketKitaAvatar(data);
+        if(msg)msg.textContent="Foto dipilih. Tekan Simpan untuk menerapkan.";
+      };
+      img.onerror=function(){if(msg)msg.textContent="Foto tidak dapat diproses.";};
+      img.src=String(reader.result||"");
+    };
     reader.readAsDataURL(file);
   };
   window.removeAccountProfilePhoto=function(){
@@ -5151,6 +5168,7 @@ function populateAccountProfile(){
   setText("profileEmail",user.email || "-");
   set("profilePhone",String(profile?.phone || user.user_metadata?.phone || ""));
   setText("profileRole",String(profile?.role || "buyer").toUpperCase());
+  if(typeof applyMarketKitaAvatar==="function") applyMarketKitaAvatar(String(user.user_metadata?.avatar_url || ""));
   setText("profileStore",profile?.role==="seller" || profile?.role==="admin" ? "MarketKita" : "-");
 }
 
