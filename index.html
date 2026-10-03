@@ -1527,7 +1527,7 @@ function closeSearch(e){
 }
 const MARKET_WISHLIST_KEY="marketkita_wishlist_v1";
 const MARKET_WISHLIST_OWNER_KEY="marketkita_wishlist_owner_v1";
-let marketFilters={query:"",category:"",store:"",min:"",max:"",sort:"default"};\nwindow.marketKitaFilters=marketFilters;\nwindow.marketKitaProducts=products;
+let marketFilters={query:"",category:"",store:"",min:"",max:"",sort:"default"};\nwindow.marketKitaFilters=marketFilters;\nwindow.marketKitaProducts=products;\nwindow.marketKitaRender=render;\nwindow.marketKitaRenderRecommendations=renderRecommendations;
 let wishlistIds=new Set();
 function loadWishlist(){try{const v=JSON.parse(localStorage.getItem(MARKET_WISHLIST_KEY)||"[]");wishlistIds=new Set(Array.isArray(v)?v.map(String):[]);}catch(e){wishlistIds=new Set();}}
 function saveWishlist(){localStorage.setItem(MARKET_WISHLIST_KEY,JSON.stringify(Array.from(wishlistIds)));updateWishlistCount();}
