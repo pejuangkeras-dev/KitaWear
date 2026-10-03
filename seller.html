@@ -1093,18 +1093,34 @@ async function submitTracking(){
     const session=(await sb.auth.getSession()).data?.session;
     if(!session)throw new Error('Sesi login sudah berakhir.');
 
-    const response=await fetch('/api/shipping-create',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        Authorization:'Bearer '+session.access_token
-      },
-      body:JSON.stringify({order_id:orderId}),
-      cache:'no-store'
-    });
-    const data=await response.json().catch(()=>({}));
+    // Never create a provider shipment while RajaOngkir Delivery is still
+    // configured for sandbox. The seller can still use the controlled manual
+    // AWB path below, which keeps the real order lifecycle usable in production.
+    let deliverySafe=false;
+    try{
+      const modeResponse=await fetch('/api/shipping-create',{method:'GET',cache:'no-store'});
+      const modeData=await modeResponse.json().catch(()=>({}));
+      deliverySafe=modeResponse.ok && modeData?.safe_to_create===true;
+    }catch(_modeError){
+      deliverySafe=false;
+    }
 
-    if(response.ok && data?.ok){
+    let response=null;
+    let data={};
+    if(deliverySafe){
+      response=await fetch('/api/shipping-create',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          Authorization:'Bearer '+session.access_token
+        },
+        body:JSON.stringify({order_id:orderId}),
+        cache:'no-store'
+      });
+      data=await response.json().catch(()=>({}));
+    }
+
+    if(response?.ok && data?.ok){
       const awb=String(data.waybill_id||data.shipment?.waybill_id||'').trim();
       closeTrackingModal();
       toast(awb
@@ -1116,7 +1132,9 @@ async function submitTracking(){
 
     // Keep the existing manual-resi path as a controlled fallback.
     if(!manualTracking){
-      throw new Error(data?.error||'Gagal membuat pengiriman otomatis. Anda dapat mencoba lagi atau memasukkan resi manual.');
+      throw new Error(deliverySafe
+        ? (data?.error||'Gagal membuat pengiriman otomatis. Anda dapat mencoba lagi atau memasukkan resi manual.')
+        : 'Layanan pembuatan pengiriman otomatis belum aktif di mode production. Masukkan nomor resi kurir untuk melanjutkan pengiriman.');
     }
 
     const trackingResult=await sb.rpc('seller_set_tracking_number',{p_order_id:orderId,p_tracking_number:manualTracking});
