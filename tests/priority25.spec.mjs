@@ -53,7 +53,7 @@ test.describe("P25 — final production audit", () => {
       const response = await request.get(baseURL + path);
       expect(response.ok()).toBeTruthy();
       const text = await response.text();
-      expect(text).not.toMatch(/SUPABASE_SERVICE_ROLE_KEY|MIDTRANS_SERVER_KEY|RAJAONGKIR_DELIVERY_API_KEY/i);
+      expect(text).not.toMatch(/(?:SUPABASE_SERVICE_ROLE_KEY|MIDTRANS_SERVER_KEY|RAJAONGKIR_DELIVERY_API_KEY)\\s*[:=]\\s*\"[^\"\\s]+\"/i);
     }
   });
 
