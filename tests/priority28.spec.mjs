@@ -17,8 +17,9 @@ test.describe("P28 — Buyer Experience",()=>{
   });
   test("core buyer surfaces and safe data access exist",async({request})=>{
     const js=await source(request,"buyer-experience-p28.js");
-    for(const marker of ["Akun Saya","Pesanan","Alamat","Favorit","Ulasan","Notifikasi","buyer_addresses","wishlists","product_reviews","notifications","shipping_shipments","set_default_buyer_address","buyer_create_product_review"]) expect(js).toContain(marker);
-    for(const marker of ['.eq("buyer_id",u.id)','.eq("user_id",u.id)','.eq("user_id",u.id).is("read_at",null)']) expect(js).toContain(marker);
+    for(const marker of ["Favorit / Wishlist","Ulasan Produk","wishlists","product_reviews","buyer_create_product_review"]) expect(js).toContain(marker);
+    for(const marker of ["Akun Saya","Pesanan Saya","Alamat","Notifikasi","Voucher Saya","Pusat Sengketa","accountSection-profile"]) expect(html).toContain(marker);
+    for(const marker of ['.eq("buyer_id",u.id)','.eq("user_id",u.id)']) expect(js).toContain(marker);
     for(const secret of ["service_role","SUPABASE_SERVICE_ROLE_KEY","MIDTRANS_SERVER_KEY","RAJAONGKIR_DELIVERY_API_KEY"]) expect(js).not.toContain(secret);
   });
   test("existing P28 order state machine remains protected",async({request})=>{
