@@ -2186,7 +2186,7 @@ a{color:inherit}
     <button type="button" class="mk2-account-hover-item" onclick="openAccountMenuSection('wishlist')"><span class="mk2-hover-icon">♡</span><span>Wishlist</span></button>
     <button type="button" class="mk2-account-hover-item" onclick="openAccountMenuSection('messages')"><span class="mk2-hover-icon">💬</span><span>Pesan</span></button>
     <div class="mk2-account-hover-divider"></div>
-    <button type="button" class="mk2-account-hover-item" id="mk2HoverSellerCenter" onclick="window.location.hash='seller-center'"><span class="mk2-hover-icon">🏪</span><span>Seller Center</span></button>
+    <button type="button" class="mk2-account-hover-item" id="mk2HoverSellerCenter" onclick="openSellerCenterFromAccountMenu()"><span class="mk2-hover-icon">🏪</span><span>Seller Center</span></button>
     <button type="button" class="mk2-account-hover-item mk2-account-hover-logout" onclick="logoutAccountFromHover()"><span class="mk2-hover-icon">↪</span><span>Keluar</span></button>
   </div>
 </div>
@@ -5285,6 +5285,9 @@ function showAccountSection(section){
   if(section==="alerts"){ loadNotifications(); ensureNotificationRealtime(); }
   if(section==="notifications") loadNotificationPreferences();
   if(section==="messages") loadBuyerChats();
+  if(section==="wishlist" && typeof loadG3Wishlist==="function") loadG3Wishlist();
+  if(section==="follows" && typeof loadG3Follows==="function") loadG3Follows();
+  if(section==="coins" && typeof loadG6Loyalty==="function") loadG6Loyalty();
   if(section==="voucher") loadVouchers();
   if(section==="disputes") loadBuyerDisputes();
 }
@@ -7193,6 +7196,17 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
     if(overlay){overlay.classList.add("show","account-expanded");overlay.setAttribute("aria-hidden","false");}
     if(typeof showAccountSection==="function")showAccountSection(section);
     else if(typeof openAccount==="function")openAccount();
+  };
+  window.openSellerCenterFromAccountMenu=function(){
+    if(!kwCurrentUser){marketKitaOpenAccountFallback();return;}
+    const role=String(kwCurrentProfile?.role||"buyer").toLowerCase();
+    if(role!=="seller" && role!=="admin"){
+      const menu=document.getElementById("mk2AccountHoverMenu");
+      if(menu)menu.classList.remove("is-open");
+      if(typeof showKwNotice==="function")showKwNotice("Seller Center hanya dapat diakses oleh akun Seller atau Admin.","Akses Seller Center");
+      return;
+    }
+    window.location.href="/seller.html";
   };
   window.logoutAccountFromHover=function(){
     const menu=document.getElementById("mk2AccountHoverMenu");
