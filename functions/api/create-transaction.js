@@ -245,6 +245,7 @@ export async function onRequestPost(context) {
   let voucherConsumed = false;
   let voucherId = "";
   let buyerUser = null;
+  let idem = null;
 
   try {
     const env = context.env;
@@ -371,6 +372,7 @@ export async function onRequestPost(context) {
     );
 
     let idem = Array.isArray(idemRows) ? idemRows[0] : null;
+    const idempotencyRecordCreated = Boolean(idem);
     if (!idem) {
       const existing = await supabaseRequest(
         supabaseUrl,
@@ -396,7 +398,10 @@ export async function onRequestPost(context) {
         idempotent_replay: true
       });
     }
-    if (idem.status === "processing") {
+    // A row returned by the INSERT belongs to this request. A row loaded
+    // after an INSERT conflict belongs to a concurrent/previous request.
+    // Only the latter must be rejected while it is still processing.
+    if (!idempotencyRecordCreated && idem.status === "processing") {
       return json({ error: "Checkout dengan permintaan yang sama sedang diproses. Jangan kirim ulang.", idempotent: true }, 409);
     }
 
