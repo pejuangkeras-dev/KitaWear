@@ -33,7 +33,8 @@
     "test:priority42": "npx --yes playwright test tests/priority42.spec.mjs",
     "test:priority44": "playwright test tests/priority44.spec.mjs",
     "test:g1": "npx --yes playwright test tests/g1-search.spec.mjs",
-    "test:g2": "npx --yes playwright test tests/g2-recommendations.spec.mjs"
+    "test:g2": "npx --yes playwright test tests/g2-recommendations.spec.mjs",
+    "test:g3": "npx --yes playwright test tests/g3-social.spec.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0"
