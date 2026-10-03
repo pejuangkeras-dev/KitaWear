@@ -6,6 +6,7 @@ function json(data, status = 200) {
 }
 
 const clean = (value) => String(value == null ? "" : value).trim();
+const MARKETPLACE_ROLES = new Set(["buyer", "seller", "admin"]);
 
 async function supabase(context, path, options = {}) {
   const base = clean(context.env.SUPABASE_URL).replace(/\/+$/, "");
@@ -94,6 +95,10 @@ export async function onRequestGet(context) {
     if (!p) return json({ error: "Profil pengguna tidak ditemukan." }, 403);
 
     const role = clean(p.role).toLowerCase();
+    if (!MARKETPLACE_ROLES.has(role)) {
+      return json({ error: "Akun belum memiliki role marketplace yang valid." }, 403);
+    }
+
     const filter = role === "admin"
       ? ""
       : role === "seller"
@@ -104,7 +109,7 @@ export async function onRequestGet(context) {
       supabase(context, "/rest/v1/return_requests?select=*&order=created_at.desc&limit=50" + filter),
       supabase(context, "/rest/v1/disputes?select=*&order=created_at.desc&limit=50" + (role === "admin" ? "" : "&buyer_id=eq." + encodeURIComponent(user.id))),
       supabase(context, "/rest/v1/seller_payout_requests?select=*&order=requested_at.desc&limit=50" + (role === "admin" ? "" : "&seller_id=eq." + encodeURIComponent(user.id))),
-      supabase(context, "/rest/v1/refund_requests?select=*&order=created_at.desc&limit=50" + (role === "admin" ? "" : "&buyer_id=eq." + encodeURIComponent(user.id)))
+      supabase(context, "/rest/v1/refund_requests?select=id,dispute_id,return_request_id,order_id,buyer_id,admin_id,refund_key,amount,reason,status,midtrans_status_code,midtrans_status_message,midtrans_refund_chargeback_id,midtrans_refund_amount,midtrans_transaction_id,bank_confirmed_at,requested_at,confirmed_at,created_at,updated_at,error_message&order=created_at.desc&limit=50" + (role === "admin" ? "" : "&buyer_id=eq." + encodeURIComponent(user.id)))
     ]);
 
     return json({
@@ -129,11 +134,22 @@ export async function onRequestPost(context) {
     const p = await profile(context, user.id);
     if (!p) return json({ error: "Profil pengguna tidak ditemukan." }, 403);
 
+    const contentLength = Number(context.request.headers.get("Content-Length") || 0);
+    if (contentLength > 32768) return json({ error: "Payload lifecycle terlalu besar." }, 413);
+
     const body = await context.request.json().catch(() => ({}));
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return json({ error: "Payload lifecycle tidak valid." }, 400);
+    }
+
     const action = clean(body.action).toLowerCase();
     if (!ACTIONS.has(action)) return json({ error: "Action lifecycle tidak valid." }, 400);
 
     const role = clean(p.role).toLowerCase();
+    if (!MARKETPLACE_ROLES.has(role)) {
+      return json({ error: "Akun belum memiliki role marketplace yang valid." }, 403);
+    }
+
     if (adminActions.has(action) && role !== "admin") {
       return json({ error: "Akses ditolak. Hanya admin." }, 403);
     }
@@ -150,8 +166,6 @@ export async function onRequestPost(context) {
       return json({ error: "Akses ditolak. Hanya seller/admin." }, 403);
     }
 
-    const args = { ...body };
-    delete args.action;
     const maps = {
       request_return: { p_order_item_id: body.order_item_id, p_type: body.type, p_reason: body.reason, p_description: body.description || null, p_evidence_urls: Array.isArray(body.evidence_urls) ? body.evidence_urls : [] },
       seller_update_return: { p_return_id: body.return_id, p_status: body.status, p_tracking_number: body.tracking_number || null, p_note: body.note || null },
@@ -162,10 +176,12 @@ export async function onRequestPost(context) {
       seller_request_payout: { p_amount: body.amount, p_note: body.note || null },
       admin_review_payout_request: { p_request_id: body.request_id, p_decision: body.decision, p_admin_note: body.admin_note || body.note || null }
     };
+
     const rpcArgs = maps[action];
     if (!rpcArgs || Object.values(rpcArgs).some(v => v === undefined)) {
       return json({ error: "Parameter action lifecycle belum lengkap." }, 400);
     }
+
     const result = await callRpc(context, RPC[action], rpcArgs);
     return json({ ok: true, action, result });
   } catch (error) {
