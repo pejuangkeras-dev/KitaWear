@@ -1284,6 +1284,30 @@ tr:last-child td{
   </div>
 </section>
 
+<section class="panel" style="margin-top:26px" id="p34AnalyticsPanel">
+  <div class="panel-head">
+    <div><h2 class="panel-title">P34 Analytics & Growth</h2><div class="muted">GMV, buyer, conversion, retention, traffic, dan performa voucher berdasarkan event dan transaksi produksi.</div></div>
+    <div class="panel-tools"><input id="p34From" class="search" type="date"><input id="p34To" class="search" type="date"><button id="p34Refresh" class="btn" type="button">↻ Refresh</button></div>
+  </div>
+  <div class="stats" style="padding:18px;margin:0">
+    <div class="stat"><div class="stat-label">GMV</div><div id="p34Gmv" class="stat-value">Rp0</div></div>
+    <div class="stat"><div class="stat-label">Buyer Aktif</div><div id="p34Buyers" class="stat-value">0</div></div>
+    <div class="stat"><div class="stat-label">AOV</div><div id="p34Aov" class="stat-value">Rp0</div></div>
+    <div class="stat"><div class="stat-label">Paid Orders</div><div id="p34Orders" class="stat-value">0</div></div>
+  </div>
+  <div class="stats" style="padding:0 18px 18px;margin:0">
+    <div class="stat"><div class="stat-label">Visitor → Purchase</div><div id="p34VisitorPurchase" class="stat-value">0%</div></div>
+    <div class="stat"><div class="stat-label">Visitor → Checkout</div><div id="p34VisitorCheckout" class="stat-value">0%</div></div>
+    <div class="stat"><div class="stat-label">Checkout → Purchase</div><div id="p34CheckoutPurchase" class="stat-value">0%</div></div>
+    <div class="stat"><div class="stat-label">Retention</div><div id="p34Retention" class="stat-value">0%</div></div>
+  </div>
+  <div style="padding:0 18px 18px">
+    <div id="p34Traffic" class="muted" style="margin-bottom:14px">Memuat traffic...</div>
+    <div id="p34Campaigns"></div>
+    <div style="margin-top:18px"><h3 style="margin:0 0 10px">Trend Harian</h3><div id="p34Daily" class="table-wrap"></div></div>
+  </div>
+</section>
+
 <section class="panel" style="margin-top:26px" id="phase3VoucherPanel">
   <div class="panel-head">
     <div><h2 class="panel-title">Voucher & Promo</h2><div class="muted">Buat dan aktif/nonaktifkan voucher marketplace.</div></div>
@@ -1913,6 +1937,7 @@ async function checkAdminAccess(){
   await loadSellerReconciliation();
   await loadDisputes();
   await loadPhase3Dashboard();
+  await loadP34Analytics();
   await loadPhase3Vouchers();
 
 }
@@ -3549,6 +3574,7 @@ document
       await loadPayoutRequests();
       await loadSellerReconciliation();
       await loadPhase3Dashboard();
+      await loadP34Analytics();
     }
   );
 
@@ -3921,6 +3947,23 @@ async function loadSellerReconciliation(){
   }
 }
 
+async function loadP34Analytics(){
+  const fromEl=$('p34From'),toEl=$('p34To'); if(!fromEl||!toEl)return;
+  const now=new Date(), to=toEl.value||now.toISOString().slice(0,10), from=fromEl.value||new Date(now.getTime()-29*86400000).toISOString().slice(0,10);
+  fromEl.value=from;toEl.value=to;
+  try{
+    const session=(await supabaseClient.auth.getSession()).data?.session;if(!session)throw Error("Session admin berakhir.");
+    const r=await fetch("/api/analytics?from="+encodeURIComponent(from)+"&to="+encodeURIComponent(to),{headers:{Authorization:"Bearer "+session.access_token},cache:"no-store"});
+    const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Gagal memuat analytics.");
+    const x=d.data||{},cv=x.conversion||{},ret=x.retention||{},v=x.visitors||{};
+    $('p34Gmv').textContent=formatRupiah(x.gmv);$('p34Buyers').textContent=String(x.buyers||0);$('p34Aov').textContent=formatRupiah(x.aov);$('p34Orders').textContent=String(x.paid_orders||0);
+    $('p34VisitorPurchase').textContent=Number(cv.visitor_to_purchase_pct||0).toFixed(2)+"%";$('p34VisitorCheckout').textContent=Number(cv.visitor_to_checkout_pct||0).toFixed(2)+"%";$('p34CheckoutPurchase').textContent=Number(cv.checkout_to_purchase_pct||0).toFixed(2)+"%";$('p34Retention').textContent=Number(ret.retention_pct||0).toFixed(2)+"%";
+    $('p34Traffic').innerHTML='Sessions: <strong>'+escapeHtml(v.sessions||0)+'</strong> · Product-view sessions: <strong>'+escapeHtml(v.product_sessions||0)+'</strong> · Checkout sessions: <strong>'+escapeHtml(v.checkout_sessions||0)+'</strong> · Logged visitors: <strong>'+escapeHtml(v.logged_visitors||0)+'</strong> · Repeat buyers: <strong>'+escapeHtml(ret.repeat_buyers||0)+'</strong>';
+    const camps=Array.isArray(x.campaigns)?x.campaigns:[];
+    $('p34Campaigns').innerHTML='<h3 style="margin:0 0 10px">Campaign / Voucher</h3>'+(camps.length?'<div class="table-wrap"><table><thead><tr><th>Kode</th><th>Orders</th><th>GMV</th><th>Discount</th></tr></thead><tbody>'+camps.map(z=>'<tr><td><strong>'+escapeHtml(z.code||"—")+'</strong><br><span class="muted">'+escapeHtml(z.title||"")+'</span></td><td>'+escapeHtml(z.orders||0)+'</td><td>'+formatRupiah(z.gmv)+'</td><td>'+formatRupiah(z.discount)+'</td></tr>').join('')+'</tbody></table></div>':'<div class="empty">Belum ada penggunaan voucher pada periode ini.</div>');
+    const daily=Array.isArray(x.daily)?x.daily:[];$('p34Daily').innerHTML='<table><thead><tr><th>Tanggal</th><th>GMV</th><th>Orders</th><th>Selesai</th></tr></thead><tbody>'+daily.map(z=>'<tr><td>'+escapeHtml(z.day)+'</td><td>'+formatRupiah(z.gmv)+'</td><td>'+escapeHtml(z.orders||0)+'</td><td>'+escapeHtml(z.completed_orders||0)+'</td></tr>').join('')+'</tbody></table>';
+  }catch(e){$('p34Traffic').textContent=e.message||"Gagal memuat analytics.";$('p34Campaigns').innerHTML='';$('p34Daily').innerHTML='';}
+}
 async function loadPhase3Dashboard(){
   try{
     const now=new Date();
@@ -3984,6 +4027,7 @@ $('adminAuditRefresh').addEventListener('click',loadAdminAudit);
 $('adminLedgerRefresh').addEventListener('click',loadAdminLedger);
 $('adminHealthRefresh').addEventListener('click',loadAdminHealth);
 $('p3AdminRefresh').addEventListener('click',loadPhase3Dashboard);
+$('p34Refresh').addEventListener('click',loadP34Analytics);
 $('p3VoucherRefresh').addEventListener('click',loadPhase3Vouchers);
 $('p3VoucherForm').addEventListener('submit',createPhase3Voucher);
 
