@@ -3659,6 +3659,490 @@ button,input,select{font-family:inherit!important}
   }
 }
 </style>
+<style id="marketkita-design-a-pages-last">
+/* =========================================================
+   DESIGN A — LAST OVERRIDE
+   This block intentionally comes LAST so older design blocks
+   cannot override Product / Checkout / Account.
+   ========================================================= */
+:root{
+  --mk-a-blue:#1769e8;
+  --mk-a-blue-dark:#0d55c7;
+  --mk-a-blue-soft:#eef6ff;
+  --mk-a-navy:#102b57;
+  --mk-a-text:#344b68;
+  --mk-a-muted:#7c8da3;
+  --mk-a-line:#dce7f2;
+  --mk-a-bg:#f5f9fe;
+  --mk-a-orange:#ff5a1f;
+}
+
+/* 1. PRODUCT DETAIL — force the actual modal into the Design A page */
+#productDetailModal{
+  position:fixed!important;
+  inset:0!important;
+  display:none!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:18px!important;
+  background:rgba(7,29,58,.62)!important;
+  backdrop-filter:blur(3px)!important;
+  z-index:10000!important;
+}
+#productDetailModal.show{
+  display:flex!important;
+}
+#productDetailModal .product-detail-box{
+  width:min(1160px,96vw)!important;
+  height:min(900px,94vh)!important;
+  max-width:none!important;
+  max-height:94vh!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:auto!important;
+  border-radius:16px!important;
+  background:#fff!important;
+  border:1px solid var(--mk-a-line)!important;
+  box-shadow:0 30px 90px rgba(5,42,84,.28)!important;
+}
+#productDetailModal .product-detail-head{
+  position:sticky!important;
+  top:0!important;
+  z-index:30!important;
+  height:52px!important;
+  padding:0 17px!important;
+  background:#fff!important;
+  border-bottom:1px solid var(--mk-a-line)!important;
+}
+#productDetailModal .product-detail-head strong{
+  color:#667991!important;
+  font-size:9px!important;
+  letter-spacing:.12em!important;
+}
+#productDetailModal .product-detail-close{
+  width:34px!important;height:34px!important;
+  background:#fff!important;
+  border:1px solid #d4e1ed!important;
+  color:#53677f!important;
+}
+#productDetailModal .product-detail-grid{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.05fr) minmax(390px,.95fr)!important;
+  gap:0!important;
+}
+#productDetailModal .product-detail-gallery{
+  padding:22px!important;
+  background:#f4f8fd!important;
+  border-right:1px solid var(--mk-a-line)!important;
+}
+#productDetailModal .product-detail-main-image{
+  width:100%!important;
+  aspect-ratio:1/1!important;
+  max-height:560px!important;
+  object-fit:contain!important;
+  background:#fff!important;
+  border:1px solid #e0e9f2!important;
+  border-radius:12px!important;
+}
+#productDetailModal .product-detail-thumbs{gap:8px!important;margin-top:10px!important}
+#productDetailModal .product-detail-thumb{
+  width:62px!important;height:62px!important;
+  border-radius:8px!important;
+  background:#fff!important;
+}
+#productDetailModal .product-detail-thumb.active{
+  border-color:var(--mk-a-blue)!important;
+}
+#productDetailModal .product-detail-info{
+  padding:28px 30px 34px!important;
+  background:#fff!important;
+}
+#productDetailModal .product-detail-eyebrow{
+  color:#71839a!important;font-size:9px!important;letter-spacing:.12em!important;
+}
+#productDetailModal .product-detail-title{
+  color:var(--mk-a-navy)!important;
+  font-size:30px!important;
+  line-height:1.08!important;
+  letter-spacing:-.04em!important;
+}
+#productDetailModal .product-detail-price{
+  color:#e52d3b!important;
+  font-size:25px!important;
+  font-weight:950!important;
+}
+#productDetailModal .product-detail-rating{
+  color:#71839a!important;
+  border-color:var(--mk-a-line)!important;
+}
+#productDetailModal .product-detail-section{
+  border-color:var(--mk-a-line)!important;
+  padding:15px 0!important;
+}
+#productDetailModal .product-detail-section h4{color:#324967!important}
+#productDetailModal .product-detail-desc{color:#687b93!important}
+#productDetailModal .product-detail-size{
+  border-color:#cbdbea!important;
+  background:#fff!important;
+  color:#344b68!important;
+}
+#productDetailModal .product-detail-size.active{
+  background:var(--mk-a-blue)!important;
+  border-color:var(--mk-a-blue)!important;
+  color:#fff!important;
+}
+#productDetailModal .product-detail-actions{
+  grid-template-columns:1fr 1fr!important;
+  gap:8px!important;
+}
+#productDetailModal .product-detail-btn{
+  height:45px!important;
+  border-radius:8px!important;
+  font-size:11px!important;
+}
+#productDetailModal .product-detail-btn.dark{
+  background:var(--mk-a-orange)!important;
+  border-color:var(--mk-a-orange)!important;
+  color:#fff!important;
+}
+#productDetailModal .product-detail-btn.light{
+  background:#fff!important;
+  border-color:var(--mk-a-orange)!important;
+  color:var(--mk-a-orange)!important;
+}
+#productDetailModal .seller-card,
+#productDetailModal .seller-review-summary,
+#productDetailModal .review-item{
+  background:#fff!important;
+  border-color:var(--mk-a-line)!important;
+}
+#productDetailModal .seller-avatar{background:var(--mk-a-blue)!important}
+#productDetailModal .seller-actions button:last-child{
+  background:var(--mk-a-blue-soft)!important;
+  color:var(--mk-a-blue)!important;
+  border-color:#c5ddfa!important;
+}
+#productDetailModal .detail-full-section{padding:0 24px 28px!important}
+#productDetailModal .detail-full-section h3{color:var(--mk-a-navy)!important}
+#productDetailModal .detail-description-box{
+  background:#f7fbff!important;
+  border-color:var(--mk-a-line)!important;
+  color:#687b93!important;
+}
+
+/* 2. CHECKOUT — actual #checkoutModal + .kw-checkout-box */
+#checkoutModal{
+  position:fixed!important;
+  inset:0!important;
+  display:none!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:16px!important;
+  background:rgba(7,29,58,.62)!important;
+  backdrop-filter:blur(3px)!important;
+  z-index:10001!important;
+}
+#checkoutModal.show{display:flex!important}
+#checkoutModal .kw-checkout-box{
+  width:min(1040px,96vw)!important;
+  height:min(900px,94vh)!important;
+  max-width:none!important;
+  max-height:94vh!important;
+  overflow:auto!important;
+  padding:0!important;
+  border-radius:16px!important;
+  background:#f5f9fe!important;
+  border:1px solid var(--mk-a-line)!important;
+  box-shadow:0 30px 90px rgba(5,42,84,.28)!important;
+}
+#checkoutModal .kw-co-head{
+  position:sticky!important;
+  top:0!important;
+  z-index:30!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  padding:15px 20px!important;
+  background:#fff!important;
+  border-bottom:1px solid var(--mk-a-line)!important;
+}
+#checkoutModal .kw-co-head span{
+  color:var(--mk-a-blue)!important;
+  font-size:8px!important;
+  letter-spacing:.14em!important;
+  font-weight:950!important;
+}
+#checkoutModal .kw-co-head h3{
+  color:var(--mk-a-navy)!important;
+  font-size:20px!important;
+  margin:2px 0!important;
+}
+#checkoutModal .kw-co-head p{color:#8291a5!important;font-size:9px!important}
+#checkoutModal .kw-co-items,
+#checkoutModal .kw-co-section,
+#checkoutModal .kw-co-total{
+  background:#fff!important;
+  border:1px solid var(--mk-a-line)!important;
+  border-radius:11px!important;
+}
+#checkoutModal .kw-co-items{margin:12px 18px 0!important;padding:10px 13px!important}
+#checkoutModal .kw-co-section{
+  margin:9px 18px!important;
+  padding:14px!important;
+}
+#checkoutModal .kw-co-title{
+  display:flex!important;align-items:center!important;gap:9px!important;
+  margin-bottom:11px!important;
+}
+#checkoutModal .kw-co-title>b{
+  width:25px!important;height:25px!important;
+  display:grid!important;place-items:center!important;
+  border-radius:50%!important;
+  background:var(--mk-a-blue)!important;color:#fff!important;
+  font-size:10px!important;
+}
+#checkoutModal .kw-co-title strong{color:var(--mk-a-navy)!important;font-size:11px!important}
+#checkoutModal .kw-co-title small{color:#8291a5!important;font-size:8px!important}
+#checkoutModal .kw-co-grid{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:9px!important;
+}
+#checkoutModal .kw-co-full{grid-column:1/-1!important}
+#checkoutModal .field label{
+  color:#50647e!important;font-size:9px!important;font-weight:800!important;
+}
+#checkoutModal .field input,
+#checkoutModal .field textarea,
+#checkoutModal .kw-location-trigger,
+#checkoutModal select{
+  border:1px solid #d4e1ed!important;
+  border-radius:8px!important;
+  background:#fff!important;
+  color:var(--mk-a-navy)!important;
+}
+#checkoutModal .field input{height:40px!important;padding:0 11px!important}
+#checkoutModal .field textarea{padding:10px 11px!important}
+#checkoutModal .kw-location-trigger{min-height:40px!important}
+#checkoutModal .checkout-summary-row{
+  background:#f7fbff!important;
+  border-color:var(--mk-a-line)!important;
+  color:#61748c!important;
+}
+#checkoutModal .checkout-summary-row strong{color:var(--mk-a-blue)!important}
+#checkoutModal .kw-co-total{
+  margin:10px 18px 0!important;
+  padding:14px 16px!important;
+}
+#checkoutModal .kw-co-total span{color:#61748c!important;font-size:10px!important}
+#checkoutModal .kw-co-total strong{
+  color:var(--mk-a-orange)!important;font-size:19px!important;
+}
+#checkoutModal .kw-co-pay{
+  width:calc(100% - 36px)!important;
+  height:46px!important;
+  margin:10px 18px 18px!important;
+  border:0!important;border-radius:9px!important;
+  background:var(--mk-a-orange)!important;
+  color:#fff!important;font-size:11px!important;font-weight:950!important;
+}
+#checkoutModal .kw-co-pay:hover{background:#e94b12!important}
+
+/* 3. ACCOUNT — actual #authOverlay + .account-dashboard */
+#authOverlay.account-expanded{
+  position:fixed!important;
+  inset:0!important;
+  display:flex!important;
+  align-items:stretch!important;
+  justify-content:stretch!important;
+  padding:0!important;
+  background:#f5f9fe!important;
+  backdrop-filter:none!important;
+  z-index:10002!important;
+}
+#authOverlay.account-expanded .auth-box{
+  width:100vw!important;height:100vh!important;
+  max-width:none!important;max-height:none!important;
+  margin:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;
+  background:#f5f9fe!important;box-shadow:none!important;
+}
+#authOverlay.account-expanded .account-dashboard{
+  width:100%!important;height:100%!important;
+  grid-template-columns:280px minmax(0,1fr)!important;
+  background:#f5f9fe!important;
+}
+#authOverlay.account-expanded .account-sidebar{
+  background:#fff!important;
+  border-right:1px solid var(--mk-a-line)!important;
+  padding:18px 12px!important;
+}
+#authOverlay.account-expanded .account-user-card{
+  background:#fff!important;
+  border-color:#edf2f7!important;
+}
+#authOverlay.account-expanded .account-user-card:before{
+  content:"MarketKita"!important;
+  color:var(--mk-a-blue)!important;
+  font-size:18px!important;
+  letter-spacing:-.04em!important;
+  text-transform:none!important;
+}
+#authOverlay.account-expanded .account-avatar{
+  background:linear-gradient(135deg,#0878f8,#35a4ff)!important;
+}
+#authOverlay.account-expanded .account-nav-item{
+  border-radius:9px!important;
+  color:#455a74!important;
+  font-size:10px!important;
+}
+#authOverlay.account-expanded .account-nav-item.active{
+  background:#eaf4ff!important;
+  color:var(--mk-a-blue)!important;
+}
+#authOverlay.account-expanded .account-main{
+  background:#f5f9fe!important;
+  padding:26px 30px 40px!important;
+}
+#authOverlay.account-expanded .account-main:before{
+  content:"MarketKita  /  Akun Saya"!important;
+  color:#8494aa!important;
+}
+#authOverlay.account-expanded .account-hero{
+  min-height:180px!important;
+  padding:28px 32px!important;
+  border-radius:16px!important;
+  border:1px solid #c8e1fa!important;
+  background:linear-gradient(105deg,#dff1ff,#c9e7ff 54%,#eef8ff)!important;
+  color:#102f5e!important;
+  box-shadow:0 10px 28px rgba(35,117,190,.10)!important;
+}
+#authOverlay.account-expanded .account-hero-kicker{color:var(--mk-a-blue)!important}
+#authOverlay.account-expanded .account-hero h3{
+  color:#102f5e!important;font-size:30px!important;
+}
+#authOverlay.account-expanded .account-hero p{color:#4e6d91!important}
+#authOverlay.account-expanded .account-page-head,
+#authOverlay.account-expanded .profile-form,
+#authOverlay.account-expanded .account-card{
+  background:#fff!important;
+  border:1px solid var(--mk-a-line)!important;
+  border-radius:12px!important;
+  box-shadow:none!important;
+}
+#authOverlay.account-expanded .account-page-head h3{color:var(--mk-a-navy)!important}
+#authOverlay.account-expanded .profile-row input,
+#authOverlay.account-expanded .profile-readonly{
+  border-color:#d4e1ed!important;border-radius:8px!important;
+}
+#authOverlay.account-expanded .profile-save,
+#authOverlay.account-expanded .account-card-btn{
+  background:var(--mk-a-blue)!important;
+  border-radius:8px!important;
+}
+#authOverlay.account-expanded .profile-save:hover,
+#authOverlay.account-expanded .account-card-btn:hover{
+  background:var(--mk-a-blue-dark)!important;
+}
+
+/* 4. NEVER let an aria-hidden overlay cover the homepage */
+#authOverlay[aria-hidden="true"],
+#checkoutModal[aria-hidden="true"],
+#productDetailModal[aria-hidden="true"],
+#sizeChoiceModal[aria-hidden="true"],
+#kwNoticeOverlay[aria-hidden="true"],
+#kwConfirmOverlay[aria-hidden="true"],
+#locationPickerModal[aria-hidden="true"],
+#drawer[aria-hidden="true"],
+#wishlistModal[aria-hidden="true"],
+#chatModal[aria-hidden="true"],
+#searchModal[aria-hidden="true"]{
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+
+/* 5. Header must scroll away — the screenshot showed the opposite */
+.mk2-header,
+.mk2-header .container,
+.mk2-catnav,
+.mk2-catnav .container{
+  position:relative!important;
+  top:auto!important;
+}
+.mk2-header{
+  z-index:20!important;
+  background:#fff!important;
+  box-shadow:none!important;
+}
+
+/* Mobile */
+@media(max-width:700px){
+  #productDetailModal{
+    align-items:flex-end!important;
+    padding:0!important;
+  }
+  #productDetailModal .product-detail-box{
+    width:100vw!important;height:auto!important;
+    max-height:96dvh!important;
+    border-radius:18px 18px 0 0!important;
+  }
+  #productDetailModal .product-detail-grid{
+    grid-template-columns:1fr!important;
+  }
+  #productDetailModal .product-detail-gallery{
+    padding:10px!important;border-right:0!important;
+  }
+  #productDetailModal .product-detail-main-image{max-height:43vh!important}
+  #productDetailModal .product-detail-info{padding:15px!important}
+  #checkoutModal{
+    align-items:flex-end!important;
+    padding:0!important;
+  }
+  #checkoutModal .kw-checkout-box{
+    width:100vw!important;height:auto!important;
+    max-height:96dvh!important;
+    border-radius:18px 18px 0 0!important;
+  }
+  #checkoutModal .kw-co-grid{grid-template-columns:1fr!important}
+  #checkoutModal .kw-co-full{grid-column:auto!important}
+  #checkoutModal .kw-co-section{margin:8px 10px!important}
+  #checkoutModal .kw-co-items{margin:9px 10px 0!important}
+  #checkoutModal .kw-co-total{margin:8px 10px 0!important}
+  #checkoutModal .kw-co-pay{width:calc(100% - 20px)!important;margin:8px 10px 12px!important}
+  #authOverlay.account-expanded .account-dashboard{grid-template-columns:1fr!important}
+  #authOverlay.account-expanded .account-sidebar{
+    border-right:0!important;border-bottom:1px solid var(--mk-a-line)!important;
+    padding:10px!important;
+  }
+  #authOverlay.account-expanded .account-main{padding:12px 10px 28px!important}
+  #authOverlay.account-expanded .account-hero{min-height:145px!important;padding:20px!important}
+  #authOverlay.account-expanded .account-hero h3{font-size:23px!important}
+}
+</style>
+<script id="marketkita-overlay-safety-final">
+/* Ensure hidden overlays can never leave a dimmer behind after navigation/auth state changes. */
+(function(){
+  function cleanHiddenOverlays(){
+    const ids=["authOverlay","checkoutModal","productDetailModal","sizeChoiceModal","kwNoticeOverlay","kwConfirmOverlay","locationPickerModal","drawer","wishlistModal","chatModal","searchModal"];
+    ids.forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el) return;
+      if(el.getAttribute("aria-hidden")==="true"){
+        el.classList.remove("show");
+        el.style.removeProperty("display");
+        el.style.removeProperty("visibility");
+        el.style.removeProperty("opacity");
+        el.style.removeProperty("pointer-events");
+      }
+    });
+  }
+  document.addEventListener("DOMContentLoaded",cleanHiddenOverlays);
+  window.addEventListener("pageshow",cleanHiddenOverlays);
+  setTimeout(cleanHiddenOverlays,50);
+  setTimeout(cleanHiddenOverlays,500);
+})();
+</script>
 </head>
 
 <body>
