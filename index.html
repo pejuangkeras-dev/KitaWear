@@ -3896,7 +3896,7 @@ function renderBuyerOrders(){
     const trackingNumbers=[...new Set(sellers.map(s=>String(s.tracking_number||"").trim()).filter(Boolean))];
     const canConfirm=["shipped","delivered"].includes(order.status);
     const trackingInfo=trackingNumbers.length ? trackingNumbers.map(x=>escDetail(x)).join(" · ") : "Belum tersedia";
-    return `<article class="buyer-order-card">
+    return `<article class="buyer-order-card" data-order-id="${escDetail(order.id)}">
       <div class="buyer-order-head"><div><strong>${escDetail(order.order_number)}</strong><span>${new Date(order.created_at).toLocaleString("id-ID")}</span></div><span class="buyer-order-status ${buyerOrderStatusClass(order.status)}">${buyerOrderStatusLabel(order.status)}</span></div>
       <div class="buyer-order-items">${items.map(item=>`<div class="buyer-order-item"><div><strong>${escDetail(item.product_name)}</strong><span>Ukuran ${escDetail(item.size)} · Qty ${item.quantity}</span></div><strong>${rupiah(item.line_total)}</strong></div>${buyerReviewMarkup(item,order)}`).join("")}</div>
       <div class="buyer-order-foot"><span>${sellerNames} toko · ${items.length} item</span><strong>Total ${rupiah(order.total)}</strong></div>
