@@ -10,7 +10,7 @@ export async function onRequestGet(ctx){
   const db=await timed(()=>service(ctx.env,"/rest/v1/orders?select=id&limit=1"));
   const catalog=await timed(()=>service(ctx.env,"/rest/v1/products?select=id&status=eq.active&limit=24"));
   const search=await timed(async()=>{const base=clean(ctx.env.SUPABASE_URL).replace(/\/+$/,"");const key=clean(ctx.env.SUPABASE_SERVICE_ROLE_KEY);const r=await fetch(base+"/rest/v1/rpc/search_public_products",{method:"POST",headers:{apikey:key,Authorization:"Bearer "+key,"Content-Type":"application/json"},body:JSON.stringify({p_query:"",p_category:"",p_store_slug:"",p_min_price:0,p_max_price:0,p_sort:"newest",p_page:1,p_page_size:24})});if(!r.ok)throw Error("search_probe_http_"+r.status);});
-  const healthy=db.ok&&catalog.ok&&search.ok;
-  return json({ok:healthy,service:"MarketKita performance",timestamp:new Date().toISOString(),probes:{database:db,catalog:catalog,search:search},cache:{search:"edge cache 30s + stale-while-revalidate 60s",catalog:"edge cache 60s + stale-while-revalidate 120s"},thresholds:{database_ms:500,catalog_ms:700,search_ms:1000}});
+  const healthy=db.ok&&catalog.ok&&search.ok&&db.ms<=500&&catalog.ms<=700&&search.ms<=1000;
+  return json({ok:healthy,service:"MarketKita performance",timestamp:new Date().toISOString(),probes:{database:db,catalog:catalog,search:search},cache:{search:"edge cache 15s + stale-while-revalidate 60s",catalog:"edge cache 30s + stale-while-revalidate 120s"},thresholds:{database_ms:500,catalog_ms:700,search_ms:1000},within_thresholds:{database:db.ok&&db.ms<=500,catalog:catalog.ok&&catalog.ms<=700,search:search.ok&&search.ms<=1000}});
  }catch(e){return json({ok:false,error:e.message||"PERFORMANCE_PROBE_FAILED"},500)}
 }
