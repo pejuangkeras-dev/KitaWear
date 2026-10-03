@@ -60,3 +60,7 @@ jobs:
       - name: G5 Seller Growth smoke tests
         run: |
           npx playwright test tests/g5-seller-growth.spec.mjs
+
+      - name: G6 Customer Loyalty smoke tests
+        run: |
+          npx playwright test tests/g6-loyalty.spec.mjs
