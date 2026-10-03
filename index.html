@@ -2571,7 +2571,33 @@ a{color:inherit}
           </div>
           <div id="accountSection-wishlist" class="account-section"><div class="account-page-head"><div><h3>Wishlist Saya</h3><p>Produk yang Anda simpan untuk dibeli nanti.</p></div><button type="button" class="orders-refresh" onclick="loadG3Wishlist()">↻ Muat Ulang</button></div><div id="g3WishlistList" class="account-empty">Memuat wishlist...</div></div>
           <div id="accountSection-follows" class="account-section"><div class="account-page-head"><div><h3>Toko yang Diikuti</h3><p>Kelola toko favorit dan kunjungi tokonya kapan saja.</p></div><button type="button" class="orders-refresh" onclick="loadG3Follows()">↻ Muat Ulang</button></div><div id="g3FollowedStoresList" class="account-empty">Memuat toko...</div></div>
-          <div id="accountSection-bank" class="account-section"><div class="account-page-head"><h3>Bank &amp; Kartu</h3><p>Simpan metode pembayaran untuk penggunaan berikutnya.</p></div><div class="account-empty">Belum ada kartu atau rekening yang ditambahkan.</div></div>
+          <div id="accountSection-bank" class="account-section">
+  <div class="account-page-head"><div><h3>Bank &amp; Kartu</h3><p>Kelola metode pembayaran yang Anda simpan. Nomor lengkap dan CVV tidak disimpan di browser.</p></div></div>
+  <div class="account-payment-grid">
+    <div class="account-card">
+      <div class="account-card-head"><div class="account-card-icon">▣</div><div><strong>Tambah metode pembayaran</strong><span>Simpan kartu atau rekening untuk referensi checkout.</span></div></div>
+      <div class="payment-method-tabs">
+        <button type="button" class="payment-tab active" data-payment-type="bank" onclick="selectAccountPaymentType('bank')">Bank</button>
+        <button type="button" class="payment-tab" data-payment-type="card" onclick="selectAccountPaymentType('card')">Kartu</button>
+      </div>
+      <div id="accountBankForm" class="profile-form">
+        <div class="profile-row"><label>Nama bank</label><div><input id="accountBankName" type="text" maxlength="80" placeholder="Contoh: BCA"></div></div>
+        <div class="profile-row"><label>4 digit terakhir rekening</label><div><input id="accountBankLast4" inputmode="numeric" maxlength="4" placeholder="1234"></div></div>
+        <div class="profile-row"><label>Nama pemilik</label><div><input id="accountBankOwner" type="text" maxlength="100" placeholder="Nama sesuai rekening"></div></div>
+      </div>
+      <div id="accountCardForm" class="profile-form" style="display:none">
+        <div class="profile-row"><label>Nama kartu</label><div><input id="accountCardName" type="text" maxlength="80" placeholder="Contoh: Visa"></div></div>
+        <div class="profile-row"><label>4 digit terakhir kartu</label><div><input id="accountCardLast4" inputmode="numeric" maxlength="4" placeholder="1234"></div></div>
+        <div class="profile-row"><label>Nama pemegang</label><div><input id="accountCardOwner" type="text" maxlength="100" placeholder="Nama pada kartu"></div></div>
+      </div>
+      <div class="profile-actions"><button class="profile-save" type="button" onclick="saveAccountPaymentMethod()">Simpan Metode</button><span id="accountPaymentMessage"></span></div>
+    </div>
+    <div class="account-card">
+      <div class="account-card-head"><div class="account-card-icon">✓</div><div><strong>Metode tersimpan</strong><span>Gunakan daftar ini untuk mengelola metode pembayaran Anda.</span></div></div>
+      <div id="accountPaymentList" class="account-payment-list"><div class="account-empty">Belum ada metode pembayaran.</div></div>
+    </div>
+  </div>
+</div>
           <div id="accountSection-address" class="account-section">
             <div class="account-page-head"><div><h3>Alamat</h3><p>Simpan beberapa alamat pengiriman dan tentukan alamat utama untuk checkout.</p></div><button type="button" class="orders-refresh" onclick="openBuyerAddressForm()">＋ Tambah Alamat</button></div>
             <div id="buyerAddressForm" class="buyer-address-form kw-address-editor" style="display:none" aria-label="Form alamat pengiriman">
@@ -2645,7 +2671,15 @@ a{color:inherit}
     <div class="profile-actions"><button class="profile-save" type="button" onclick="saveNotificationPreferences()">Simpan Pengaturan</button><span id="notificationPreferenceMessage"></span></div>
   </div>
 </div>
-          <div id="accountSection-privacy" class="account-section"><div class="account-page-head"><h3>Pengaturan Privasi</h3><p>Kelola preferensi privasi akun MarketKita.</p></div><div class="account-empty">Pengaturan privasi akan tersedia di sini.</div></div>
+          <div id="accountSection-privacy" class="account-section">
+  <div class="account-page-head"><div><h3>Pengaturan Privasi</h3><p>Kontrol informasi akun yang ditampilkan dan penggunaan data pengalaman MarketKita.</p></div></div>
+  <div class="account-privacy-card">
+    <label class="account-setting-row"><span><strong>Profil publik</strong><small>Izinkan nama toko/profil ditampilkan pada interaksi marketplace.</small></span><input id="privacyPublicProfile" type="checkbox"></label>
+    <label class="account-setting-row"><span><strong>Personalisasi pengalaman</strong><small>Gunakan aktivitas belanja untuk menyesuaikan rekomendasi produk.</small></span><input id="privacyPersonalization" type="checkbox"></label>
+    <label class="account-setting-row"><span><strong>Analitik penggunaan</strong><small>Bantu MarketKita memperbaiki fitur berdasarkan penggunaan layanan.</small></span><input id="privacyAnalytics" type="checkbox"></label>
+    <div class="profile-actions"><button class="profile-save" type="button" onclick="saveAccountPrivacy()">Simpan Pengaturan</button><button class="account-secondary-btn" type="button" onclick="resetAccountPrivacy()">Pulihkan Default</button><span id="accountPrivacyMessage"></span></div>
+  </div>
+</div>
           <div id="accountSection-voucher" class="account-section"><div class="account-page-head"><h3>Voucher Saya</h3><p>Klaim voucher yang tersedia untuk akun Anda.</p></div><div id="voucherList" class="account-empty">Memuat voucher...</div></div><div id="accountSection-disputes" class="account-section">
             <div class="account-page-head"><div><h3>Pusat Sengketa</h3><p>Ajukan dan pantau sengketa pesanan yang mengalami masalah.</p></div><button type="button" class="orders-refresh" onclick="loadBuyerDisputes()">↻ Muat Ulang</button></div>
             <div id="buyerDisputeForm" class="buyer-address-form">
@@ -6838,6 +6872,79 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
     }
   };
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ready);else ready();
+})();
+</script>
+<style id="mk-account-controls-final">
+.account-payment-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.payment-method-tabs{display:flex;gap:8px;margin:14px 0 4px}
+.payment-tab,.account-secondary-btn{border:1px solid var(--line,#dfe5ec);background:#fff;border-radius:9px;padding:9px 13px;font-size:11px;font-weight:800;cursor:pointer}
+.payment-tab.active{background:#0878f8;color:#fff;border-color:#0878f8}
+.account-payment-list{display:grid;gap:9px;margin-top:14px}
+.account-payment-item{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #e4e9ef;border-radius:11px;padding:12px;background:#fff}
+.account-payment-meta strong{display:block;font-size:12px}.account-payment-meta span{display:block;font-size:10px;color:#777;margin-top:3px}
+.account-payment-actions{display:flex;gap:6px}.account-payment-actions button{border:0;background:#edf5ff;color:#0878f8;border-radius:7px;padding:7px 9px;font-size:10px;font-weight:800;cursor:pointer}
+.account-payment-actions .danger{background:#fff0f0;color:#c53b3b}
+.account-privacy-card{display:grid;gap:0;background:#fff;border:1px solid #e4e9ef;border-radius:14px;overflow:hidden}
+.account-setting-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 18px;border-bottom:1px solid #edf0f4;cursor:pointer}
+.account-setting-row:last-of-type{border-bottom:0}
+.account-setting-row strong{display:block;font-size:12px;color:#17345d}.account-setting-row small{display:block;font-size:10px;color:#777;margin-top:4px}
+.account-setting-row input{width:18px;height:18px;accent-color:#0878f8;flex:none}
+@media(max-width:760px){.account-payment-grid{grid-template-columns:1fr}.account-setting-row{align-items:flex-start}}
+</style>
+<script>
+(function(){
+  const key=()=>{try{return "mk_account_payments_"+(window.kwCurrentUser?.id||"guest")}catch(e){return "mk_account_payments_guest"}};
+  const privacyKey=()=>{try{return "mk_account_privacy_"+(window.kwCurrentUser?.id||"guest")}catch(e){return "mk_account_privacy_guest"}};
+  function read(k, fallback){try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(fallback))}catch(e){return fallback}}
+  function write(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
+  window.selectAccountPaymentType=function(type){
+    document.querySelectorAll(".payment-tab").forEach(b=>b.classList.toggle("active",b.dataset.paymentType===type));
+    const bank=document.getElementById("accountBankForm"), card=document.getElementById("accountCardForm");
+    if(bank)bank.style.display=type==="bank"?"":"none";
+    if(card)card.style.display=type==="card"?"":"none";
+  };
+  window.saveAccountPaymentMethod=function(){
+    const type=document.querySelector(".payment-tab.active")?.dataset.paymentType||"bank";
+    const last4=String(document.getElementById(type==="bank"?"accountBankLast4":"accountCardLast4")?.value||"").replace(/\D/g,"");
+    const name=String(document.getElementById(type==="bank"?"accountBankName":"accountCardName")?.value||"").trim();
+    const owner=String(document.getElementById(type==="bank"?"accountBankOwner":"accountCardOwner")?.value||"").trim();
+    const msg=document.getElementById("accountPaymentMessage");
+    if(!name||last4.length!==4||!owner){if(msg)msg.textContent="Lengkapi nama, pemilik, dan 4 digit terakhir.";return}
+    const list=read(key(),[]);
+    list.push({id:"pm_"+Date.now(),type,name,owner,last4,createdAt:new Date().toISOString()});
+    if(!write(key(),list)){if(msg)msg.textContent="Gagal menyimpan di browser.";return}
+    if(msg)msg.textContent="Metode pembayaran berhasil disimpan.";
+    ["accountBankName","accountBankLast4","accountBankOwner","accountCardName","accountCardLast4","accountCardOwner"].forEach(id=>{const el=document.getElementById(id);if(el)el.value=""});
+    render();
+  };
+  window.deleteAccountPayment=function(id){
+    const list=read(key(),[]).filter(x=>x.id!==id);write(key(),list);render();
+  };
+  window.renderAccountPayments=function(){
+    const root=document.getElementById("accountPaymentList");if(!root)return;
+    const list=read(key(),[]);
+    if(!list.length){root.innerHTML='<div class="account-empty">Belum ada metode pembayaran.</div>';return}
+    root.innerHTML=list.map(x=>'<div class="account-payment-item"><div class="account-payment-meta"><strong>'+escapeAccountText(x.name)+' •••• '+escapeAccountText(x.last4)+'</strong><span>'+(x.type==="bank"?"Rekening bank":"Kartu")+' · '+escapeAccountText(x.owner)+'</span></div><div class="account-payment-actions"><button type="button" class="danger" onclick="deleteAccountPayment('+JSON.stringify(x.id)+')">Hapus</button></div></div>').join("");
+  };
+  function escapeAccountText(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+  window.loadAccountPrivacy=function(){
+    const p=read(privacyKey(),{publicProfile:false,personalization:true,analytics:true});
+    [["privacyPublicProfile",p.publicProfile],["privacyPersonalization",p.personalization],["privacyAnalytics",p.analytics]].forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.checked=!!v});
+  };
+  window.saveAccountPrivacy=function(){
+    const p={publicProfile:!!document.getElementById("privacyPublicProfile")?.checked,personalization:!!document.getElementById("privacyPersonalization")?.checked,analytics:!!document.getElementById("privacyAnalytics")?.checked};
+    write(privacyKey(),p);const m=document.getElementById("accountPrivacyMessage");if(m)m.textContent="Pengaturan privasi berhasil disimpan.";
+  };
+  window.resetAccountPrivacy=function(){
+    const p={publicProfile:false,personalization:true,analytics:true};write(privacyKey(),p);loadAccountPrivacy();const m=document.getElementById("accountPrivacyMessage");if(m)m.textContent="Pengaturan default dipulihkan.";
+  };
+  const oldShow=window.showAccountSection;
+  window.showAccountSection=function(section){
+    if(typeof oldShow==="function")oldShow(section);
+    if(section==="bank"){setTimeout(renderAccountPayments,0)}
+    if(section==="privacy"){setTimeout(loadAccountPrivacy,0)}
+  };
+  document.addEventListener("DOMContentLoaded",()=>{renderAccountPayments();loadAccountPrivacy()});
 })();
 </script>
 </body>
