@@ -130,3 +130,9 @@ revoke execute on function public.release_promotion_campaigns(uuid) from public,
 grant execute on function public.evaluate_promotion_campaigns(uuid,jsonb,bigint,bigint,uuid,uuid[]) to service_role;
 grant execute on function public.redeem_promotion_campaigns(uuid,uuid,uuid[],jsonb) to service_role;
 grant execute on function public.release_promotion_campaigns(uuid) to service_role;
+
+
+-- G4 API hardening: campaigns are served only through authenticated Cloudflare APIs.
+revoke all on table public.promotion_campaigns from anon, authenticated;
+revoke all on table public.promotion_redemptions from anon, authenticated;
+drop policy if exists promotion_campaigns_public_read on public.promotion_campaigns;
