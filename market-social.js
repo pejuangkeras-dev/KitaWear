@@ -5,8 +5,9 @@ function client(){try{return window.marketKitaGetSupabase?.()||null}catch{return
 function user(){try{return window.marketKitaGetCurrentUser?.()||null}catch{return null}}
 function currentStore(){
   try{
-    const p=window.products?.[Number(window.productDetailIndex)];
-    return p?.store||null;
+    const card=document.querySelector(".seller-card[data-store-id]");
+    const id=card?.dataset.storeId||"";
+    return id?{id}:null;
   }catch{return null}
 }
 async function refreshFollowButton(){
