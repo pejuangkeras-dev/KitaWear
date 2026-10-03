@@ -72,3 +72,7 @@ jobs:
       - name: G8 Order Timeline & Shipping Operations smoke tests
         run: |
           npx playwright test tests/g8-order-timeline.spec.mjs
+
+      - name: G9 Operations Center smoke tests
+        run: |
+          npx playwright test tests/g9-operations.spec.mjs
