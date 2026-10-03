@@ -1377,6 +1377,22 @@ a{color:inherit}
   }
 }
 </style>
+<style id="marketkita-close-account-final">
+/* Keep the account close control above the full-screen dashboard layers. */
+#authOverlay.account-expanded .auth-head{
+  position:absolute!important;
+  right:18px!important;
+  top:14px!important;
+  z-index:9999!important;
+  pointer-events:none!important;
+}
+#authOverlay.account-expanded .auth-head .auth-close{
+  position:relative!important;
+  z-index:10000!important;
+  pointer-events:auto!important;
+  cursor:pointer!important;
+}
+</style>
 </head>
 
 <body>
@@ -4850,10 +4866,21 @@ async function changeAccountPassword(){
 }
 
 function closeAccount(event){
+  if(event){
+    event.preventDefault();
+    event.stopPropagation();
+  }
   const overlay=document.getElementById("authOverlay");
   if(!overlay) return;
+  // A direct click on the X must always close the account panel.
+  if(event && event.currentTarget?.classList?.contains("auth-close")){
+    overlay.classList.remove("show","account-expanded");
+    overlay.setAttribute("aria-hidden","true");
+    return;
+  }
+  // Clicking the backdrop closes it; clicks inside the account box do not.
   if(event && event.target!==overlay) return;
-  overlay.classList.remove("show");
+  overlay.classList.remove("show","account-expanded");
   overlay.setAttribute("aria-hidden","true");
 }
 
