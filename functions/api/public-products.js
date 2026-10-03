@@ -3,7 +3,7 @@ function json(data, status = 200) {
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "public, max-age=30, s-maxage=60, stale-while-revalidate=120"
+      "Cache-Control": "public, max-age=30, stale-while-revalidate=60",\n      "CDN-Cache-Control": "public, max-age=60, stale-while-revalidate=120"
     }
   });
 }
