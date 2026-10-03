@@ -68,3 +68,7 @@ jobs:
       - name: G7 Communication Center smoke tests
         run: |
           npx playwright test tests/g7-communication.spec.mjs
+
+      - name: G8 Order Timeline & Shipping Operations smoke tests
+        run: |
+          npx playwright test tests/g8-order-timeline.spec.mjs
