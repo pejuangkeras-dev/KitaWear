@@ -57,3 +57,6 @@ jobs:
       - name: G4 Promotion Engine smoke tests
         run: |
           npx playwright test tests/g4-promotion.spec.mjs
+      - name: G5 Seller Growth smoke tests
+        run: |
+          npx playwright test tests/g5-seller-growth.spec.mjs
