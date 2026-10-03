@@ -63,6 +63,23 @@ test.describe("P24 — end-to-end order lifecycle hardening", () => {
     expect(text).toContain("authUser(context)");
   });
 
+  test("P24 lifecycle writes are server-side only", async ({ request }) => {
+    const migration = await request.get("https://raw.githubusercontent.com/pejuangkeras-dev/MarketKita/main/supabase/migrations/20261003095000_priority24_order_lifecycle_hardening.sql");
+    expect(migration.ok()).toBeTruthy();
+    const text = await migration.text();
+    for (const marker of [
+      "revoke insert, update, delete on public.orders from anon, authenticated",
+      "revoke insert, update, delete on public.order_sellers from anon, authenticated",
+      "revoke insert, update, delete on public.seller_payout_requests from anon, authenticated",
+      "revoke insert, update, delete on public.seller_payouts from anon, authenticated",
+      "revoke insert, update, delete on public.return_requests from anon, authenticated",
+      "revoke insert, update, delete on public.disputes from anon, authenticated",
+      "revoke insert, update, delete on public.refund_requests from anon, authenticated",
+      "drop policy if exists disputes_buyer_insert",
+      "alter function public.buyer_create_dispute(uuid,text,text) set search_path = ''"
+    ]) expect(text).toContain(marker);
+  });
+
   test("Midtrans notification endpoint is reachable as a webhook surface without exposing secrets", async ({ request }) => {
     const response = await request.get(baseURL + "/api/midtrans-notification");
     expect([200, 405]).toContain(response.status());
