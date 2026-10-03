@@ -16,6 +16,7 @@ test.describe("P28 — Buyer Experience",()=>{
     expect(html).toContain('marketKitaGetSupabase');
   });
   test("core buyer surfaces and safe data access exist",async({request})=>{
+    const html=await source(request,"index.html");
     const js=await source(request,"buyer-experience-p28.js");
     for(const marker of ["Favorit / Wishlist","Ulasan Produk","wishlists","product_reviews","buyer_create_product_review"]) expect(js).toContain(marker);
     for(const marker of ["Akun Saya","Pesanan Saya","Alamat","Notifikasi","Voucher Saya","Pusat Sengketa","accountSection-profile"]) expect(html).toContain(marker);
