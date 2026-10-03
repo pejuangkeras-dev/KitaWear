@@ -2187,6 +2187,7 @@ a{color:inherit}
     <button type="button" class="mk2-account-hover-item" onclick="openAccountMenuSection('messages')"><span class="mk2-hover-icon">💬</span><span>Pesan</span></button>
     <div class="mk2-account-hover-divider"></div>
     <button type="button" class="mk2-account-hover-item" id="mk2HoverSellerCenter" onclick="openSellerCenterFromAccountMenu()"><span class="mk2-hover-icon">🏪</span><span>Seller Center</span></button>
+    <button type="button" class="mk2-account-hover-item" id="mk2HoverCsAdmin" onclick="window.location.href='/admin-customer-service.html'" style="display:none"><span class="mk2-hover-icon">🛟</span><span>Kelola Customer Service</span></button>
     <button type="button" class="mk2-account-hover-item mk2-account-hover-logout" onclick="logoutAccountFromHover()"><span class="mk2-hover-icon">↪</span><span>Keluar</span></button>
   </div>
 </div>
@@ -7386,11 +7387,13 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
     const role=document.getElementById("mk2HoverAccountRole");
     const avatar=document.getElementById("mk2HoverAccountAvatar");
     const seller=document.getElementById("mk2HoverSellerCenter");
+    const csAdmin=document.getElementById("mk2HoverCsAdmin");
     if(!user){
       if(name)name.textContent="Akun MarketKita";
       if(role)role.textContent="Masuk untuk melihat akun";
       if(avatar)avatar.textContent="K";
       if(seller)seller.style.display="none";
+      if(csAdmin)csAdmin.style.display="none";
       return;
     }
     const label=typeof getMarketKitaDisplayName==="function"?getMarketKitaDisplayName(user,profile):(user.user_metadata?.full_name||"Akun MarketKita");
@@ -7398,6 +7401,7 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
     if(name)name.textContent=label;
     if(role)role.textContent=normalized.toUpperCase();
     if(seller)seller.style.display=normalized==="seller"||normalized==="admin"?"flex":"none";
+    if(csAdmin)csAdmin.style.display=normalized==="admin"?"flex":"none";
     const url=String(user.user_metadata?.avatar_url||"");
     if(avatar){
       if(url)avatar.innerHTML='<img src="'+url.replace(/"/g,"&quot;")+'" alt="Foto profil">';
