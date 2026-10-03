@@ -31,4 +31,17 @@ test.describe("P28 — Buyer Experience",()=>{
   test("production storefront remains reachable",async({request})=>{
     const r=await request.get(baseURL+"/"); expect(r.ok()).toBeTruthy();
   });
+
+  test("buyer features are consolidated inside the existing Profil Akun",async({request})=>{
+    const html=await source(request,"index.html");
+    const js=await source(request,"buyer-experience-p28.js");
+    expect(html).toContain('id="accountButton"');
+    expect(html).toContain('id="authUser" class="account-panel"');
+    expect(html).toContain('data-account-section="profile"');
+    expect(js).toContain("existing Profil Akun");
+    expect(js).toContain("Favorit / Wishlist");
+    expect(js).toContain("Ulasan Produk");
+    expect(js).not.toContain('id="mk28-account"');
+    expect(js).not.toContain('position:fixed;inset:0;z-index:9990');
+  });
 });
