@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const BASE_URL = process.env.BASE_URL || 'https://marketkita.pages.dev';
 
@@ -50,7 +52,7 @@ test.describe('Priority 20 Shipment Transaction', () => {
 
 
 test('checkout idempotency accepts the first request and rejects only a concurrent replay', async () => {
-  const source = await fetch('https://raw.githubusercontent.com/pejuangkeras-dev/MarketKita/main/functions/api/create-transaction.js').then(r => r.text());
+  const source = fs.readFileSync(path.resolve(process.cwd(), 'functions/api/create-transaction.js'), 'utf8');
   expect(source).toContain('const idempotencyRecordCreated = Boolean(idem);');
   expect(source).toContain('if (!idempotencyRecordCreated && idem.status === "processing")');
   expect(source).not.toContain('if (idem.status === "processing") {');
