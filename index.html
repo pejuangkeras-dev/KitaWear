@@ -2135,7 +2135,28 @@ a{color:inherit}
   height:100%!important;
 }
 </style>
-</head>
+<style id="mk-account-hover-menu-final">
+.mk2-account-wrap{position:relative;display:inline-flex;align-items:center}
+.mk2-account-hover-menu{
+  position:absolute;right:0;top:calc(100% + 10px);width:270px;background:#fff;
+  border:1px solid #e5e9ef;border-radius:12px;box-shadow:0 14px 35px rgba(0,0,0,.14);
+  padding:10px;z-index:99999;opacity:0;visibility:hidden;transform:translateY(-5px);
+  transition:opacity .16s ease,transform .16s ease,visibility .16s ease;
+}
+.mk2-account-wrap:hover .mk2-account-hover-menu,
+.mk2-account-wrap:focus-within .mk2-account-hover-menu,
+.mk2-account-hover-menu.is-open{opacity:1;visibility:visible;transform:translateY(0)}
+.mk2-account-hover-head{display:flex;align-items:center;gap:10px;padding:9px;border-bottom:1px solid #eef1f4;margin-bottom:6px}
+.mk2-account-hover-avatar{width:42px;height:42px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#0878f8;color:#fff;font-weight:800;flex:0 0 42px}
+.mk2-account-hover-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.mk2-account-hover-name{min-width:0}.mk2-account-hover-name strong{display:block;font-size:12px;color:#17345d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mk2-account-hover-name span{display:block;font-size:10px;color:#7b8795;margin-top:3px}
+.mk2-account-hover-item{width:100%;display:flex;align-items:center;gap:9px;border:0;background:transparent;border-radius:8px;padding:10px 9px;text-align:left;font-size:11px;color:#344154;font-weight:650;cursor:pointer}
+.mk2-account-hover-item:hover{background:#f1f6fb;color:#0878f8}
+.mk2-account-hover-item .mk2-hover-icon{width:22px;text-align:center;font-size:13px}
+.mk2-account-hover-divider{height:1px;background:#eef1f4;margin:5px 0}
+.mk2-account-hover-logout{color:#c43c3c}
+@media(max-width:700px){.mk2-account-hover-menu{right:-10px;width:250px}}
+</style></head>
 
 <body>
 <div class="mk2-top"><div class="container"><span>🚚 Gratis ongkir minimal pembelian Rp 200.000</span><span>Diskon 10% untuk pembelian pertama</span><span>Tersedia dalam 5 bahasa · ID · EN · VI · TH · CH</span></div></div>
@@ -2153,7 +2174,22 @@ a{color:inherit}
       <button class="mk2-action" type="button" onclick="openWishlist()"><i>♡</i><span>Favorit</span></button>
       <button class="mk2-action" type="button" onclick="window.location.hash='chat'"><i>▣</i><span>Chat</span></button>
       <select id="LanguageSelect" class="lang" aria-label="Bahasa" style="display:none"><option value="id">ID</option><option value="en">EN</option><option value="vi">VI</option><option value="th">TH</option><option value="ch">CH</option></select>
-      <button id="accountButton" class="mk2-account" type="button" aria-haspopup="dialog" aria-controls="authOverlay" onclick="marketKitaOpenAccountFallback(event)">Masuk</button>
+      <div class="mk2-account-wrap" id="mk2AccountWrap">
+  <button id="accountButton" class="mk2-account" type="button" aria-haspopup="dialog" aria-controls="authOverlay" onclick="marketKitaOpenAccountFallback(event)">Masuk</button>
+  <div class="mk2-account-hover-menu" id="mk2AccountHoverMenu" role="menu">
+    <div class="mk2-account-hover-head">
+      <div class="mk2-account-hover-avatar" id="mk2HoverAccountAvatar">K</div>
+      <div class="mk2-account-hover-name"><strong id="mk2HoverAccountName">Akun MarketKita</strong><span id="mk2HoverAccountRole">Masuk untuk melihat akun</span></div>
+    </div>
+    <button type="button" class="mk2-account-hover-item" onclick="openAccountMenuSection('profile')"><span class="mk2-hover-icon">👤</span><span>Profil Saya</span></button>
+    <button type="button" class="mk2-account-hover-item" onclick="openAccountMenuSection('orders')"><span class="mk2-hover-icon">📦</span><span>Pesanan Saya</span></button>
+    <button type="button" class="mk2-account-hover-item" onclick="openAccountMenuSection('wishlist')"><span class="mk2-hover-icon">♡</span><span>Wishlist</span></button>
+    <button type="button" class="mk2-account-hover-item" onclick="openAccountMenuSection('messages')"><span class="mk2-hover-icon">💬</span><span>Pesan</span></button>
+    <div class="mk2-account-hover-divider"></div>
+    <button type="button" class="mk2-account-hover-item" id="mk2HoverSellerCenter" onclick="window.location.hash='seller-center'"><span class="mk2-hover-icon">🏪</span><span>Seller Center</span></button>
+    <button type="button" class="mk2-account-hover-item mk2-account-hover-logout" onclick="logoutAccountFromHover()"><span class="mk2-hover-icon">↪</span><span>Keluar</span></button>
+  </div>
+</div>
     </div>
   </div>
 </header>
@@ -7147,5 +7183,55 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
 
 })();
 </script>
-</body>
+<script id="mk-account-hover-menu-js">
+(function(){
+  window.openAccountMenuSection=function(section){
+    const menu=document.getElementById("mk2AccountHoverMenu");
+    if(menu)menu.classList.remove("is-open");
+    if(!kwCurrentUser){marketKitaOpenAccountFallback();return;}
+    const overlay=document.getElementById("authOverlay");
+    if(overlay){overlay.classList.add("show","account-expanded");overlay.setAttribute("aria-hidden","false");}
+    if(typeof showAccountSection==="function")showAccountSection(section);
+    else if(typeof openAccount==="function")openAccount();
+  };
+  window.logoutAccountFromHover=function(){
+    const menu=document.getElementById("mk2AccountHoverMenu");
+    if(menu)menu.classList.remove("is-open");
+    if(typeof logoutAccount==="function")logoutAccount();
+    else if(typeof signOutAccount==="function")signOutAccount();
+  };
+  window.updateAccountHoverMenu=function(user,profile){
+    const name=document.getElementById("mk2HoverAccountName");
+    const role=document.getElementById("mk2HoverAccountRole");
+    const avatar=document.getElementById("mk2HoverAccountAvatar");
+    const seller=document.getElementById("mk2HoverSellerCenter");
+    if(!user){
+      if(name)name.textContent="Akun MarketKita";
+      if(role)role.textContent="Masuk untuk melihat akun";
+      if(avatar)avatar.textContent="K";
+      if(seller)seller.style.display="none";
+      return;
+    }
+    const label=typeof getMarketKitaDisplayName==="function"?getMarketKitaDisplayName(user,profile):(user.user_metadata?.full_name||"Akun MarketKita");
+    const normalized=String(profile?.role||"buyer").toLowerCase();
+    if(name)name.textContent=label;
+    if(role)role.textContent=normalized.toUpperCase();
+    if(seller)seller.style.display=normalized==="seller"||normalized==="admin"?"flex":"none";
+    const url=String(user.user_metadata?.avatar_url||"");
+    if(avatar){
+      if(url)avatar.innerHTML='<img src="'+url.replace(/"/g,"&quot;")+'" alt="Foto profil">';
+      else avatar.textContent=(label.trim()[0]||"K").toUpperCase();
+    }
+  };
+  const oldUpdate=window.updateAccountButton;
+  if(typeof oldUpdate==="function" && !oldUpdate.__hoverWrapped){
+    const wrapped=function(user,profile){
+      oldUpdate(user,profile);
+      updateAccountHoverMenu(user,profile);
+    };
+    wrapped.__hoverWrapped=true;
+    window.updateAccountButton=wrapped;
+  }
+})();
+</script></body>
 </html>
