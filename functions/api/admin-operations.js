@@ -25,7 +25,7 @@ export async function onRequestGet(context){
    sb(context.env,"/rest/v1/disputes?select=id,status,created_at&order=created_at.desc&limit=500"),
    sb(context.env,"/rest/v1/refund_requests?select=id,status,amount,created_at&order=created_at.desc&limit=500"),
    sb(context.env,"/rest/v1/seller_payout_requests?select=id,status,amount,requested_at&order=requested_at.desc&limit=500"),
-   sb(context.env,"/rest/v1/shipping_shipments?select=id,status,tracking_number,updated_at&order=updated_at.desc&limit=500"),
+   sb(context.env,"/rest/v1/shipping_shipments?select=id,status,provider_tracking_id,waybill_id,updated_at&order=updated_at.desc&limit=500"),
    sb(context.env,"/rest/v1/shipping_tracking_events?select=id,status,event_at,created_at&order=event_at.desc&limit=500")
   ]);
   const count=(arr,p)=>arr.filter(p).length,sum=(arr,p)=>arr.filter(p).reduce((n,x)=>n+Number(x.amount||0),0);
