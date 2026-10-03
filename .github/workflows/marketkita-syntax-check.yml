@@ -38,3 +38,6 @@ jobs:
       - name: P28 Buyer Experience smoke tests
         run: |
           npx playwright test tests/priority28.spec.mjs
+      - name: P29 Promotion Engine smoke tests
+        run: |
+          npx playwright test tests/priority29.spec.mjs
