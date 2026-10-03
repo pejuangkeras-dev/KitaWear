@@ -1440,6 +1440,37 @@ a{color:inherit}
   .mk2-hero-copy p{font-size:11px!important}
 }
 </style>
+<style id="marketkita-category-cs-final">
+.mk2-home-link{font-weight:850!important;color:var(--mk-blue)!important}
+.mk2-mega-categories{display:none;position:relative;background:#fff;border-bottom:1px solid #dfe7f1;box-shadow:0 14px 35px rgba(7,27,73,.12);z-index:44}
+.mk2-mega-categories.show{display:block}
+.mk2-mega-head{display:flex;justify-content:space-between;align-items:center;padding:18px 0 12px}
+.mk2-mega-head span{font-size:9px;letter-spacing:.16em;font-weight:900;color:var(--mk-blue)}
+.mk2-mega-head h2{margin:3px 0 0;font-size:22px;color:var(--mk-navy)}
+.mk2-mega-head button{width:34px;height:34px;border:1px solid #dce5f0;border-radius:50%;background:#fff;font-size:20px;cursor:pointer}
+.mk2-mega-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:24px;padding:0 0 24px;max-height:64vh;overflow:auto}
+.mk2-mega-grid>div{min-width:0}
+.mk2-mega-grid h3{font-size:10px;color:#1d4d93;margin:12px 0 7px;font-weight:950;letter-spacing:.04em}
+.mk2-mega-grid h3:first-child{margin-top:0}
+.mk2-mega-grid a{display:block;color:#66748a;font-size:9px;line-height:1.65;text-decoration:none;cursor:pointer}
+.mk2-mega-grid a:hover{color:var(--mk-blue);text-decoration:underline}
+.mk2-cs{position:fixed;right:20px;bottom:18px;z-index:300}
+.mk2-cs-button{border:0;background:#fff;color:#e54a23;box-shadow:0 8px 25px rgba(0,0,0,.18);border-radius:8px;padding:11px 15px;display:flex;gap:8px;align-items:center;cursor:pointer;font-size:13px}
+.mk2-cs-button span{font-size:18px}.mk2-cs-button b{font-weight:850}
+.mk2-cs-panel{display:none;position:absolute;right:0;bottom:52px;width:min(370px,calc(100vw - 30px));height:500px;background:#fff;border-radius:14px;box-shadow:0 18px 55px rgba(0,0,0,.22);overflow:hidden;border:1px solid #e4eaf2}
+.mk2-cs-panel.show{display:flex;flex-direction:column}
+.mk2-cs-head{background:linear-gradient(135deg,#0868f7,#2a8cff);color:#fff;padding:16px;display:flex;justify-content:space-between;align-items:center}
+.mk2-cs-head strong{display:block;font-size:15px}.mk2-cs-head small{display:block;margin-top:4px;opacity:.86;font-size:10px}
+.mk2-cs-head button{border:0;background:rgba(255,255,255,.15);color:#fff;width:30px;height:30px;border-radius:50%;font-size:18px;cursor:pointer}
+.mk2-cs-messages{flex:1;overflow:auto;padding:14px;background:#f6f9fd}
+.mk2-cs-msg{max-width:82%;padding:10px 12px;border-radius:13px;margin:7px 0;font-size:12px;line-height:1.5}
+.mk2-cs-msg.them{background:#fff;border:1px solid #e1e8f1}.mk2-cs-msg.me{margin-left:auto;background:#0868f7;color:#fff}
+.mk2-cs-quick{display:flex;gap:6px;flex-wrap:wrap;padding:9px;border-top:1px solid #edf1f6}
+.mk2-cs-quick button{border:1px solid #dbe5f0;background:#fff;color:#17335f;border-radius:999px;padding:7px 9px;font-size:9px;cursor:pointer}
+.mk2-cs-compose{display:flex;gap:7px;padding:10px;border-top:1px solid #edf1f6}.mk2-cs-compose input{flex:1;min-width:0;border:1px solid #d8e1ed;border-radius:9px;padding:10px;font:inherit;font-size:12px;outline:none}.mk2-cs-compose button{border:0;background:#0868f7;color:#fff;border-radius:9px;padding:0 14px;font-weight:850;cursor:pointer}
+@media(max-width:900px){.mk2-mega-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.mk2-cs{right:12px;bottom:12px}}
+@media(max-width:600px){.mk2-mega-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.mk2-mega-grid a{font-size:8px}.mk2-mega-grid h3{font-size:9px}.mk2-cs-panel{height:70vh}.mk2-cs-button b{font-size:12px}}
+</style>
 </head>
 
 <body>
@@ -1464,9 +1495,30 @@ a{color:inherit}
 </header>
 
 <nav class="mk2-catnav"><div class="container">
-  <button class="mk2-cat" type="button" onclick="document.getElementById('produk')?.scrollIntoView({behavior:'smooth'})">☰ &nbsp; Semua Kategori</button>
+  <button class="mk2-cat mk2-home-link" type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})">⌂ &nbsp; Beranda</button>
+  <button id="mk2AllCategories" class="mk2-cat" type="button" aria-expanded="false" aria-controls="mk2MegaCategories">☰ &nbsp; Semua Kategori</button>
   <button class="mk2-cat" type="button">Elektronik</button><button class="mk2-cat" type="button">Fashion</button><button class="mk2-cat" type="button">Rumah & Gaya Hidup</button><button class="mk2-cat" type="button">Kesehatan & Kecantikan</button><button class="mk2-cat" type="button">Ibu & Anak</button><button class="mk2-cat" type="button">Olahraga</button><button class="mk2-cat" type="button">Otomotif</button><button class="mk2-cat" type="button">Makanan & Minuman</button><button class="mk2-cat" type="button">Hobi & Koleksi</button><button class="mk2-cat" type="button">Buku & Alat Tulis</button><button class="mk2-cat" type="button">Lainnya⌄</button>
 </div></nav>
+
+<section id="mk2MegaCategories" class="mk2-mega-categories" aria-hidden="true">
+  <div class="container">
+    <div class="mk2-mega-head"><div><span>KATEGORI MARKETKITA</span><h2>Temukan semua kategori</h2></div><button type="button" id="mk2MegaClose" aria-label="Tutup kategori">×</button></div>
+    <div class="mk2-mega-grid">
+      <div><h3>ELEKTRONIK</h3><a>Console Game</a><a>Aksesoris Konsol</a><a>Alat Casing &amp; Spare Part</a><a>Mesin Jahit &amp; Aksesoris</a><a>Setrika &amp; Mesin Uap</a><a>Penyedot Debu</a><a>Peralatan Perawatan</a><a>Telepon &amp; Smartphone</a><a>Tablet</a><a>Powerbank &amp; Charger</a><a>TV &amp; Aksesoris</a><a>Kamera</a><a>Elektronik Lainnya</a></div>
+      <div><h3>PERLENGKAPAN RUMAH</h3><a>Renovasi Rumah</a><a>Perkakas</a><a>Alat Pemeliharaan Rumah</a><a>Kebersihan &amp; Perawatan</a><a>Peralatan Masak</a><a>Peralatan Makan</a><a>Alat Pengaman</a><a>Penerangan Rumah</a><a>Furniture</a><a>Taman</a><a>Perlengkapan Rumah Lainnya</a><h3>TAS PRIA</h3><a>Tas Selempang &amp; Bahu Pria</a><a>Tas Ransel</a><a>Tas Laptop</a><a>Tas Kerja</a><a>Tas Pria Lainnya</a></div>
+      <div><h3>SEPATU WANITA</h3><a>Boots</a><a>Sepatu Sneakers</a><a>Sepatu Oxford</a><a>Slip Ons</a><a>Mary Janes</a><a>Heels</a><a>Wedges</a><a>Sandal</a><a>Aksesoris Perawatan Sepatu</a><a>Sepatu Wanita Lainnya</a><h3>OLAHRAGA &amp; OUTDOOR</h3><a>Pakaian Olahraga</a><a>Aksesoris Olahraga</a><a>Camping &amp; Hiking</a><a>Panahan</a><a>Sepak Bola</a><a>Basket &amp; Volley</a><a>Tenis</a><a>Badminton</a><a>Fitness</a><a>Outdoor Lainnya</a></div>
+      <div><h3>MAKANAN &amp; MINUMAN</h3><a>Makanan Ringan</a><a>Bahan Pokok</a><a>Minuman</a><a>Makanan Segar</a><a>Bekal &amp; Kue</a><a>Jajanan &amp; Hampers</a><a>Makanan Instan</a><a>Makanan Lainnya</a><h3>PAKAIAN PRIA</h3><a>Denim</a><a>Hoodie &amp; Sweatshirt</a><a>Sweater &amp; Cardigan</a><a>Jaket &amp; Rompi</a><a>Celana Panjang</a><a>Celana Pendek</a><a>Batik</a><a>Kaos</a><a>Kemeja</a><a>Pakaian Pria Lainnya</a></div>
+      <div><h3>KOMPUTER &amp; AKSESORIS</h3><a>Desktop</a><a>Monitor</a><a>Komponen Desktop</a><a>Laptop</a><a>Penyimpanan Data</a><a>Komponen Network</a><a>Software</a><a>Printer &amp; Scanner</a><a>Aksesoris Desktop</a><a>Keyboard &amp; Mouse</a><a>Laptop &amp; Gaming</a><a>Audio Computer</a><h3>PAKAIAN WANITA</h3><a>Pakaian Tradisional</a><a>Denim</a><a>Dress</a><a>Jumpsuit</a><a>Jaket</a><a>Rok</a><a>Sweater</a><a>Kaos</a><a>Pakaian Muslim</a><a>Pakaian Wanita Lainnya</a></div>
+      <div><h3>FASHION BAYI &amp; ANAK</h3><a>Pakaian Bayi</a><a>Pakaian Anak Laki-laki</a><a>Pakaian Anak Perempuan</a><a>Sepatu Anak</a><a>Topi Anak</a><a>Aksesoris Bayi &amp; Anak</a><a>Perlengkapan Tidur</a><a>Fashion Bayi &amp; Anak Lainnya</a><h3>KESEHATAN</h3><a>Kewanitaan</a><a>Perawatan Mata</a><a>Suplementasi</a><a>Alat Kesehatan</a><a>Hand Sanitizer</a><a>Perawatan Kulit</a><a>Perawatan Telinga</a><a>Perawatan Gigi</a><a>Perawatan Tubuh</a><a>Kesehatan Lainnya</a></div>
+      <div><h3>AKSESORIS FASHION</h3><a>Cincin</a><a>Kalung</a><a>Gelang</a><a>Anting</a><a>Topi</a><a>Kacamata</a><a>Ikat Pinggang</a><a>Sarung Tangan</a><a>Aksesoris Lainnya</a><h3>TAS WANITA</h3><a>Hand Bag</a><a>Tas Selempang</a><a>Clutch</a><a>Tas Pinggang</a><a>Tote Bag</a><a>Dompet</a><a>Tas Travel</a><a>Tas Wanita Lainnya</a></div>
+      <div><h3>PERAWATAN &amp; KECANTIKAN</h3><a>Perawatan Tubuh</a><a>Perawatan Tangan</a><a>Perawatan Kuku</a><a>Perawatan Rambut</a><a>Perawatan Wajah</a><a>Kosmetik Wajah</a><a>Kosmetik Bibir</a><a>Parfum</a><a>Perawatan Kaki</a><a>Kecantikan Lainnya</a><h3>SEPATU PRIA</h3><a>Sneakers</a><a>Sepatu Kasual</a><a>Sepatu Formal</a><a>Sepatu Sport</a><a>Boot</a><a>Sepatu Pria Lainnya</a></div>
+      <div><h3>HEADPHONE &amp; AKSESORIS</h3><a>Headphone</a><a>Earphone</a><a>Perangkat Wearable</a><a>Aksesoris Selfie</a><a>Handphone &amp; Tablet</a><a>Kabel &amp; Charger</a><a>Powerbank</a><a>Headphone &amp; Aksesoris Lainnya</a><h3>FASHION MUSLIM</h3><a>Hijab</a><a>Abaya</a><a>Busana Muslim Wanita</a><a>Busana Muslim Pria</a><a>Mukena</a><a>Pakaian Muslim Anak</a><a>Fashion Muslim Lainnya</a></div>
+      <div><h3>IBU &amp; BAYI</h3><a>Perlengkapan Traveling Bayi</a><a>Peralatan &amp; Aksesoris Makan</a><a>Perlengkapan Menyusui</a><a>Perlengkapan Bayi</a><a>Kesehatan Kehamilan</a><a>Kesehatan &amp; Perawatan Bayi</a><a>Keamanan Bayi</a><a>Susu Formula</a><a>Popok &amp; Produk Bayi</a><h3>BUKU &amp; ALAT TULIS</h3><a>Alat Tulis</a><a>Perlengkapan Sekolah</a><a>Folder &amp; Organizer</a><a>Perlengkapan Kertas</a><a>Kalender</a><a>Buku Tulis</a><a>Buku Anak</a><a>Buku Fiksi</a><a>Buku Non-Fiksi</a><a>Buku &amp; Alat Tulis Lainnya</a></div>
+      <div><h3>JAM TANGAN</h3><a>Jam Tangan Wanita</a><a>Jam Tangan Pria</a><a>Jam Tangan Couple</a><a>Aksesoris Jam Tangan</a><a>Jam Tangan Lainnya</a><h3>OTOMOTIF</h3><a>Mobil</a><a>Aksesoris Eksterior</a><a>Aksesoris Interior</a><a>Suku Cadang Mobil</a><a>Perkakas &amp; Perlengkapan Kendaraan</a><a>Perawatan Kendaraan</a><a>Oli &amp; Pelumas</a><a>Gantungan &amp; Sarung Kunci</a><a>Sepeda Motor</a><a>Otomotif Lainnya</a></div>
+      <div><h3>SOUVENIR &amp; PERLENGKAPAN PESTA</h3><a>Perlengkapan Pesta</a><a>Pembungkus Kado</a><a>Kemasan</a><a>Souvenir &amp; Hadiah</a><a>Balon &amp; Bunga</a><h3>FOTOGRAFI</h3><a>Kamera</a><a>Lighting</a><a>Perlengkapan Studio Foto</a><a>Film &amp; Kertas Foto</a><a>Tas &amp; Casing Kamera</a><a>Baterai &amp; Battery Grip</a><a>Tripod</a><a>Monopod</a><a>Drone &amp; Aksesoris</a><a>Lensa &amp; Aksesoris</a><a>Fotografi Lainnya</a></div>
+    </div>
+  </div>
+</section>
 
 <main class="mk2-main">
 <section class="container">
@@ -6165,6 +6217,45 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(initMarketKitaHeroSlider,150));
   else setTimeout(initMarketKitaHeroSlider,150);
+})();
+</script>
+<div id="mk2CustomerService" class="mk2-cs">
+  <button type="button" id="mk2CsButton" class="mk2-cs-button" aria-expanded="false"><span>▣</span><b>Chat CS</b></button>
+  <div id="mk2CsPanel" class="mk2-cs-panel" aria-hidden="true">
+    <div class="mk2-cs-head"><div><strong>Customer Service</strong><small>MarketKita · Siap membantu</small></div><button type="button" id="mk2CsClose" aria-label="Tutup">×</button></div>
+    <div id="mk2CsMessages" class="mk2-cs-messages"><div class="mk2-cs-msg them">Halo! 👋 Selamat datang di Customer Service MarketKita. Ada yang bisa kami bantu?</div></div>
+    <div class="mk2-cs-quick"><button>Pesanan saya</button><button>Pembayaran</button><button>Pengiriman</button><button>Pengembalian</button></div>
+    <form id="mk2CsForm" class="mk2-cs-compose"><input id="mk2CsInput" maxlength="500" placeholder="Tulis pesan..." autocomplete="off"><button type="submit">Kirim</button></form>
+  </div>
+</div>
+<script id="marketkita-category-cs-final-js">
+(function(){
+  const ready=()=>{
+    const mega=document.getElementById("mk2MegaCategories"), trigger=document.getElementById("mk2AllCategories"), close=document.getElementById("mk2MegaClose");
+    if(mega&&trigger&&!trigger.dataset.bound){
+      trigger.dataset.bound="1";
+      const set=(open)=>{mega.classList.toggle("show",open);mega.setAttribute("aria-hidden",open?"false":"true");trigger.setAttribute("aria-expanded",open?"true":"false")};
+      trigger.addEventListener("click",()=>set(!mega.classList.contains("show")));
+      close?.addEventListener("click",()=>set(false));
+      document.addEventListener("click",e=>{if(mega.classList.contains("show")&&!mega.contains(e.target)&&e.target!==trigger)set(false)});
+      mega.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>{set(false);const target=document.getElementById("marketplaceSearch");if(target){target.value=a.textContent.trim();target.dispatchEvent(new Event("input",{bubbles:true}))}document.getElementById("produk")?.scrollIntoView({behavior:"smooth"})}));
+    }
+    const btn=document.getElementById("mk2CsButton"), panel=document.getElementById("mk2CsPanel"), x=document.getElementById("mk2CsClose"), form=document.getElementById("mk2CsForm"), input=document.getElementById("mk2CsInput"), msgs=document.getElementById("mk2CsMessages");
+    if(btn&&!btn.dataset.bound){
+      btn.dataset.bound="1";
+      const toggle=open=>{panel.classList.toggle("show",open);panel.setAttribute("aria-hidden",open?"false":"true");btn.setAttribute("aria-expanded",open?"true":"false");if(open)setTimeout(()=>input?.focus(),80)};
+      btn.addEventListener("click",()=>toggle(!panel.classList.contains("show"))); x?.addEventListener("click",()=>toggle(false));
+      const send=(text)=>{
+        text=String(text||"").trim();if(!text)return;
+        msgs.insertAdjacentHTML("beforeend",'<div class="mk2-cs-msg me">'+String(text).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))+'</div>');
+        msgs.scrollTop=msgs.scrollHeight;
+        setTimeout(()=>{const s=text.toLowerCase();let reply="Terima kasih. Pesan Anda sudah diterima Customer Service MarketKita. Silakan jelaskan detail kebutuhan Anda agar kami dapat membantu.";if(s.includes("pesanan"))reply="Untuk pesanan, kami dapat membantu mengecek status pesanan, pembayaran, dan proses pengiriman. Silakan kirim nomor pesanan Anda.";else if(s.includes("bayar"))reply="Untuk pembayaran, kami dapat membantu jika transaksi gagal, belum terverifikasi, atau ada kendala saat checkout.";else if(s.includes("kirim"))reply="Untuk pengiriman, silakan kirim nomor pesanan. Kami akan membantu mengecek status pengiriman dan resi.";else if(s.includes("kembali")||s.includes("refund"))reply="Untuk pengembalian atau refund, kirim nomor pesanan dan jelaskan kendalanya. Tim CS akan membantu proses berikutnya.";msgs.insertAdjacentHTML("beforeend",'<div class="mk2-cs-msg them">'+reply+'</div>');msgs.scrollTop=msgs.scrollHeight},500);
+      };
+      form?.addEventListener("submit",e=>{e.preventDefault();const v=input.value;input.value="";send(v)});
+      document.querySelectorAll(".mk2-cs-quick button").forEach(q=>q.addEventListener("click",()=>send(q.textContent)));
+    }
+  };
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ready);else ready();
 })();
 </script>
 </body>
