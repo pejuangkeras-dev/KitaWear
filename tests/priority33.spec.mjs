@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 const baseURL = process.env.MARKETKITA_URL || "https://marketkita.pages.dev";
-const rawBase = "https://raw.githubusercontent.com/pejuangkeras-dev/MarketKita/main/";
+const rawBase = `https://raw.githubusercontent.com/pejuangkeras-dev/MarketKita/${process.env.GITHUB_SHA || "main"}/`;
 async function source(request,path){const r=await request.get(rawBase+path);expect(r.ok()).toBeTruthy();return r.text();}
 test.describe("P33 — performance & scale",()=>{
  test("legacy payout consistency coverage remains green",async({request})=>{
