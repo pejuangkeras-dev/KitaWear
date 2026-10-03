@@ -2,11 +2,31 @@ import { test, expect } from "@playwright/test";
 const baseURL=process.env.MARKETKITA_URL||"https://marketkita.pages.dev";
 const rawBase="https://raw.githubusercontent.com/pejuangkeras-dev/MarketKita/main/";
 async function source(request,path){const r=await request.get(rawBase+path);expect(r.ok()).toBeTruthy();return r.text();}
-test.describe("P35 — shipping fulfillment consistency",()=>{
- test("one shipment per order seller",async({request})=>{const t=await source(request,"supabase/migrations/20261003072000_priority35_shipping_fulfillment_consistency.sql");expect(t).toContain("shipping_shipments_one_per_order_seller");});
- test("shipment fulfillment requires paid or refunded order",async({request})=>{const t=await source(request,"supabase/migrations/20261003072000_priority35_shipping_fulfillment_consistency.sql");expect(t).toContain("o.payment_status not in ('paid','refunded')");});
- test("active shipment requires AWB or tracking",async({request})=>{const t=await source(request,"supabase/migrations/20261003072000_priority35_shipping_fulfillment_consistency.sql");expect(t).toContain("Shipment aktif membutuhkan AWB/tracking number");});
- test("shipment must belong to the same order seller",async({request})=>{const t=await source(request,"supabase/migrations/20261003072000_priority35_shipping_fulfillment_consistency.sql");expect(t).toContain("os.order_id<>new.order_id");});
- test("shipping fee cannot be negative",async({request})=>{const t=await source(request,"supabase/migrations/20261003072000_priority35_shipping_fulfillment_consistency.sql");expect(t).toContain("shipping_shipments_fee_nonnegative");});
- test("production marketplace remains reachable",async({request})=>{const r=await request.get(baseURL+"/");expect(r.ok()).toBeTruthy();});
+test.describe("P35 — Mobile / PWA",()=>{
+ test("manifest is installable and scoped to root",async({request})=>{
+  const r=await request.get(baseURL+"/manifest.webmanifest");expect(r.ok()).toBeTruthy();
+  const m=await r.json();expect(m.name).toBe("MarketKita");expect(m.short_name).toBe("MarketKita");expect(m.display).toBe("standalone");expect(m.start_url).toContain("source=pwa");expect(m.scope).toBe("/");
+  expect(m.icons?.length).toBeGreaterThan(0);
+ });
+ test("service worker has offline fallback and push notification handlers",async({request})=>{
+  const t=await source(request,"sw.js");expect(t).toContain("self.addEventListener("install"");expect(t).toContain("/offline.html");expect(t).toContain("self.addEventListener("push"");expect(t).toContain("showNotification");expect(t).toContain("notificationclick");
+ });
+ test("PWA client registers service worker and install prompt",async({request})=>{
+  const t=await source(request,"pwa-p35.js");expect(t).toContain('navigator.serviceWorker.register(SW');expect(t).toContain("beforeinstallprompt");expect(t).toContain("appinstalled");expect(t).toContain("display-mode: standalone");
+ });
+ test("PWA client supports notification permission",async({request})=>{
+  const t=await source(request,"pwa-p35.js");expect(t).toContain("Notification.requestPermission");expect(t).toContain("showNotification");expect(t).toContain("marketKitaEnableNotifications");
+ });
+ test("index exposes PWA metadata and client",async({request})=>{
+  const t=await source(request,"index.html");expect(t).toContain('rel="manifest"');expect(t).toContain('apple-mobile-web-app-capable');expect(t).toContain("/pwa-p35.js?v=20261003-p35");
+ });
+ test("PWA assets have explicit cache policy",async({request})=>{
+  const t=await source(request,"_headers");expect(t).toContain("/sw.js");expect(t).toContain("/manifest.webmanifest");expect(t).toContain("/icons/*");
+ });
+ test("production homepage remains reachable on mobile viewport",async({page})=>{
+  await page.setViewportSize({width:390,height:844});const r=await page.goto(baseURL+"/",{waitUntil:"domcontentloaded"});expect(r?.ok()).toBeTruthy();expect(await page.locator("body").isVisible()).toBeTruthy();
+ });
+ test("offline fallback asset is deployed",async({request})=>{
+  const r=await request.get(baseURL+"/offline.html");expect(r.ok()).toBeTruthy();expect(await r.text()).toContain("Anda sedang offline");
+ });
 });
