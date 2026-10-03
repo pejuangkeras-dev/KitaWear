@@ -6001,6 +6001,21 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
       headerChat.removeAttribute("onclick");
     }
 
+    const headerLocation=[...document.querySelectorAll(".mk2-action")].find(x=>x.textContent.includes("Kirim ke"));
+    if(headerLocation&&!headerLocation.dataset.mkBound){
+      headerLocation.dataset.mkBound="1";
+      headerLocation.addEventListener("click",e=>{
+        e.preventDefault();
+        if(!cart.length){
+          showKwNotice("Lokasi pengiriman dipilih saat checkout. Tambahkan produk ke keranjang terlebih dahulu.","Lokasi Pengiriman");
+          return;
+        }
+        openCheckout();
+        setTimeout(()=>document.getElementById("buyerLocationPickerButton")?.click(),120);
+      });
+      headerLocation.removeAttribute("onclick");
+    }
+
     const localBanner=document.querySelector(".mk2-banner.local");
     if(localBanner&&!localBanner.dataset.mkBound){
       localBanner.dataset.mkBound="1";
