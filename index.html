@@ -749,7 +749,7 @@ body{background:var(--bg);color:var(--ink)}
     <section class="kw-co-section">
       <div class="kw-co-title"><b>4</b><div><strong>Voucher</strong><small>Gunakan voucher yang sudah Anda klaim.</small></div></div>
       <div class="kw-voucher"><input id="checkoutVoucher" placeholder="Masukkan kode voucher"><button type="button" class="smallbtn" onclick="validateCheckoutVoucher()">Terapkan</button></div>
-      <div id="checkoutVoucherMessage" class="kw-voucher-msg"></div>
+      <div id="checkoutVoucherMessage" class="kw-voucher-msg"></div><div id="checkoutPromotionSummary" class="mk-g4-promo"></div>
     </section>
 
     <div class="kw-co-total"><span>Total pembayaran</span><strong id="checkoutTotal">Rp0</strong></div>
@@ -3101,7 +3101,8 @@ async function startPayment(e){
         size:x.size,
         quantity:x.quantity
       })),
-      voucher_id:window.marketCheckoutVoucherId || null
+      voucher_id:window.marketCheckoutVoucherId || null,
+      promotion_campaign_ids:Array.isArray(window.marketPromotionCampaignIds)?window.marketPromotionCampaignIds:[]
     };
 
     const checkoutIdempotencyKey=String(window.marketCheckoutIdempotencyKey||crypto.randomUUID());
@@ -4977,7 +4978,7 @@ async function saveBuyerAddress(){
   finally{if(button){button.disabled=false;button.textContent="Simpan alamat";}}
 }
 </script>
-<style id="kw-checkout-safe-scroll">
+<style id="kw-g4-promotion-ui">.mk-g4-promo{margin-top:8px;border:1px solid #e6e1d8;border-radius:10px;background:#faf9f5;padding:9px;font-size:9px}.mk-g4-head{display:flex;justify-content:space-between;gap:8px;margin-bottom:6px}.mk-g4-head span,.mk-g4-empty,.mk-g4-loading{color:#77736c}.mk-g4-row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px solid #eee9e1}.mk-g4-cashback{margin-top:5px;color:#2f6b4f;font-weight:800}@media(max-width:700px){.mk-g4-promo{font-size:8px}}</style><style id="kw-checkout-safe-scroll">
 #checkoutModal{overflow-y:auto!important;-webkit-overflow-scrolling:touch;padding:12px!important;align-items:center}
 #checkoutModal .modal-box{max-height:calc(100vh - 24px)!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch}
 @media(max-width:700px){#checkoutModal{padding:0!important;align-items:flex-start}#checkoutModal .modal-box{max-height:100vh!important;min-height:100vh!important;border-radius:0!important}}
@@ -5020,6 +5021,7 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
 <script src="/pwa-p35.js?v=20261003-p35"></script>
 <script src="/buyer-experience-p28.js?v=20261003-p28"></script>
 <script src="/promotion-engine-p29.js?v=20261003-p29"></script>
+<script src="/promotion-g4.js?v=20261003-g4"></script>
 <script src="/search-discovery-p30.js?v=20261003-p30"></script>
 <script src="/trust-safety-p32.js?v=20261003-p32"></script>
 <script src="/recommendations-g2.js?v=20261003-g2"></script>
