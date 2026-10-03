@@ -79,7 +79,9 @@ select jsonb_build_object(
  'total_count',coalesce((select max(total) from page),0),
  'page',(select pg from p),'page_size',(select ps from p),
  'has_more',coalesce((select max(total) from page),0)>(select pg*ps from p),
- 'query',(select q from p)
+ 'query',(select q from p),
+ 'categories',coalesce((select jsonb_agg(z.category order by z.category) from (select distinct nullif(trim(category),'') category from b where nullif(trim(category),'') is not null) z),'[]'::jsonb),
+ 'stores',coalesce((select jsonb_agg(jsonb_build_object('name',z.store_name,'slug',z.store_slug) order by z.store_name) from (select distinct store_name,store_slug from b) z),'[]'::jsonb)
 )
 $$;
 
