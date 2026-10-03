@@ -1,0 +1,19 @@
+-- G7 Communication Center: secure chat writes, unread counts, and chat notification plumbing
+create index if not exists chat_threads_buyer_updated_idx on public.chat_threads(buyer_id,updated_at desc);
+create index if not exists chat_threads_seller_updated_idx on public.chat_threads(seller_id,updated_at desc);
+create index if not exists chat_messages_thread_created_idx on public.chat_messages(thread_id,created_at desc);
+create index if not exists notifications_user_unread_idx on public.notifications(user_id,created_at desc) where read_at is null;
+alter table public.chat_threads enable row level security;
+alter table public.chat_messages enable row level security;
+drop policy if exists chat_messages_send on public.chat_messages;
+create policy chat_messages_send on public.chat_messages for insert to authenticated with check (sender_id=auth.uid() and exists (select 1 from public.chat_threads t where t.id=chat_messages.thread_id and (t.buyer_id=auth.uid() or t.seller_id=auth.uid())));
+create or replace function public.mk_chat_notification_enabled(p_user_id uuid) returns boolean language sql stable security definer set search_path=public as $$ select coalesce((select chat_messages from public.notification_preferences where user_id=p_user_id),true) $$;
+create or replace function public.mk_chat_message_notify() returns trigger language plpgsql security definer set search_path=public as $$ declare t public.chat_threads; recipient uuid; store_name text; begin select * into t from public.chat_threads where id=new.thread_id; if not found then return new; end if; recipient:=case when t.buyer_id=new.sender_id then t.seller_id else t.buyer_id end; if recipient is null or recipient=new.sender_id then return new; end if; update public.chat_threads set updated_at=now() where id=t.id; if public.mk_chat_notification_enabled(recipient) then select name into store_name from public.stores where id=t.store_id; insert into public.notifications(user_id,type,title,message,link) values(recipient,'chat','Pesan baru dari '||coalesce(store_name,'MarketKita'),left(new.body,180),'#account-messages'); end if; return new; end $$;
+drop trigger if exists trg_g7_chat_message_notify on public.chat_messages;
+create trigger trg_g7_chat_message_notify after insert on public.chat_messages for each row execute function public.mk_chat_message_notify();
+create or replace function public.get_chat_unread_count() returns integer language sql security definer set search_path=public as $$ select count(*)::integer from public.chat_messages m join public.chat_threads t on t.id=m.thread_id where (t.buyer_id=auth.uid() or t.seller_id=auth.uid()) and m.sender_id<>auth.uid() and m.read_at is null $$;
+create or replace function public.get_chat_threads() returns jsonb language sql security definer set search_path=public as $$ select coalesce(jsonb_agg(to_jsonb(x) order by x.updated_at desc),'[]'::jsonb) from (select t.id,t.buyer_id,t.seller_id,t.store_id,t.updated_at,(select m.body from public.chat_messages m where m.thread_id=t.id order by m.created_at desc limit 1) as last_message,(select m.created_at from public.chat_messages m where m.thread_id=t.id order by m.created_at desc limit 1) as last_message_at,(select count(*) from public.chat_messages m where m.thread_id=t.id and m.sender_id<>auth.uid() and m.read_at is null)::integer as unread_count from public.chat_threads t where t.buyer_id=auth.uid() or t.seller_id=auth.uid()) x $$;
+revoke all on function public.get_chat_unread_count() from public,anon,authenticated;
+revoke all on function public.get_chat_threads() from public,anon,authenticated;
+grant execute on function public.get_chat_unread_count() to authenticated;
+grant execute on function public.get_chat_threads() to authenticated;
