@@ -1705,6 +1705,21 @@ a{color:inherit}
   z-index:1 !important;
 }
 </style>
+<style id="mk-remove-account-banner-final">
+/* FINAL: the account dashboard no longer uses a hero/banner */
+#authOverlay.account-expanded .account-hero,
+#authOverlay.account-expanded .account-hero-copy,
+#authOverlay.account-expanded .account-hero-badge{
+  display:none!important;
+}
+#authOverlay.account-expanded .account-hero::before,
+#authOverlay.account-expanded .account-hero::after{
+  display:none!important;
+}
+#authOverlay.account-expanded .account-main{
+  padding-top:28px!important;
+}
+</style>
 </head>
 
 <body>
