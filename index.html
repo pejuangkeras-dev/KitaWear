@@ -2047,14 +2047,33 @@ a{color:inherit}
     reader.onload=function(){
       const img=new Image();
       img.onload=function(){
-        const max=320, scale=Math.min(1,max/Math.max(img.width,img.height));
+        // Supabase Auth metadata has a practical size limit. Store a compact
+        // avatar thumbnail rather than the original image.
+        const max=128, scale=Math.min(1,max/Math.max(img.width,img.height));
         const canvas=document.createElement("canvas");
         canvas.width=Math.max(1,Math.round(img.width*scale));
         canvas.height=Math.max(1,Math.round(img.height*scale));
         const ctx=canvas.getContext("2d");
         ctx.drawImage(img,0,0,canvas.width,canvas.height);
-        let data=canvas.toDataURL("image/jpeg",.78);
-        if(data.length>8500)data=canvas.toDataURL("image/jpeg",.62);
+
+        let data="";
+        // Keep retrying with smaller dimensions/quality until safely below
+        // the metadata limit, even for detailed PNG/WebP photographs.
+        const qualities=[0.72,0.58,0.48,0.38,0.30,0.24];
+        for(let pass=0;pass<qualities.length;pass++){
+          const ratio=Math.pow(0.78,pass);
+          const w=Math.max(48,Math.round(canvas.width*ratio));
+          const h=Math.max(48,Math.round(canvas.height*ratio));
+          const out=document.createElement("canvas");
+          out.width=w;out.height=h;
+          const outCtx=out.getContext("2d");
+          outCtx.drawImage(canvas,0,0,w,h);
+          data=out.toDataURL("image/jpeg",qualities[pass]);
+          if(data.length<=7000)break;
+        }
+        if(!data || data.length>7000){
+          throw new Error("Foto terlalu detail untuk disimpan. Pilih foto lain.");
+        }
         window.marketKitaPendingAvatar=data;
         applyMarketKitaAvatar(data);
         if(msg)msg.textContent="Foto dipilih. Tekan Simpan untuk menerapkan.";
