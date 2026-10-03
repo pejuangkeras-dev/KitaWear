@@ -3,7 +3,7 @@ function json(data, status = 200) {
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "no-store"
+      "Cache-Control": "public, max-age=30, s-maxage=60, stale-while-revalidate=120"
     }
   });
 }
@@ -50,6 +50,16 @@ async function supabaseGet(url, key, path) {
 }
 
 export async function onRequestGet(context) {
+  const cache = globalThis.caches?.default;
+  const requestKey = cache ? new Request(new URL(context.request.url).toString(), { method: "GET" }) : null;
+  if (cache && requestKey) {
+    const hit = await cache.match(requestKey);
+    if (hit) {
+      const headers = new Headers(hit.headers);
+      headers.set("X-MarketKita-Cache", "HIT");
+      return new Response(await hit.text(), { status: hit.status, headers });
+    }
+  }
   try {
     const supabaseUrl = normalizeUrl(
       context.env.SUPABASE_URL
@@ -210,10 +220,9 @@ export async function onRequestGet(context) {
       })
     );
 
-    return json({
-      products:
-        publicProducts
-    });
+    const response = json({ products: publicProducts });
+    if (cache && requestKey && response.ok) { try { await cache.put(requestKey, response.clone()); } catch {} }
+    return response;
 
   } catch (error) {
 
