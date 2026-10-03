@@ -4313,6 +4313,101 @@ button,input,select{font-family:inherit!important}
   }
 }
 </style>
+<script id="marketkita-design-a-runtime-final">
+/* Design A runtime enforcement.
+   Inline !important is intentional: it wins over legacy component styles
+   loaded before/after this file and prevents the visual regressions seen
+   in Product, Checkout and Account.
+*/
+(function(){
+  const BLUE="#1769e8", NAVY="#102b57", TEXT="#344b68", LINE="#d7e4f0", BG="#f5f9fe";
+
+  function set(el, props){
+    if(!el) return;
+    Object.entries(props).forEach(([k,v])=>el.style.setProperty(k,v,"important"));
+  }
+
+  function product(){
+    const m=document.getElementById("productDetailModal");
+    if(!m) return;
+    set(m,{
+      "background":"rgba(7,29,58,.62)",
+      "backdrop-filter":"blur(3px)",
+      "z-index":"10000"
+    });
+    const box=m.querySelector(".product-detail-box");
+    set(box,{"background":"#fff","border":"1px solid "+LINE,"border-radius":"16px","box-shadow":"0 30px 90px rgba(5,42,84,.28)"});
+    set(m.querySelector(".product-detail-info"),{"background":"#fff","color":TEXT});
+    set(m.querySelector(".product-detail-gallery"),{"background":"#f4f8fd"});
+    set(m.querySelector(".product-detail-title"),{"color":NAVY});
+    set(m.querySelector(".product-detail-price"),{"color":BLUE});
+    m.querySelectorAll(".product-detail-section h4,.detail-full-section h3").forEach(e=>set(e,{"color":NAVY}));
+    m.querySelectorAll(".product-detail-desc,.detail-description-box").forEach(e=>set(e,{"color":"#526a84"}));
+    m.querySelectorAll(".product-detail-btn.dark").forEach(e=>set(e,{"background":BLUE,"border-color":BLUE,"color":"#fff"}));
+    m.querySelectorAll(".product-detail-btn.light").forEach(e=>set(e,{"background":"#fff","border-color":BLUE,"color":BLUE}));
+    m.querySelectorAll(".product-detail-size.active").forEach(e=>set(e,{"background":BLUE,"border-color":BLUE,"color":"#fff"}));
+    m.querySelectorAll(".seller-actions button").forEach(e=>set(e,{"background":"#fff","border-color":"#c5ddfa","color":BLUE}));
+    m.querySelectorAll(".seller-actions button:last-child").forEach(e=>set(e,{"background":"#eaf4ff","color":BLUE}));
+  }
+
+  function checkout(){
+    const m=document.getElementById("checkoutModal");
+    if(!m) return;
+    set(m,{"background":"rgba(7,29,58,.62)","backdrop-filter":"blur(3px)","z-index":"10001"});
+    const box=m.querySelector(".kw-checkout-box");
+    set(box,{"background":BG,"border":"1px solid "+LINE,"border-radius":"16px"});
+    set(m.querySelector(".kw-co-pay"),{"background":BLUE,"border-color":BLUE,"color":"#fff"});
+    set(m.querySelector(".kw-co-total strong"),{"color":BLUE});
+    m.querySelectorAll("input,textarea,select,.kw-location-trigger").forEach(e=>set(e,{"color":"#243f60","background":"#fff","border-color":"#cbdbea"}));
+    m.querySelectorAll(".kw-co-section,.kw-co-items,.kw-co-total").forEach(e=>set(e,{"color":TEXT,"background":"#fff","border-color":LINE}));
+    m.querySelectorAll(".kw-co-title strong").forEach(e=>set(e,{"color":NAVY}));
+  }
+
+  function account(){
+    const m=document.getElementById("authOverlay");
+    if(!m || !m.classList.contains("account-expanded")) return;
+    set(m,{"opacity":"1","filter":"none","background":BG,"background-image":"none","backdrop-filter":"none","-webkit-backdrop-filter":"none","z-index":"10002"});
+    set(m.querySelector(".auth-box"),{"opacity":"1","filter":"none","background":BG});
+    set(m.querySelector(".account-dashboard"),{"opacity":"1","filter":"none","background":BG,"color":NAVY});
+    set(m.querySelector(".account-sidebar"),{"opacity":"1","filter":"none","background":"#fff","color":TEXT});
+    set(m.querySelector(".account-main"),{"opacity":"1","filter":"none","background":BG,"color":NAVY});
+    m.querySelectorAll(".account-nav-item").forEach(e=>set(e,{"opacity":"1","color":TEXT}));
+    m.querySelectorAll(".account-nav-item.active").forEach(e=>set(e,{"background":"#eaf4ff","color":BLUE}));
+    m.querySelectorAll(".account-page-head,.profile-form,.account-card,.account-user-card").forEach(e=>set(e,{"opacity":"1","filter":"none","background":"#fff","color":TEXT,"border-color":LINE}));
+    m.querySelectorAll(".account-hero").forEach(e=>set(e,{"opacity":"1","filter":"none","color":NAVY}));
+    m.querySelectorAll(".account-hero h3,.account-hero strong").forEach(e=>set(e,{"color":NAVY}));
+    m.querySelectorAll(".account-hero p").forEach(e=>set(e,{"color":"#4e6d91"}));
+    m.querySelectorAll("input,select,textarea").forEach(e=>set(e,{"color":"#243f60","background":"#fff","border-color":"#cbdbea"}));
+    m.querySelectorAll(".profile-save,.account-card-btn").forEach(e=>set(e,{"background":BLUE,"border-color":BLUE,"color":"#fff"}));
+  }
+
+  function hidden(){
+    ["authOverlay","checkoutModal","productDetailModal"].forEach(id=>{
+      const e=document.getElementById(id);
+      if(e && e.getAttribute("aria-hidden")==="true"){
+        e.classList.remove("show","account-expanded");
+        set(e,{"display":"none","visibility":"hidden","opacity":"0","pointer-events":"none"});
+      }
+    });
+  }
+
+  function enforce(){
+    hidden(); product(); checkout(); account();
+    const h=document.querySelector(".mk2-header"), c=document.querySelector(".mk2-catnav");
+    set(h,{"position":"relative","top":"auto"});
+    set(c,{"position":"relative","top":"auto"});
+  }
+
+  document.addEventListener("DOMContentLoaded",()=>{
+    enforce();
+    new MutationObserver(enforce).observe(document.body,{subtree:true,attributes:true,attributeFilter:["class","style","aria-hidden"]});
+  });
+  window.addEventListener("pageshow",enforce);
+  setTimeout(enforce,100);
+  setTimeout(enforce,500);
+  setTimeout(enforce,1500);
+})();
+</script>
 </head>
 
 <body>
