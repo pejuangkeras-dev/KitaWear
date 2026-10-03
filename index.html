@@ -3488,6 +3488,177 @@ button,input,select{font-family:inherit!important}
   #authOverlay.account-expanded .account-dashboard{grid-template-columns:230px minmax(0,1fr)!important}
 }
 </style>
+<style id="marketkita-design-a-final-viewport-fix">
+/* FINAL FIX 2026-10-04
+   1) Header/category must scroll away with page — never sticky.
+   2) Hidden overlays must never tint the homepage.
+   3) Use the REAL MarketKita selectors for product/checkout/account.
+*/
+.mk2-header,
+.mk2-header .container,
+.mk2-catnav,
+.mk2-catnav .container{
+  position:relative!important;
+  top:auto!important;
+  z-index:auto!important;
+}
+.mk2-header{
+  background:#fff!important;
+  box-shadow:none!important;
+}
+.mk2-catnav{
+  background:#fff!important;
+}
+
+/* Prevent an aria-hidden modal from dimming the entire homepage. */
+#authOverlay[aria-hidden="true"],
+#checkoutModal[aria-hidden="true"],
+#productDetailModal[aria-hidden="true"],
+#sizeChoiceModal[aria-hidden="true"],
+#kwNoticeOverlay[aria-hidden="true"],
+#kwConfirmOverlay[aria-hidden="true"],
+#locationPickerModal[aria-hidden="true"],
+.modal[aria-hidden="true"],
+.drawer[aria-hidden="true"]{
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+
+/* Visible states remain controlled by the existing application classes. */
+#authOverlay[aria-hidden="false"],
+#checkoutModal[aria-hidden="false"],
+#productDetailModal[aria-hidden="false"],
+#sizeChoiceModal[aria-hidden="false"],
+#kwNoticeOverlay[aria-hidden="false"],
+#kwConfirmOverlay[aria-hidden="false"],
+#locationPickerModal[aria-hidden="false"]{
+  visibility:visible;
+  pointer-events:auto;
+}
+
+/* PRODUCT — actual DOM uses #productDetailModal + .product-detail-box */
+#productDetailModal{
+  background:rgba(8,30,65,.58)!important;
+  backdrop-filter:blur(3px)!important;
+  padding:18px!important;
+}
+#productDetailModal .product-detail-box{
+  width:min(1180px,96vw)!important;
+  max-height:94vh!important;
+  border-radius:16px!important;
+  background:#fff!important;
+  border:1px solid #dfe9f5!important;
+  overflow:auto!important;
+  box-shadow:0 28px 80px rgba(15,55,105,.20)!important;
+}
+#productDetailModal .product-detail-head{
+  position:sticky!important;
+  top:0!important;
+  z-index:8!important;
+  background:#fff!important;
+  border-bottom:1px solid #dfe9f5!important;
+}
+#productDetailModal .product-detail-gallery{background:#f5f9fe!important}
+#productDetailModal .product-detail-info{background:#fff!important}
+#productDetailModal .product-detail-title{color:#102b57!important}
+#productDetailModal .product-detail-price{color:#ed3340!important}
+#productDetailModal .product-detail-btn.dark{
+  background:#ff5a1f!important;
+  border-color:#ff5a1f!important;
+  color:#fff!important;
+}
+#productDetailModal .product-detail-btn.light{
+  background:#fff!important;
+  border-color:#ff5a1f!important;
+  color:#ff5a1f!important;
+}
+
+/* CHECKOUT — actual DOM uses #checkoutModal.modal + .kw-checkout-box */
+#checkoutModal{
+  background:rgba(7,29,59,.58)!important;
+  backdrop-filter:blur(3px)!important;
+}
+#checkoutModal .kw-checkout-box{
+  background:#f6f9fd!important;
+  border:1px solid #dfe9f5!important;
+  border-radius:16px!important;
+  box-shadow:0 28px 85px rgba(11,50,95,.22)!important;
+}
+#checkoutModal .kw-co-head{
+  background:#fff!important;
+  border-bottom:1px solid #dfe9f5!important;
+}
+#checkoutModal .kw-co-section,
+#checkoutModal .kw-co-items,
+#checkoutModal .kw-co-total{
+  background:#fff!important;
+  border-color:#dfe9f5!important;
+}
+#checkoutModal .kw-co-title>b{
+  background:#1769e8!important;
+}
+#checkoutModal .kw-co-pay{
+  background:#ff5a1f!important;
+}
+#checkoutModal .kw-co-pay:hover{
+  background:#e94b12!important;
+}
+
+/* ACCOUNT — actual DOM uses #authOverlay + .account-dashboard */
+#authOverlay.account-expanded{
+  background:#f5f9fe!important;
+  backdrop-filter:none!important;
+}
+#authOverlay.account-expanded .account-main{
+  background:#f5f9fe!important;
+}
+#authOverlay.account-expanded .account-sidebar,
+#authOverlay.account-expanded .account-page-head,
+#authOverlay.account-expanded .profile-form,
+#authOverlay.account-expanded .account-card{
+  background:#fff!important;
+  border-color:#dfe9f5!important;
+}
+#authOverlay.account-expanded .account-nav-item.active{
+  background:#eaf4ff!important;
+  color:#1769e8!important;
+}
+#authOverlay.account-expanded .profile-save,
+#authOverlay.account-expanded .account-card-btn{
+  background:#1769e8!important;
+}
+
+/* MOBILE — header scrolls normally; only bottom navigation stays fixed. */
+@media(max-width:700px){
+  .mk2-header{
+    position:relative!important;
+    top:auto!important;
+    z-index:auto!important;
+  }
+  .mk2-catnav{position:relative!important;top:auto!important;z-index:auto!important}
+  #productDetailModal{
+    padding:0!important;
+    align-items:flex-end!important;
+  }
+  #productDetailModal .product-detail-box{
+    width:100vw!important;
+    max-width:none!important;
+    max-height:96dvh!important;
+    border-radius:18px 18px 0 0!important;
+  }
+  #checkoutModal{
+    padding:0!important;
+    align-items:flex-end!important;
+  }
+  #checkoutModal .kw-checkout-box{
+    width:100vw!important;
+    max-width:none!important;
+    max-height:96dvh!important;
+    border-radius:18px 18px 0 0!important;
+  }
+}
+</style>
 </head>
 
 <body>
