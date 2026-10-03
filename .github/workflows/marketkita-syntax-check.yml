@@ -35,3 +35,6 @@ jobs:
       - name: P27 Seller Center smoke tests
         run: |
           npx playwright test tests/priority27.spec.mjs
+      - name: P28 Buyer Experience smoke tests
+        run: |
+          npx playwright test tests/priority28.spec.mjs
