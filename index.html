@@ -4634,8 +4634,19 @@ document.addEventListener("DOMContentLoaded",async()=>{
   if(langSelect) langSelect.value=currentLang;
 
   await loadMarketKitaProductsFromDatabase();
-  const storeParam=new URLSearchParams(location.search).get("store");
-  if(storeParam)marketFilters.store=storeParam;
+  const urlParams=new URLSearchParams(location.search);
+  const storeParam=urlParams.get("store");
+  const fromStore=urlParams.get("from_store")==="1";
+  if(storeParam && fromStore) marketFilters.store=storeParam;
+  else if(storeParam && !fromStore){
+    // A normal homepage visit must always start with all stores visible.
+    // Ignore stale/direct store query parameters so one seller never becomes
+    // the implicit default marketplace store.
+    urlParams.delete("store");
+    urlParams.delete("from_store");
+    const clean=urlParams.toString();
+    history.replaceState({},document.title,location.pathname+(clean?"?"+clean:"")+location.hash);
+  }
   populateMarketplaceFilters();
   applyLanguage(currentLang);
   updateCart();
