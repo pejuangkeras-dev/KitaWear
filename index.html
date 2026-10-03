@@ -1322,6 +1322,61 @@ a{color:inherit}
   outline-offset:2px!important;
 }
 </style>
+<style id="marketkita-account-size-final">
+/* ACCOUNT SIZE FIX
+   The account dashboard had several historical responsive rules competing with
+   the new design. On desktop it must use the full available viewport.
+*/
+@media(min-width:821px){
+  #authOverlay.account-expanded{
+    position:fixed!important;
+    inset:0!important;
+    width:100vw!important;
+    height:100vh!important;
+    padding:0!important;
+    display:flex!important;
+    align-items:stretch!important;
+    justify-content:stretch!important;
+    overflow:hidden!important;
+  }
+  #authOverlay.account-expanded .auth-box{
+    width:100vw!important;
+    max-width:none!important;
+    height:100vh!important;
+    max-height:none!important;
+    min-width:0!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    overflow:hidden!important;
+  }
+  #authOverlay.account-expanded .account-dashboard{
+    width:100%!important;
+    height:100%!important;
+    grid-template-columns:280px minmax(0,1fr)!important;
+  }
+  #authOverlay.account-expanded .account-sidebar{
+    width:auto!important;
+    min-width:0!important;
+  }
+  #authOverlay.account-expanded .account-main{
+    min-width:0!important;
+    width:auto!important;
+  }
+}
+/* Keep the compact layout only for genuinely narrow screens. */
+@media(max-width:820px){
+  #authOverlay.account-expanded .auth-box{
+    width:100vw!important;
+    max-width:none!important;
+    height:100vh!important;
+    max-height:none!important;
+    border-radius:0!important;
+  }
+}
+</style>
 </head>
 
 <body>
