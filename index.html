@@ -3113,6 +3113,7 @@ async function startPayment(e){
 
     window.snap.pay(data.token,{
       onSuccess:function(){
+        if(typeof window.marketKitaTrack==="function")window.marketKitaTrack("purchase_success",{voucher_id:window.marketCheckoutVoucherId||null,metadata:{payment:"midtrans"}});
         showKwNotice(t("payment_success"),t("payment_success_title"));
       },
       onPending:function(){
@@ -4991,6 +4992,7 @@ window.marketKitaGetSupabase=()=>kwSupabase;
 window.marketKitaGetCurrentUser=()=>kwCurrentUser;
 </script>
 <script src="/market-social.js"></script>
+<script src="/analytics-p34.js?v=20261003-p34"></script>
 <script src="/buyer-experience-p28.js?v=20261003-p28"></script>
 <script src="/promotion-engine-p29.js?v=20261003-p29"></script>
 <script src="/search-discovery-p30.js?v=20261003-p30"></script>
