@@ -1660,6 +1660,51 @@ a{color:inherit}
   #authOverlay:not(.account-expanded) #authGuest{padding:17px 18px 20px !important}
 }
 </style>
+<style id="mk-account-close-fix">
+/* FINAL: account dashboard close button must stay above hero/content */
+#authOverlay.account-expanded .auth-box > .auth-head{
+  position:absolute !important;
+  top:12px !important;
+  right:12px !important;
+  left:auto !important;
+  width:auto !important;
+  height:auto !important;
+  margin:0 !important;
+  padding:0 !important;
+  z-index:99999 !important;
+  pointer-events:none !important;
+}
+#authOverlay.account-expanded .auth-box > .auth-head .auth-close{
+  position:relative !important;
+  z-index:100000 !important;
+  pointer-events:auto !important;
+  display:grid !important;
+  place-items:center !important;
+  width:36px !important;
+  height:36px !important;
+  min-width:36px !important;
+  min-height:36px !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:1px solid rgba(17,24,39,.18) !important;
+  border-radius:50% !important;
+  background:#fff !important;
+  color:#111827 !important;
+  font-size:20px !important;
+  line-height:1 !important;
+  font-weight:500 !important;
+  box-shadow:0 5px 18px rgba(0,0,0,.18) !important;
+  cursor:pointer !important;
+}
+#authOverlay.account-expanded .auth-box > .auth-head .auth-close:hover{
+  background:#f3f4f6 !important;
+  transform:scale(1.04);
+}
+#authOverlay.account-expanded .account-hero{
+  position:relative !important;
+  z-index:1 !important;
+}
+</style>
 </head>
 
 <body>
