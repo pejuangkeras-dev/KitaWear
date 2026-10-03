@@ -24,3 +24,7 @@ jobs:
           }
           if(process.exitCode) process.exit(1);
           NODE
+      - name: P25 final production audit smoke tests
+        run: |
+          npx --yes playwright install --with-deps chromium
+          npx --yes playwright test tests/priority25.spec.mjs --project=chromium
