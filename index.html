@@ -2072,6 +2072,50 @@ a{color:inherit}
   };
 })();
 </script>
+<style id="mk-profile-avatar-round-final">
+/* Final avatar shape: profile photos are circular everywhere */
+#authOverlay.account-expanded .account-avatar,
+#authOverlay.account-expanded .account-avatar img,
+#authOverlay.account-expanded .account-preview-avatar,
+#authOverlay.account-expanded .account-preview-avatar img{
+  width:58px!important;
+  height:58px!important;
+  min-width:58px!important;
+  min-height:58px!important;
+  max-width:58px!important;
+  max-height:58px!important;
+  border-radius:50%!important;
+  overflow:hidden!important;
+  object-fit:cover!important;
+  aspect-ratio:1/1!important;
+}
+#authOverlay.account-expanded .account-avatar{
+  display:grid!important;
+  place-items:center!important;
+  flex:0 0 58px!important;
+  padding:0!important;
+}
+#authOverlay.account-expanded .account-avatar img,
+#authOverlay.account-expanded .account-preview-avatar img{
+  display:block!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  border:0!important;
+}
+#authOverlay.account-expanded .account-preview-avatar{
+  width:82px!important;
+  height:82px!important;
+  min-width:82px!important;
+  min-height:82px!important;
+  max-width:82px!important;
+  max-height:82px!important;
+  flex:0 0 82px!important;
+}
+#authOverlay.account-expanded .account-preview-avatar img{
+  width:100%!important;
+  height:100%!important;
+}
+</style>
 </head>
 
 <body>
