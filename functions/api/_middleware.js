@@ -4,7 +4,8 @@ const ROUTES={
   "/api/location-search":{limit:30,window:60,label:"location"},
   "/api/address-suggestions":{limit:30,window:60,label:"address"},
   "/api/shipping-quote":{limit:20,window:60,label:"shipping"},
-  "/api/create-transaction":{limit:10,window:60,label:"checkout"}
+  "/api/create-transaction":{limit:10,window:60,label:"checkout"},
+  "/api/analytics":{limit:120,window:60,label:"analytics"}
 };
 
 function routeConfig(path){
