@@ -7188,31 +7188,70 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
 </script>
 <script id="mk-account-hover-menu-js">
 (function(){
-  window.openAccountMenuSection=function(section){
+  async function ensureHoverAccountSession(){
+    // Never infer login state from the menu UI. Read the persisted Supabase
+    // session so a hover-menu click cannot incorrectly send an already logged-in
+    // customer back to the login form.
+    let user=kwCurrentUser;
+    if(!user && kwSupabase?.auth){
+      try{
+        const result=await kwSupabase.auth.getSession();
+        user=result?.data?.session?.user||null;
+        if(user){
+          await applyMarketKitaSession(result.data.session);
+          user=kwCurrentUser;
+        }
+      }catch(error){ console.warn("MarketKita account menu session:",error); }
+    }
+    return user;
+  }
+
+  window.openAccountMenuSection=async function(section){
     const menu=document.getElementById("mk2AccountHoverMenu");
     if(menu)menu.classList.remove("is-open");
-    if(!kwCurrentUser){marketKitaOpenAccountFallback();return;}
+
+    const user=await ensureHoverAccountSession();
+    if(!user){
+      marketKitaOpenAccountFallback();
+      return;
+    }
+
     const overlay=document.getElementById("authOverlay");
-    if(overlay){overlay.classList.add("show","account-expanded");overlay.setAttribute("aria-hidden","false");}
-    if(typeof showAccountSection==="function")showAccountSection(section);
-    else if(typeof openAccount==="function")openAccount();
+    if(overlay){
+      overlay.classList.add("show","account-expanded");
+      overlay.setAttribute("aria-hidden","false");
+    }
+    if(typeof updateAccountHoverMenu==="function")updateAccountHoverMenu(kwCurrentUser,kwCurrentProfile);
+    if(typeof showAccountSection==="function"){
+      showAccountSection(section);
+    }else{
+      console.warn("MarketKita: showAccountSection tidak tersedia.");
+    }
   };
-  window.openSellerCenterFromAccountMenu=function(){
-    if(!kwCurrentUser){marketKitaOpenAccountFallback();return;}
-    const role=String(kwCurrentProfile?.role||"buyer").toLowerCase();
+
+  window.openSellerCenterFromAccountMenu=async function(){
+    const user=await ensureHoverAccountSession();
+    if(!user){marketKitaOpenAccountFallback();return;}
+    const role=String(kwCurrentProfile?.role||user.user_metadata?.role||"buyer").trim().toLowerCase();
+    const menu=document.getElementById("mk2AccountHoverMenu");
+    if(menu)menu.classList.remove("is-open");
     if(role!=="seller" && role!=="admin"){
-      const menu=document.getElementById("mk2AccountHoverMenu");
-      if(menu)menu.classList.remove("is-open");
       if(typeof showKwNotice==="function")showKwNotice("Seller Center hanya dapat diakses oleh akun Seller atau Admin.","Akses Seller Center");
       return;
     }
     window.location.href="/seller.html";
   };
-  window.logoutAccountFromHover=function(){
+
+  window.logoutAccountFromHover=async function(){
     const menu=document.getElementById("mk2AccountHoverMenu");
     if(menu)menu.classList.remove("is-open");
-    if(typeof logoutAccount==="function")logoutAccount();
-    else if(typeof signOutAccount==="function")signOutAccount();
+    if(typeof logoutAccount==="function"){
+      await logoutAccount();
+    }else if(typeof signOutAccount==="function"){
+      await signOutAccount();
+    }else if(kwSupabase?.auth){
+      await kwSupabase.auth.signOut();
+    }
   };
   window.updateAccountHoverMenu=function(user,profile){
     const name=document.getElementById("mk2HoverAccountName");
