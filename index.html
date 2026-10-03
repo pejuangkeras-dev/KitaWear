@@ -7114,7 +7114,7 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
     const ins=await kwSupabase.from("cs_threads").insert({customer_id:user.id,subject:"Bantuan Customer Service",ticket_number:ticket,ticket_status:"bot"}).select().single();
     if(ins.error){alert(ins.error.message||"Gagal membuat tiket.");return null;}
     csThread=ins.data;
-    const msg=await kwSupabase.from("cs_messages").insert({thread_id:csThread.id,sender_id:user.id,sender_role:"customer",body:"Saya memulai percakapan dengan Customer Service."});
+    const msg=await kwSupabase.from("cs_messages").insert({thread_id:csThread.id,sender_id:user.id,sender_role:"customer",is_bot:false,body:"Saya memulai percakapan dengan Customer Service."});
     if(msg.error)console.warn(msg.error);
     return csThread;
   }
@@ -7144,8 +7144,8 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
     csMessages.push({sender_role:"customer",body:text});
     setTimeout(async()=>{
       const reply=botReply(text);
-      const b=await kwSupabase.from("cs_messages").insert({thread_id:t.id,sender_id:user.id,sender_role:"customer",body:reply});
-      if(!b.error)csMessages.push({sender_role:"admin",body:reply});
+      const b=await kwSupabase.from("cs_messages").insert({thread_id:t.id,sender_id:user.id,sender_role:"admin",is_bot:true,body:reply});
+      if(!b.error)csMessages.push({sender_role:"admin",is_bot:true,body:reply});
       ui();
     },450);
     ui();
