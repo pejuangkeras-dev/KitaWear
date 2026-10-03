@@ -5216,9 +5216,15 @@ function setAuthMode(mode){
   loginTab?.classList.toggle("active",kwAuthMode==="login");
   registerTab?.classList.toggle("active",kwAuthMode==="register");
 
-  if(nameField) nameField.style.display=kwAuthMode==="register" ? "block" : "none";
-  if(phoneField) phoneField.style.display=kwAuthMode==="register" ? "block" : "none";
-  if(passwordConfirmField) passwordConfirmField.style.display=kwAuthMode==="register" ? "block" : "none";
+  const registerMode=kwAuthMode==="register";
+  // These fields are also targeted by the final auth CSS, so use !important
+  // here to prevent legacy/final styles from overriding the selected mode.
+  if(nameField) nameField.style.setProperty("display",registerMode ? "block" : "none","important");
+  if(phoneField) phoneField.style.setProperty("display",registerMode ? "block" : "none","important");
+  if(passwordConfirmField) passwordConfirmField.style.setProperty("display",registerMode ? "block" : "none","important");
+  if(passwordConfirmInput) passwordConfirmInput.required=registerMode;
+  if(nameField?.querySelector("input")) nameField.querySelector("input").required=registerMode;
+  if(phoneField?.querySelector("input")) phoneField.querySelector("input").required=registerMode;
   if(passwordInput) passwordInput.autocomplete=kwAuthMode==="register" ? "new-password" : "current-password";
   if(passwordConfirmInput) passwordConfirmInput.value="";
   if(submit) submit.textContent=kwAuthMode==="register" ? "Buat Akun" : "Masuk";
@@ -5233,6 +5239,11 @@ function validateMarketKitaLoginFields(){
   const passwordInput=document.getElementById("authPassword");
   const email=(emailInput?.value || "").trim();
   const password=passwordInput?.value || "";
+  const registerMode=kwAuthMode==="register";
+
+  emailInput?.setCustomValidity("");
+  passwordInput?.setCustomValidity("");
+
   if(!email){
     emailInput?.setCustomValidity("Email wajib diisi.");
     emailInput?.reportValidity?.();
@@ -5241,15 +5252,20 @@ function validateMarketKitaLoginFields(){
     return false;
   }
   if(!password){
-    emailInput?.setCustomValidity("");
     passwordInput?.setCustomValidity("Password wajib diisi.");
     passwordInput?.reportValidity?.();
     setAuthMessage("Password wajib diisi.");
     passwordInput?.focus();
     return false;
   }
-  emailInput?.setCustomValidity("");
-  passwordInput?.setCustomValidity("");
+  if(registerMode){
+    const nameInput=document.getElementById("authName");
+    const phoneInput=document.getElementById("authPhone");
+    const confirmInput=document.getElementById("authPasswordConfirm");
+    if(!(nameInput?.value || "").trim()){ setAuthMessage("Nama wajib diisi."); nameInput?.focus(); return false; }
+    if(!(phoneInput?.value || "").trim()){ setAuthMessage("Nomor telepon wajib diisi."); phoneInput?.focus(); return false; }
+    if(!(confirmInput?.value || "")){ setAuthMessage("Konfirmasi password wajib diisi."); confirmInput?.focus(); return false; }
+  }
   return true;
 }
 
