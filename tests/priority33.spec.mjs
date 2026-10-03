@@ -24,8 +24,8 @@ test.describe("P33 — seller payout consistency",()=>{
  });
  test("P33 edge caching is enabled for public search and catalog",async({request})=>{
   const search=await source(request,"functions/api/search-products.js"),catalog=await source(request,"functions/api/public-products.js");
-  expect(search).toContain("caches.default"); expect(search).toContain("stale-while-revalidate=60");
-  expect(catalog).toContain("caches.default"); expect(catalog).toContain("stale-while-revalidate=120");
+  expect(search).toContain("caches?.default"); expect(search).toContain("stale-while-revalidate=60");
+  expect(catalog).toContain("caches?.default"); expect(catalog).toContain("stale-while-revalidate=120");
  });
  test("P33 performance probe is admin-only",async({request})=>{
   const api=await source(request,"functions/api/performance.js"),ui=await source(request,"performance-p33.js");
