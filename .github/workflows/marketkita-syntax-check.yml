@@ -24,6 +24,8 @@ jobs:
           }
           if(process.exitCode) process.exit(1);
           NODE
+      - name: Install Playwright test dependency
+        run: npm install --no-audit --no-fund
       - name: P25 final production audit smoke tests
         run: |
-          npx --yes playwright test tests/priority25.spec.mjs
+          npx playwright test tests/priority25.spec.mjs
