@@ -844,6 +844,17 @@ body{background:var(--mk-bg)!important;color:var(--mk-navy)!important;font-famil
  .account-bottom-grid{grid-template-columns:1fr!important}
 }
 </style>
+<style id="marketkita-cart-fix">
+.mk2-action{position:relative!important}
+#mk2CartBadge{
+ display:none;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;
+ margin-left:3px;border-radius:999px;background:#ff2633;color:#fff;font-size:8px;font-weight:900;vertical-align:middle;
+}
+.mk2-action:nth-child(2){min-width:58px}
+#drawer .drawer-panel{border-left:1px solid #e2ebf6!important;box-shadow:-14px 0 35px rgba(25,75,130,.12)!important}
+#drawer .drawer-head h3{color:#13284d!important}
+#drawer .checkout-btn{background:#0878f8!important;border-radius:10px!important}
+</style>
 </head>
 
 <body>
@@ -2340,11 +2351,20 @@ function add(i){
 
 function updateCart(){
   const count=document.getElementById("count");
+  const mk2Badge=document.getElementById("mk2CartBadge");
   const cartItems=document.getElementById("cartItems");
   const total=document.getElementById("total");
-  if(!count || !cartItems || !total) return;
+  // The redesigned marketplace header no longer uses the legacy #count node.
+  // Do not abort cart rendering just because that legacy badge is absent.
+  if(!cartItems || !total) return;
 
-  count.textContent=cart.reduce((s,x)=>s+x.quantity,0);
+  const itemCount=cart.reduce((s,x)=>s+Number(x.quantity||0),0);
+  if(count) count.textContent=itemCount;
+  if(mk2Badge){
+    mk2Badge.textContent=itemCount;
+    mk2Badge.style.display=itemCount>0?"inline-flex":"none";
+    mk2Badge.setAttribute("aria-label",itemCount+" produk di keranjang");
+  }
 
   cartItems.innerHTML=cart.length
     ? cart.map((x,i)=>`
