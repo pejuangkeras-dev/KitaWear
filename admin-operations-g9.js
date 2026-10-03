@@ -1,7 +1,17 @@
 (()=>{"use strict";
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const rp=v=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(v||0));
-async function token(){try{return (await window.kwSupabase?.auth?.getSession())?.data?.session?.access_token||""}catch{return""}}
+async function token(){
+ for(let i=0;i<20;i++){
+  try{
+   const client=window.supabaseClient || window.kwSupabase || (window.KWAuth?.getClient ? await window.KWAuth.getClient() : null);
+   const session=(await client?.auth?.getSession())?.data?.session;
+   if(session?.access_token)return session.access_token;
+  }catch{}
+  await new Promise(r=>setTimeout(r,250));
+ }
+ return "";
+}
 async function load(){
  const box=document.getElementById("g9OperationsBody");if(!box)return;
  let nav=document.getElementById("g9BiLink");if(!nav){nav=document.createElement("div");nav.id="g9BiLink";nav.style.cssText="margin:10px 0;font-weight:700";box.parentElement?.insertBefore(nav,box)}nav.innerHTML='<a href="/admin-bi-g10.html">📊 Buka Marketplace BI (G10)</a>';
