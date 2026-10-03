@@ -7040,38 +7040,134 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
 <div id="mk2CustomerService" class="mk2-cs">
   <button type="button" id="mk2CsButton" class="mk2-cs-button" aria-expanded="false"><span>▣</span><b>Chat CS</b></button>
   <div id="mk2CsPanel" class="mk2-cs-panel" aria-hidden="true">
-    <div class="mk2-cs-head"><div><strong>Customer Service</strong><small>MarketKita · Siap membantu</small></div><button type="button" id="mk2CsClose" aria-label="Tutup">×</button></div>
-    <div id="mk2CsMessages" class="mk2-cs-messages"><div class="mk2-cs-msg them">Halo! 👋 Selamat datang di Customer Service MarketKita. Ada yang bisa kami bantu?</div></div>
-    <div class="mk2-cs-quick"><button>Pesanan saya</button><button>Pembayaran</button><button>Pengiriman</button><button>Pengembalian</button></div>
+    <div class="mk2-cs-head"><div><strong>Customer Service</strong><small id="mk2CsStatus">Asisten otomatis · Siap membantu</small></div><button type="button" id="mk2CsClose" aria-label="Tutup">×</button></div>
+    <div id="mk2CsMessages" class="mk2-cs-messages"></div>
+    <div id="mk2CsTicketBox" style="padding:8px 0"></div>
+    <div class="mk2-cs-quick"><button type="button">Pesanan saya</button><button type="button">Pembayaran</button><button type="button">Pengiriman</button><button type="button">Pengembalian</button></div>
     <form id="mk2CsForm" class="mk2-cs-compose"><input id="mk2CsInput" maxlength="500" placeholder="Tulis pesan..." autocomplete="off"><button type="submit">Kirim</button></form>
   </div>
 </div>
 <script id="marketkita-category-cs-final-js">
 (function(){
+  const esc=v=>String(v??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+  let csThread=null, csMessages=[], csTimer=null;
+  const botReply=text=>{
+    const s=String(text).toLowerCase();
+    if(s.includes("pesanan"))return "Untuk pesanan, kirim nomor pesanan Anda. Saya akan membantu menjelaskan statusnya.";
+    if(s.includes("bayar"))return "Untuk pembayaran, saya dapat membantu kendala transaksi, verifikasi, atau checkout.";
+    if(s.includes("kirim"))return "Untuk pengiriman, kirim nomor pesanan atau nomor resi jika tersedia.";
+    if(s.includes("kembali")||s.includes("refund"))return "Untuk pengembalian atau refund, jelaskan kendalanya dan siapkan nomor pesanan.";
+    return "Terima kasih. Saya adalah asisten otomatis MarketKita. Jelaskan kendala Anda dan saya akan membantu. Jika membutuhkan petugas, Anda dapat mengambil tiket untuk diteruskan ke Customer Service.";
+  };
+  const ui=()=>{
+    const msgs=document.getElementById("mk2CsMessages"), ticket=document.getElementById("mk2CsTicketBox"), status=document.getElementById("mk2CsStatus"), input=document.getElementById("mk2CsInput");
+    if(!msgs)return;
+    msgs.innerHTML=csMessages.map(m=>'<div class="mk2-cs-msg '+(m.sender_role==="customer"?"me":"them")+'">'+esc(m.body)+'</div>').join("");
+    msgs.scrollTop=msgs.scrollHeight;
+    if(!csThread){
+      status.textContent="Asisten otomatis · Siap membantu";
+      ticket.innerHTML='<button type="button" id="mk2CsTakeTicket" class="account-secondary-btn" style="width:100%">🎫 Ambil Tiket Customer Service</button>';
+      if(input)input.placeholder="Tulis pesan ke asisten...";
+      return;
+    }
+    const state=csThread.ticket_status;
+    status.textContent=state==="bot"?"Asisten otomatis · Siap membantu":state==="waiting_admin"?"Menunggu persetujuan admin":state==="active"?"CS manual · Admin terhubung":"Percakapan selesai";
+    if(state==="bot"){
+      ticket.innerHTML='<button type="button" id="mk2CsTakeTicket" class="account-secondary-btn" style="width:100%">🎫 Ambil Tiket Customer Service</button>';
+      if(input)input.placeholder="Tulis pesan ke asisten...";
+    }else if(state==="waiting_admin"){
+      ticket.innerHTML='<div style="padding:9px;border:1px solid #e7e1d8;border-radius:9px;font-size:11px;background:#fff">🎫 Tiket <b>'+esc(csThread.ticket_number)+'</b><br><span style="color:#777">Menunggu persetujuan admin. Asisten otomatis tetap aktif sementara.</span></div>';
+      if(input)input.placeholder="Tulis pesan ke asisten...";
+    }else if(state==="active"){
+      ticket.innerHTML='<div style="padding:9px;border:1px solid #dbeee3;border-radius:9px;font-size:11px;background:#f4faf6">🟢 Tiket <b>'+esc(csThread.ticket_number)+'</b> aktif · Anda sedang berbicara dengan Customer Service.</div>';
+      if(input)input.placeholder="Tulis pesan ke Customer Service...";
+    }else{
+      ticket.innerHTML='<div style="padding:9px;border:1px solid #e7e1d8;border-radius:9px;font-size:11px;background:#fff">Tiket <b>'+esc(csThread.ticket_number)+'</b> selesai.</div>';
+      if(input)input.disabled=true;
+    }
+    const take=document.getElementById("mk2CsTakeTicket");
+    if(take)take.onclick=takeTicket;
+  };
+  async function getUser(){
+    if(!window.kwSupabase?.auth)return null;
+    const r=await kwSupabase.auth.getSession();
+    return r.data?.session?.user||null;
+  }
+  async function loadThread(){
+    const user=await getUser();
+    if(!user){csThread=null;csMessages=[{sender_role:"admin",body:"Halo! 👋 Saya Asisten Otomatis MarketKita. Ada yang bisa kami bantu?"}];ui();return;}
+    const r=await kwSupabase.from("cs_threads").select("*").eq("customer_id",user.id).neq("ticket_status","resolved").order("created_at",{ascending:false}).limit(1);
+    if(r.error){console.warn(r.error);return;}
+    csThread=r.data?.[0]||null;
+    if(csThread){
+      const m=await kwSupabase.from("cs_messages").select("id,sender_id,sender_role,body,created_at").eq("thread_id",csThread.id).order("created_at",{ascending:true});
+      csMessages=m.data||[];
+      if(!csMessages.length){csMessages=[{sender_role:"admin",body:"Halo! 👋 Saya Asisten Otomatis MarketKita. Ada yang bisa kami bantu?"}];}
+    }else csMessages=[{sender_role:"admin",body:"Halo! 👋 Saya Asisten Otomatis MarketKita. Ada yang bisa kami bantu?"}];
+    ui();
+  }
+  async function ensureThread(){
+    const user=await getUser();
+    if(!user){alert("Silakan login terlebih dahulu untuk mengambil tiket Customer Service.");return null;}
+    if(csThread)return csThread;
+    const ticket="MK-CS-"+new Date().toISOString().replace(/\D/g,"").slice(0,14)+"-"+Math.random().toString(36).slice(2,7).toUpperCase();
+    const ins=await kwSupabase.from("cs_threads").insert({customer_id:user.id,subject:"Bantuan Customer Service",ticket_number:ticket,ticket_status:"bot"}).select().single();
+    if(ins.error){alert(ins.error.message||"Gagal membuat tiket.");return null;}
+    csThread=ins.data;
+    const msg=await kwSupabase.from("cs_messages").insert({thread_id:csThread.id,sender_id:user.id,sender_role:"customer",body:"Saya memulai percakapan dengan Customer Service."});
+    if(msg.error)console.warn(msg.error);
+    return csThread;
+  }
+  async function takeTicket(){
+    const t=await ensureThread(); if(!t)return;
+    const r=await kwSupabase.from("cs_threads").update({ticket_status:"waiting_admin",requested_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",t.id).eq("customer_id",t.customer_id);
+    if(r.error){alert(r.error.message||"Gagal mengambil tiket.");return;}
+    csThread={...csThread,ticket_status:"waiting_admin",requested_at:new Date().toISOString()};
+    csMessages.push({sender_role:"admin",body:"Permintaan tiket diterima. Menunggu persetujuan admin."});
+    ui();
+  }
+  async function send(text){
+    text=String(text||"").trim();if(!text)return;
+    const user=await getUser();
+    if(!user){const msgs=document.getElementById("mk2CsMessages");msgs.insertAdjacentHTML("beforeend",'<div class="mk2-cs-msg me">'+esc(text)+'</div>');setTimeout(()=>{msgs.insertAdjacentHTML("beforeend",'<div class="mk2-cs-msg them">'+esc(botReply(text))+'</div>');msgs.scrollTop=msgs.scrollHeight},350);return;}
+    const t=await ensureThread();if(!t)return;
+    if(t.ticket_status==="active"){
+      const r=await kwSupabase.from("cs_messages").insert({thread_id:t.id,sender_id:user.id,sender_role:"customer",body:text});
+      if(r.error){alert(r.error.message||"Pesan gagal dikirim.");return;}
+      csMessages.push({sender_role:"customer",body:text});
+      ui();
+      return;
+    }
+    if(t.ticket_status==="resolved"){return;}
+    const r=await kwSupabase.from("cs_messages").insert({thread_id:t.id,sender_id:user.id,sender_role:"customer",body:text});
+    if(r.error){alert(r.error.message||"Pesan gagal dikirim.");return;}
+    csMessages.push({sender_role:"customer",body:text});
+    setTimeout(async()=>{
+      const reply=botReply(text);
+      const b=await kwSupabase.from("cs_messages").insert({thread_id:t.id,sender_id:user.id,sender_role:"customer",body:reply});
+      if(!b.error)csMessages.push({sender_role:"admin",body:reply});
+      ui();
+    },450);
+    ui();
+  }
+  async function poll(){if(csThread){const r=await kwSupabase.from("cs_threads").select("*").eq("id",csThread.id).maybeSingle();if(r.data){csThread=r.data;const m=await kwSupabase.from("cs_messages").select("id,sender_id,sender_role,body,created_at").eq("thread_id",csThread.id).order("created_at",{ascending:true});if(m.data){csMessages=m.data;ui();}}}}
   const ready=()=>{
     const mega=document.getElementById("mk2MegaCategories"), trigger=document.getElementById("mk2AllCategories"), close=document.getElementById("mk2MegaClose");
     if(mega&&trigger&&!trigger.dataset.bound){
-      trigger.dataset.bound="1";
-      const set=(open)=>{mega.classList.toggle("show",open);mega.setAttribute("aria-hidden",open?"false":"true");trigger.setAttribute("aria-expanded",open?"true":"false")};
-      trigger.addEventListener("click",()=>set(!mega.classList.contains("show")));
-      close?.addEventListener("click",()=>set(false));
+      trigger.dataset.bound="1";const set=open=>{mega.classList.toggle("show",open);mega.setAttribute("aria-hidden",open?"false":"true");trigger.setAttribute("aria-expanded",open?"true":"false")};
+      trigger.addEventListener("click",()=>set(!mega.classList.contains("show")));close?.addEventListener("click",()=>set(false));
       document.addEventListener("click",e=>{if(mega.classList.contains("show")&&!mega.contains(e.target)&&e.target!==trigger)set(false)});
       mega.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>{set(false);const target=document.getElementById("marketplaceSearch");if(target){target.value=a.textContent.trim();target.dispatchEvent(new Event("input",{bubbles:true}))}document.getElementById("produk")?.scrollIntoView({behavior:"smooth"})}));
     }
-    const btn=document.getElementById("mk2CsButton"), panel=document.getElementById("mk2CsPanel"), x=document.getElementById("mk2CsClose"), form=document.getElementById("mk2CsForm"), input=document.getElementById("mk2CsInput"), msgs=document.getElementById("mk2CsMessages");
+    const btn=document.getElementById("mk2CsButton"),panel=document.getElementById("mk2CsPanel"),x=document.getElementById("mk2CsClose"),form=document.getElementById("mk2CsForm"),input=document.getElementById("mk2CsInput");
     if(btn&&!btn.dataset.bound){
       btn.dataset.bound="1";
-      const toggle=open=>{panel.classList.toggle("show",open);panel.setAttribute("aria-hidden",open?"false":"true");btn.setAttribute("aria-expanded",open?"true":"false");if(open)setTimeout(()=>input?.focus(),80)};
-      btn.addEventListener("click",()=>toggle(!panel.classList.contains("show"))); x?.addEventListener("click",()=>toggle(false));
-      const send=(text)=>{
-        text=String(text||"").trim();if(!text)return;
-        msgs.insertAdjacentHTML("beforeend",'<div class="mk2-cs-msg me">'+String(text).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))+'</div>');
-        msgs.scrollTop=msgs.scrollHeight;
-        setTimeout(()=>{const s=text.toLowerCase();let reply="Terima kasih. Pesan Anda sudah diterima Customer Service MarketKita. Silakan jelaskan detail kebutuhan Anda agar kami dapat membantu.";if(s.includes("pesanan"))reply="Untuk pesanan, kami dapat membantu mengecek status pesanan, pembayaran, dan proses pengiriman. Silakan kirim nomor pesanan Anda.";else if(s.includes("bayar"))reply="Untuk pembayaran, kami dapat membantu jika transaksi gagal, belum terverifikasi, atau ada kendala saat checkout.";else if(s.includes("kirim"))reply="Untuk pengiriman, silakan kirim nomor pesanan. Kami akan membantu mengecek status pengiriman dan resi.";else if(s.includes("kembali")||s.includes("refund"))reply="Untuk pengembalian atau refund, kirim nomor pesanan dan jelaskan kendalanya. Tim CS akan membantu proses berikutnya.";msgs.insertAdjacentHTML("beforeend",'<div class="mk2-cs-msg them">'+reply+'</div>');msgs.scrollTop=msgs.scrollHeight},500);
-      };
+      const toggle=open=>{panel.classList.toggle("show",open);panel.setAttribute("aria-hidden",open?"false":"true");btn.setAttribute("aria-expanded",open?"true":"false");if(open){loadThread();setTimeout(()=>input?.focus(),80)}};
+      btn.addEventListener("click",()=>toggle(!panel.classList.contains("show")));x?.addEventListener("click",()=>toggle(false));
       form?.addEventListener("submit",e=>{e.preventDefault();const v=input.value;input.value="";send(v)});
       document.querySelectorAll(".mk2-cs-quick button").forEach(q=>q.addEventListener("click",()=>send(q.textContent)));
     }
+    if(window.kwSupabase)clearInterval(csTimer),csTimer=setInterval(poll,5000);
   };
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ready);else ready();
 })();
