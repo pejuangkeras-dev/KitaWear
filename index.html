@@ -2004,6 +2004,57 @@ a{color:inherit}
   }
 }
 </style>
+<style id="mk-profile-edit-final">
+#profileUsername{background:#fff!important;color:#1b3557!important}
+.account-profile-preview{align-items:center!important}
+.account-preview-avatar{
+  overflow:hidden!important;position:relative!important;display:grid!important;place-items:center!important;
+}
+.account-preview-avatar img,.account-avatar img{
+  width:100%!important;height:100%!important;display:block!important;object-fit:cover!important;
+}
+.account-photo-actions{display:flex;gap:7px;flex-wrap:wrap}
+.account-card-btn-secondary{background:#fff!important;color:#5d6b7d!important;border:1px solid #dce4ed!important}
+.account-card-btn-secondary:hover{background:#f5f8fb!important}
+#accountPhotoMessage{font-size:10px}
+</style>
+<script>
+(function(){
+  function avatarMeta(){ return String(kwCurrentUser?.user_metadata?.avatar_url || ""); }
+  function initials(){
+    const p=kwCurrentProfile||{}, u=kwCurrentUser||{};
+    const name=String(p.full_name||u.user_metadata?.full_name||u.email||"K").trim();
+    return (name[0]||"K").toUpperCase();
+  }
+  window.applyMarketKitaAvatar=function(url){
+    const targets=["accountAvatar","accountPreviewAvatar"];
+    targets.forEach(id=>{
+      const el=document.getElementById(id); if(!el)return;
+      const safe=String(url||"");
+      if(safe){
+        el.innerHTML='<img src="'+safe.replace(/"/g,"&quot;")+'" alt="Foto profil">';
+      }else{
+        el.textContent=initials();
+      }
+    });
+  };
+  window.previewAccountProfilePhoto=function(event){
+    const file=event?.target?.files?.[0]; if(!file)return;
+    const msg=document.getElementById("accountPhotoMessage");
+    if(file.size>5*1024*1024){if(msg)msg.textContent="Ukuran foto maksimal 5 MB.";event.target.value="";return;}
+    if(!/^image\/(jpeg|png|webp)$/.test(file.type)){if(msg)msg.textContent="Format yang didukung: JPG, PNG, WebP.";event.target.value="";return;}
+    const reader=new FileReader();
+    reader.onload=function(){ window.marketKitaPendingAvatar=String(reader.result||""); applyMarketKitaAvatar(window.marketKitaPendingAvatar); if(msg)msg.textContent="Foto dipilih. Tekan Simpan untuk menerapkan."; };
+    reader.readAsDataURL(file);
+  };
+  window.removeAccountProfilePhoto=function(){
+    window.marketKitaPendingAvatar="";
+    applyMarketKitaAvatar("");
+    const input=document.getElementById("accountProfilePhotoInput");if(input)input.value="";
+    const msg=document.getElementById("accountPhotoMessage");if(msg)msg.textContent="Foto akan dihapus setelah Anda menekan Simpan.";
+  };
+})();
+</script>
 </head>
 
 <body>
@@ -2472,8 +2523,8 @@ a{color:inherit}
               <div class="profile-row">
                 <label>Username</label>
                 <div>
-                  <input id="profileUsername" type="text" readonly>
-                  <small>Username mengikuti akun MarketKita Anda.</small>
+                  <input id="profileUsername" type="text" minlength="3" maxlength="30" autocomplete="username" spellcheck="false">
+                  <small>3–30 karakter. Gunakan huruf, angka, titik, garis bawah, atau tanda hubung.</small>
                 </div>
               </div>
               <div class="profile-row">
@@ -2521,8 +2572,13 @@ a{color:inherit}
                 <div class="account-profile-preview">
                   <div class="account-preview-avatar" id="accountPreviewAvatar">K</div>
                   <div>
-                    <strong style="display:block;font-size:13px;margin-bottom:8px">Profil MarketKita</strong>
-                    <button class="account-card-btn" type="button" onclick="showAccountSection('profile')">Kelola Profil</button>
+                    <strong style="display:block;font-size:13px;margin-bottom:8px">Foto Profil</strong>
+                    <div class="account-photo-actions">
+                      <input id="accountProfilePhotoInput" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="previewAccountProfilePhoto(event)">
+                      <button class="account-card-btn" type="button" onclick="document.getElementById('accountProfilePhotoInput').click()">Pilih Foto</button>
+                      <button class="account-card-btn account-card-btn-secondary" type="button" onclick="removeAccountProfilePhoto()">Hapus Foto</button>
+                    </div>
+                    <small id="accountPhotoMessage" style="display:block;margin-top:7px;color:#718096">JPG, PNG, atau WebP · maksimal 5 MB.</small>
                   </div>
                 </div>
               </div>
@@ -5078,7 +5134,7 @@ function populateAccountProfile(){
   if(!user) return;
 
   const name=getMarketKitaDisplayName(user,profile);
-  const username=(String(user.email||"").split("@")[0] || name).replace(/[^a-zA-Z0-9._-]/g,"").slice(0,30) || "marketkita-user";
+  const username=(String(user.user_metadata?.username || String(user.email||"").split("@")[0] || name).replace(/[^a-zA-Z0-9._-]/g,"").slice(0,30) || "marketkita-user");
   const avatar=(name.trim()[0] || "K").toUpperCase();
 
   const set=(id,value)=>{
@@ -5090,7 +5146,6 @@ function populateAccountProfile(){
     if(el) el.textContent=value;
   };
 
-  setText("accountAvatar",avatar);
   set("profileUsername",username);
   set("profileFullName",String(profile?.full_name || user.user_metadata?.full_name || ""));
   setText("profileEmail",user.email || "-");
@@ -5125,9 +5180,14 @@ async function saveMarketKitaProfile(){
   const button=document.querySelector(".profile-save");
   const fullName=String(input?.value || "").trim();
   const phone=String(document.getElementById("profilePhone")?.value || "").trim();
+  const username=String(document.getElementById("profileUsername")?.value || "").trim();
 
   if(!fullName){
     if(message) message.textContent="Nama wajib diisi.";
+    return;
+  }
+  if(!/^[a-zA-Z0-9._-]{3,30}$/.test(username)){
+    if(message) message.textContent="Username 3–30 karakter: huruf, angka, titik, garis bawah, atau tanda hubung.";
     return;
   }
 
@@ -5141,10 +5201,32 @@ async function saveMarketKitaProfile(){
 
     if(result.error) throw result.error;
 
-    kwCurrentProfile={...(kwCurrentProfile||{}),full_name:fullName};
+    const usernameInput=document.getElementById("profileUsername");
+    const username=String(usernameInput?.value||"").trim();
+    if(!/^[a-zA-Z0-9._-]{3,30}$/.test(username)){
+      throw new Error("Username harus 3–30 karakter dan hanya boleh berisi huruf, angka, titik, garis bawah, atau tanda hubung.");
+    }
+
+    let avatarUrl=String(window.marketKitaPendingAvatar ?? (kwCurrentUser.user_metadata?.avatar_url || ""));
+    if(avatarUrl && avatarUrl.length>9000){
+      throw new Error("Foto terlalu besar untuk disimpan. Pilih foto lain yang lebih kecil.");
+    }
+
+    const authUpdate=await kwSupabase.auth.updateUser({
+      data:{
+        ...(kwCurrentUser.user_metadata||{}),
+        username,
+        avatar_url:avatarUrl
+      }
+    });
+    if(authUpdate.error) throw authUpdate.error;
+    kwCurrentUser=authUpdate.data?.user || {...kwCurrentUser,user_metadata:{...(kwCurrentUser.user_metadata||{}),username,avatar_url:avatarUrl}};
+    kwCurrentProfile={...(kwCurrentProfile||{}),full_name:fullName,phone:phone||null};
     updateAccountButton(kwCurrentUser,kwCurrentProfile);
     populateAccountProfile();
-    if(message) message.textContent="Profil berhasil disimpan.";
+    applyMarketKitaAvatar(avatarUrl);
+    if(message) message.textContent="Profil, username, dan foto profil berhasil disimpan.";
+    window.marketKitaPendingAvatar=undefined;
   }catch(error){
     if(message) message.textContent=error.message || "Gagal menyimpan profil.";
   }finally{
