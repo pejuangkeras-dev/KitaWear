@@ -7,7 +7,7 @@
     "test:admin": "npx --yes playwright test tests/admin.spec.mjs",
     "test:shipping": "npx --yes playwright test tests/shipping.spec.mjs",
     "test:priority10": "npx --yes playwright test tests/priority10.spec.mjs",
-    "test:all": "npx --yes playwright test tests/admin.spec.mjs tests/shipping.spec.mjs tests/priority10.spec.mjs tests/priority12.spec.mjs tests/priority13.spec.mjs tests/priority14.spec.mjs tests/priority15.spec.mjs tests/priority16.spec.mjs tests/priority17.spec.mjs tests/priority18.spec.mjs tests/priority19.spec.mjs tests/priority20.spec.mjs tests/priority21.spec.mjs tests/priority22.spec.mjs tests/priority23.spec.mjs tests/priority24.spec.mjs tests/priority25.spec.mjs tests/priority26.spec.mjs tests/priority27.spec.mjs tests/priority28.spec.mjs tests/priority29.spec.mjs tests/priority30.spec.mjs tests/priority31.spec.mjs tests/priority32.spec.mjs tests/priority33.spec.mjs tests/priority34.spec.mjs tests/priority35.spec.mjs tests/g1-search.spec.mjs tests/g2-recommendations.spec.mjs tests/priority42.spec.mjs tests/priority43.spec.mjs && npm run test:priority44 && npm run test:g4 && npm run test:g5 && npm run test:g6 && npm run test:g7 && npm run test:g8",
+    "test:all": "npx --yes playwright test tests/admin.spec.mjs tests/shipping.spec.mjs tests/priority10.spec.mjs tests/priority12.spec.mjs tests/priority13.spec.mjs tests/priority14.spec.mjs tests/priority15.spec.mjs tests/priority16.spec.mjs tests/priority17.spec.mjs tests/priority18.spec.mjs tests/priority19.spec.mjs tests/priority20.spec.mjs tests/priority21.spec.mjs tests/priority22.spec.mjs tests/priority23.spec.mjs tests/priority24.spec.mjs tests/priority25.spec.mjs tests/priority26.spec.mjs tests/priority27.spec.mjs tests/priority28.spec.mjs tests/priority29.spec.mjs tests/priority30.spec.mjs tests/priority31.spec.mjs tests/priority32.spec.mjs tests/priority33.spec.mjs tests/priority34.spec.mjs tests/priority35.spec.mjs tests/g1-search.spec.mjs tests/g2-recommendations.spec.mjs tests/priority42.spec.mjs tests/priority43.spec.mjs && npm run test:priority44 && npm run test:g4 && npm run test:g5 && npm run test:g6 && npm run test:g7 && npm run test:g8 && npm run test:g9",
     "test:priority12": "npx --yes playwright test tests/priority12.spec.mjs",
     "test:priority13": "npx --yes playwright test tests/priority13.spec.mjs",
     "test:priority14": "npx --yes playwright test tests/priority14.spec.mjs",
@@ -39,7 +39,8 @@
     "test:g5": "npx --yes playwright test tests/g5-seller-growth.spec.mjs",
     "test:g6": "npx --yes playwright test tests/g6-loyalty.spec.mjs",
     "test:g7": "npx --yes playwright test tests/g7-communication.spec.mjs",
-    "test:g8": "npx --yes playwright test tests/g8-order-timeline.spec.mjs"
+    "test:g8": "npx --yes playwright test tests/g8-order-timeline.spec.mjs",
+    "test:g9": "npx --yes playwright test tests/g9-operations.spec.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0"
