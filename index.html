@@ -2014,7 +2014,7 @@ a{color:inherit}
         <button id="authRegisterTab" class="auth-tab" type="button" onclick="setAuthMode('register')">Daftar</button>
       </div>
 
-      <form id="authForm" class="auth-form" onsubmit="submitAuth(event)">
+      <form id="authForm" class="auth-form" onsubmit="return submitAuth(event)" novalidate>
         <div class="field">
           <label>Email</label>
           <input id="authEmail" type="email" autocomplete="email" required>
@@ -5228,8 +5228,35 @@ function setAuthMode(mode){
   if(message) message.textContent="";
 }
 
+function validateMarketKitaLoginFields(){
+  const emailInput=document.getElementById("authEmail");
+  const passwordInput=document.getElementById("authPassword");
+  const email=(emailInput?.value || "").trim();
+  const password=passwordInput?.value || "";
+  if(!email){
+    emailInput?.setCustomValidity("Email wajib diisi.");
+    emailInput?.reportValidity?.();
+    setAuthMessage("Email wajib diisi.");
+    emailInput?.focus();
+    return false;
+  }
+  if(!password){
+    emailInput?.setCustomValidity("");
+    passwordInput?.setCustomValidity("Password wajib diisi.");
+    passwordInput?.reportValidity?.();
+    setAuthMessage("Password wajib diisi.");
+    passwordInput?.focus();
+    return false;
+  }
+  emailInput?.setCustomValidity("");
+  passwordInput?.setCustomValidity("");
+  return true;
+}
+
 async function submitAuth(event){
   event.preventDefault();
+
+  if(!validateMarketKitaLoginFields()) return false;
 
   if(!kwSupabase){
     setAuthMessage("Konfigurasi akun belum siap. Coba lagi.");
