@@ -7115,8 +7115,6 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
     const ins=await kwSupabase.from("cs_threads").insert({customer_id:user.id,subject:"Bantuan Customer Service",ticket_number:ticket,ticket_status:"bot"}).select().single();
     if(ins.error){alert(ins.error.message||"Gagal membuat tiket.");return null;}
     csThread=ins.data;
-    const msg=await kwSupabase.from("cs_messages").insert({thread_id:csThread.id,sender_id:user.id,sender_role:"customer",is_bot:false,body:"Saya memulai percakapan dengan Customer Service."});
-    if(msg.error)console.warn(msg.error);
     return csThread;
   }
   async function takeTicket(){
@@ -7143,21 +7141,11 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
     if(t.ticket_status==="resolved"){return;}
     const r=await kwSupabase.from("cs_messages").insert({thread_id:t.id,sender_id:user.id,sender_role:"customer",is_bot:false,body:text});
     if(r.error){alert(r.error.message||"Pesan gagal dikirim.");return;}
-    await kwSupabase.from("cs_threads").update({updated_at:new Date().toISOString(),last_message_at:new Date().toISOString()}).eq("id",t.id);
-    csMessages.push({sender_role:"customer",body:text});
+    // Auto-reply dibuat oleh trigger database dalam transaksi yang sama. Ambil ulang percakapan agar bot selalu tampil dan tidak hilang saat polling.
+    const refreshed=await kwSupabase.from("cs_messages").select("id,sender_id,sender_role,is_bot,body,created_at").eq("thread_id",t.id).order("created_at",{ascending:true});
+    if(refreshed.error){console.error("Gagal memuat balasan CS:",refreshed.error);}
+    csMessages=refreshed.data||[];
     ui();
-    setTimeout(async()=>{
-      const reply=botReply(text);
-      // Tampilkan balasan otomatis langsung di UI. Penyimpanan ke Supabase dilakukan sebagai best-effort.
-      csMessages.push({sender_role:"admin",is_bot:true,body:reply});
-      ui();
-      try{
-        const b=await kwSupabase.rpc("cs_add_bot_reply",{p_thread_id:t.id,p_body:reply});
-        if(b.error) console.error("CS auto-reply storage gagal:",b.error);
-      }catch(err){
-        console.error("CS auto-reply storage gagal:",err);
-      }
-    },450);
   }
   async function poll(){if(csThread){const r=await kwSupabase.from("cs_threads").select("*").eq("id",csThread.id).maybeSingle();if(r.data){csThread=r.data;const m=await kwSupabase.from("cs_messages").select("id,sender_id,sender_role,body,created_at").eq("thread_id",csThread.id).order("created_at",{ascending:true});if(m.data){csMessages=m.data;ui();}}}}
   const ready=()=>{
