@@ -64,3 +64,7 @@ jobs:
       - name: G6 Customer Loyalty smoke tests
         run: |
           npx playwright test tests/g6-loyalty.spec.mjs
+
+      - name: G7 Communication Center smoke tests
+        run: |
+          npx playwright test tests/g7-communication.spec.mjs
