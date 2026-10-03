@@ -1527,7 +1527,11 @@ function closeSearch(e){
 }
 const MARKET_WISHLIST_KEY="marketkita_wishlist_v1";
 const MARKET_WISHLIST_OWNER_KEY="marketkita_wishlist_owner_v1";
-let marketFilters={query:"",category:"",store:"",min:"",max:"",sort:"default"};\nwindow.marketKitaFilters=marketFilters;\nwindow.marketKitaProducts=products;\nwindow.marketKitaRender=render;\nwindow.marketKitaRenderRecommendations=renderRecommendations;
+let marketFilters={query:"",category:"",store:"",min:"",max:"",sort:"default"};
+window.marketKitaFilters=marketFilters;
+window.marketKitaProducts=products;
+window.marketKitaRender=render;
+window.marketKitaRenderRecommendations=renderRecommendations;
 let wishlistIds=new Set();
 function loadWishlist(){try{const v=JSON.parse(localStorage.getItem(MARKET_WISHLIST_KEY)||"[]");wishlistIds=new Set(Array.isArray(v)?v.map(String):[]);}catch(e){wishlistIds=new Set();}}
 function saveWishlist(){localStorage.setItem(MARKET_WISHLIST_KEY,JSON.stringify(Array.from(wishlistIds)));updateWishlistCount();}
@@ -4954,5 +4958,7 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
 </script>
 <script src="/market-social.js"></script>
 <script src="/buyer-experience-p28.js?v=20261003-p28"></script>
-<script src="/promotion-engine-p29.js?v=20261003-p29"></script>\n<script src="/search-discovery-p30.js?v=20261003-p30"></script>\n</body>
+<script src="/promotion-engine-p29.js?v=20261003-p29"></script>
+<script src="/search-discovery-p30.js?v=20261003-p30"></script>
+</body>
 </html>
