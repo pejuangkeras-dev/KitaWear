@@ -1,0 +1,86 @@
+/* MarketKita — final contrast/accessibility layer */
+:root{
+  --mk-text:#10213D;
+  --mk-muted:#51627A;
+  --mk-blue:#0878F9;
+  --mk-blue-dark:#0757C9;
+}
+body{color:var(--mk-text)}
+button,a,input,select,textarea{color:inherit}
+.hero-btn,.smallbtn,.profile-save,.account-card-btn,.mk28-account-btn,.btn-dark,.pay-btn,.checkout-btn,.account-nav-item.active{
+  background:var(--mk-blue)!important;
+  color:#fff!important;
+  border-color:var(--mk-blue)!important;
+}
+.hero-btn:hover,.smallbtn:hover,.profile-save:hover,.account-card-btn:hover,.mk28-account-btn:hover,.btn-dark:hover,.pay-btn:hover,.checkout-btn:hover{
+  background:var(--mk-blue-dark)!important;
+  color:#fff!important;
+}
+.hero h1,.section h2,.section-head h2,.body h3,.product-detail-title,.product-detail-price,.panel-title,h1,h2,h3,h4,h5,strong{
+  color:var(--mk-text);
+}
+.hero p,.section-head p,.benefit p,.premium-benefit small,.muted,.subtitle,.account-page-head p,.profile-row small{
+  color:var(--mk-muted)!important;
+}
+.eyebrow,.account-hero-kicker,.account-nav-title,.product-detail-eyebrow{
+  color:#53667F!important;
+}
+.account-hero{
+  background:linear-gradient(135deg,#0757C9 0%,#0878F9 58%,#0B9FEA 100%)!important;
+  color:#fff!important;
+}
+.account-hero h3,.account-hero p,.account-hero-kicker,.account-hero-badge{
+  color:#fff!important;
+}
+.account-hero p{opacity:.94}
+.account-hero-kicker{opacity:.9}
+.account-hero-badge{border-color:rgba(255,255,255,.5)!important;background:rgba(255,255,255,.1)!important}
+.account-page-head,.profile-form,.account-card,.account-section{
+  color:var(--mk-text);
+}
+.account-page-head h3,.profile-row>label,.profile-readonly,.account-card-head strong,.account-member-copy strong{
+  color:var(--mk-text)!important;
+}
+.profile-row input,.profile-readonly,.search,.select{
+  color:var(--mk-text)!important;
+  background:#fff!important;
+}
+.profile-readonly{background:#f2f6fb!important}
+.account-nav-item{color:#263B59!important}
+.account-nav-item:hover{background:#EAF4FF!important;color:#0757C9!important}
+.account-nav-item.active{background:#0878F9!important;color:#fff!important}
+.account-tools .logout-nav{color:#B3261E!important}
+.account-link-direct{color:#263B59!important}
+.account-member{background:#EEF6FF!important;border:1px solid #D6E9FF}
+.account-member-copy span{color:#51627A!important}
+.account-member-status{background:#D8EEFF!important;color:#0757C9!important}
+.product-detail-info,.product-detail-box,.modal-box,.drawer-panel{
+  color:var(--mk-text);
+}
+.product-detail-desc,.product-detail-rating{color:#51627A!important}
+.product-detail-btn.light{color:#0757C9!important;background:#fff!important}
+.product-detail-size{color:var(--mk-text)!important;background:#fff!important}
+.product-detail-size.active{color:#fff!important;background:#0878F9!important}
+.auth-note,.auth-forgot,.search-info{color:#51627A!important}
+.auth-forgot:hover{color:#0757C9!important}
+.category-card,.category-card *,.premium-benefit,.premium-benefit *{color:var(--mk-text)}
+.category-card small,.category-card span{color:#51627A!important}
+.badge{background:#0878F9!important;color:#fff!important}
+.price{color:#0757C9!important}
+.install-marketkita,.mk-install-button,#mkPwaInstall{
+  background:#111827!important;color:#fff!important;
+}
+#mkCsToggle,.mk-cs-toggle{
+  background:#0878F9!important;color:#fff!important;
+}
+#mkCsToggle *,.mk-cs-toggle *{color:#fff!important}
+.cs-panel,.customer-service-panel{
+  color:var(--mk-text)!important;
+}
+.cs-panel input,.customer-service-panel input,.cs-panel textarea,.customer-service-panel textarea{
+  color:var(--mk-text)!important;background:#fff!important;
+}
+.cs-panel button,.customer-service-panel button{color:#fff}
+@media(max-width:680px){
+  .account-hero{background:linear-gradient(135deg,#0757C9,#0878F9)!important}
+}
