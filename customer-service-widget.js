@@ -1,0 +1,39 @@
+(()=>{"use strict";
+const API="/api/customer-service";
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt=v=>v?new Date(v).toLocaleString("id-ID",{dateStyle:"short",timeStyle:"short"}):"";
+let open=false,thread=null,timer=null,loading=false;
+async function token(){const s=await (window.marketKitaGetSupabase?.()?.auth?.getSession?.()||window.kwSupabase?.auth?.getSession?.());return s?.data?.session?.access_token||null}
+async function call(method="GET",body=null,query=""){const t=await token();if(!t)throw Error("Silakan masuk terlebih dahulu.");const r=await fetch(API+query,{method,headers:{Authorization:"Bearer "+t,"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined,cache:"no-store"});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Customer Service tidak dapat diakses.");return d}
+function styles(){if(document.getElementById("mk-cs-style"))return;const s=document.createElement("style");s.id="mk-cs-style";s.textContent=`
+#mkCsToggle{position:fixed;right:16px;bottom:16px;z-index:9994;border:0;border-radius:12px;background:#0878f8;color:#fff;padding:10px 16px;font-size:12px;font-weight:900;box-shadow:0 12px 30px rgba(8,120,248,.24);cursor:pointer}
+#mkCsToggle:hover{background:#0666d8}
+#mk2CustomerService{position:fixed;right:16px;bottom:62px;z-index:9995;width:min(390px,calc(100vw - 24px));height:min(560px,calc(100vh - 90px));display:none;flex-direction:column;background:#fff;border:1px solid #dce7f3;border-radius:16px;box-shadow:0 24px 80px rgba(5,36,75,.22);overflow:hidden}
+#mk2CustomerService.show{display:flex}
+.mkcs-head{background:linear-gradient(135deg,#0878f8,#1594ff);color:#fff;padding:15px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mkcs-head strong{display:block;font-size:14px}.mkcs-head small{display:block;opacity:.86;font-size:9px;margin-top:3px}
+.mkcs-close{width:30px;height:30px;border:0;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:18px;cursor:pointer}
+.mkcs-body{flex:1;overflow:auto;padding:13px;background:#f5f9fd}
+.mkcs-empty{padding:35px 15px;text-align:center;color:#71819a;font-size:11px;line-height:1.6}
+.mkcs-bubble{max-width:82%;padding:9px 11px;border-radius:12px;margin:7px 0;font-size:11px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.mkcs-bubble.me{margin-left:auto;background:#0878f8;color:#fff;border-bottom-right-radius:4px}
+.mkcs-bubble.them{margin-right:auto;background:#fff;color:#334563;border:1px solid #dfe8f2;border-bottom-left-radius:4px}
+.mkcs-time{display:block;font-size:8px;opacity:.7;margin-top:4px}
+.mkcs-compose{display:flex;gap:7px;padding:10px;border-top:1px solid #dfe8f2;background:#fff}
+.mkcs-compose input{flex:1;min-width:0;height:39px;border:1px solid #d5e1ed;border-radius:9px;padding:0 10px;font-size:11px;outline:0}
+.mkcs-compose input:focus{border-color:#66aef6;box-shadow:0 0 0 3px rgba(8,120,248,.08)}
+.mkcs-compose button{height:39px;border:0;border-radius:9px;background:#0878f8;color:#fff;padding:0 13px;font-weight:850;font-size:10px}
+.mkcs-status{min-height:16px;padding:0 10px 7px;color:#d13c45;font-size:9px;background:#fff}
+.mkcs-quick{display:flex;gap:6px;overflow:auto;padding:8px 10px;border-top:1px solid #dfe8f2;background:#fff}
+.mkcs-quick button{white-space:nowrap;border:1px solid #d5e1ed;background:#fff;border-radius:999px;padding:6px 8px;font-size:8px;color:#42536d}
+.mkcs-quick button:hover{border-color:#0878f8;color:#0878f8}
+#mkCsUnread{display:none;position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;border-radius:99px;background:#ff3340;color:#fff;font-size:8px;place-items:center;border:2px solid #fff}
+@media(max-width:600px){#mk2CustomerService{right:8px;bottom:60px;width:calc(100vw - 16px);height:min(620px,calc(100vh - 75px));border-radius:14px}#mkCsToggle{right:8px;bottom:8px}}
+`;document.head.appendChild(s)}
+function ensureUi(){styles();let panel=document.getElementById("mk2CustomerService");if(!panel){panel=document.createElement("div");panel.id="mk2CustomerService";document.body.appendChild(panel)}let toggle=document.getElementById("mkCsToggle");if(!toggle){toggle=document.createElement("button");toggle.id="mkCsToggle";toggle.type="button";toggle.innerHTML='<span style="position:relative">Chat CS<span id="mkCsUnread"></span></span>';document.body.appendChild(toggle)}toggle.onclick=()=>{open=!open;panel.classList.toggle("show",open);if(open)load()};panel.innerHTML='<div class="mkcs-head"><div><strong>Customer Service</strong><small>MarketKita · Siap membantu</small></div><button class="mkcs-close" type="button">×</button></div><div id="mkCsBody" class="mkcs-body"><div class="mkcs-empty">Memuat percakapan...</div></div><div class="mkcs-quick"><button data-q="Pesanan saya">Pesanan saya</button><button data-q="Pembayaran">Pembayaran</button><button data-q="Pengiriman">Pengiriman</button><button data-q="Pengembalian">Pengembalian</button></div><div class="mkcs-status" id="mkCsStatus"></div><div class="mkcs-compose"><input id="mkCsInput" maxlength="4000" placeholder="Tulis pesan..."><button id="mkCsSend" type="button">Kirim</button></div>';panel.querySelector(".mkcs-close").onclick=()=>{open=false;panel.classList.remove("show")};panel.querySelector("#mkCsSend").onclick=send;panel.querySelector("#mkCsInput").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}});panel.querySelectorAll(".mkcs-quick button").forEach(b=>b.onclick=()=>{const i=panel.querySelector("#mkCsInput");i.value=b.dataset.q+": ";i.focus()})}
+function render(d){const body=document.getElementById("mkCsBody");if(!body)return;thread=(d.threads||[])[0]||thread;const msgs=(d.messages||[]).filter(m=>!thread||String(m.thread_id)===String(thread.id)).slice().reverse();if(!thread){body.innerHTML='<div class="mkcs-empty"><strong>Halo! 👋</strong><br>Selamat datang di Customer Service MarketKita.<br><br>Silakan tulis kebutuhan Anda. Tim kami akan membantu.</div>';return}body.innerHTML=msgs.length?msgs.map(m=>'<div class="mkcs-bubble '+(m.sender_role==="customer"?"me":"them")+'">'+esc(m.body)+'<span class="mkcs-time">'+(m.sender_role==="admin"?"Customer Service":"Anda")+" · "+fmt(m.created_at)+'</span></div>').join(""):'<div class="mkcs-empty">Belum ada pesan.</div>';body.scrollTop=body.scrollHeight}
+async function load(){if(loading)return;loading=true;try{const d=await call("GET");render(d);if(open&&d.threads?.[0]){thread=d.threads[0];await call("PATCH",{thread_id:thread.id,action:"read"})}}catch(e){const b=document.getElementById("mkCsBody");if(b)b.innerHTML='<div class="mkcs-empty">'+esc(e.message||"Gagal memuat Customer Service.")+"</div>"}finally{loading=false}}
+async function send(){const input=document.getElementById("mkCsInput"),status=document.getElementById("mkCsStatus"),button=document.getElementById("mkCsSend"),body=String(input?.value||"").trim();if(!body)return;try{button.disabled=true;status.textContent="Mengirim...";const d=await call("POST",{thread_id:thread?.id||null,body,subject:"Bantuan Customer Service"});thread=thread||{id:d.thread_id};input.value="";status.textContent="";await load()}catch(e){status.textContent=e.message||"Pesan gagal dikirim."}finally{button.disabled=false}}
+async function unread(){try{const d=await call("GET");const n=(d.messages||[]).filter(m=>m.sender_role==="admin"&&!m.read_at).length;const u=document.getElementById("mkCsUnread");if(u){u.textContent=n>9?"9+":String(n);u.style.display=n?"grid":"none"}}catch{}}
+function start(){ensureUi();if(timer)clearInterval(timer);timer=setInterval(()=>{if(open)load();else unread()},5000);setTimeout(unread,1200)}
+document.addEventListener("DOMContentLoaded",start);window.marketKitaOpenCustomerService=()=>{ensureUi();open=true;document.getElementById("mk2CustomerService")?.classList.add("show");load()};})();
