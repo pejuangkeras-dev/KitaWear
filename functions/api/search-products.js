@@ -5,16 +5,19 @@ function normalizeUrl(v){return String(v||"").trim().replace(/\/+$/,"");}
 function cacheKey(request){const u=new URL(request.url);u.searchParams.sort();return new Request(u.toString(),{method:"GET"});}
 async function cachedFetch(request,producer){
   const cache=globalThis.caches?.default;
-  if(!cache)return producer(false);
+  if(!cache)return producer();
   const key=cacheKey(request);
   const hit=await cache.match(key);
   if(hit){
     const headers=new Headers(hit.headers);headers.set("X-MarketKita-Cache","HIT");
-    return new Response(await hit.text(),{status:hit.status,headers});
+    return new Response(await hit.arrayBuffer(),{status:hit.status,headers});
   }
-  const fresh=await producer(false);
-  if(fresh.ok){try{const headers=new Headers(fresh.headers);headers.set("Cache-Control","public, max-age=15, s-maxage=30, stale-while-revalidate=60");headers.set("X-MarketKita-Cache","MISS");const body=await fresh.text();const stored=new Response(body,{status:fresh.status,headers});await cache.put(key,stored.clone());return stored;}catch{}}
-  return fresh;
+  const fresh=await producer();
+  if(!fresh.ok)return fresh;
+  const headers=new Headers(fresh.headers);headers.set("Cache-Control","public, max-age=15, s-maxage=30, stale-while-revalidate=60");headers.set("X-MarketKita-Cache","MISS");
+  const response=new Response(fresh.body,{status:fresh.status,headers});
+  try{await cache.put(key,response.clone());}catch{}
+  return response;
 }
 export async function onRequestGet({request,env}){
   try{
