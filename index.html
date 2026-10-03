@@ -7189,21 +7189,41 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
 <script id="mk-account-hover-menu-js">
 (function(){
   async function ensureHoverAccountSession(){
-    // Never infer login state from the menu UI. Read the persisted Supabase
-    // session so a hover-menu click cannot incorrectly send an already logged-in
-    // customer back to the login form.
-    let user=kwCurrentUser;
-    if(!user && kwSupabase?.auth){
+    // The header may already be rendered from an authenticated session while
+    // the local auth state is still synchronizing. Prefer the known user,
+    // then recover from Supabase without ever discarding a valid user.
+    if(kwCurrentUser) return kwCurrentUser;
+
+    if(kwSupabase?.auth){
       try{
-        const result=await kwSupabase.auth.getSession();
-        user=result?.data?.session?.user||null;
-        if(user){
-          await applyMarketKitaSession(result.data.session);
-          user=kwCurrentUser;
+        const sessionResult=await kwSupabase.auth.getSession();
+        const session=sessionResult?.data?.session||null;
+        if(session?.user){
+          await applyMarketKitaSession(session);
+          if(kwCurrentUser) return kwCurrentUser;
         }
-      }catch(error){ console.warn("MarketKita account menu session:",error); }
+
+        // getUser() is an additional authoritative check when the persisted
+        // session is being refreshed.
+        const userResult=await kwSupabase.auth.getUser();
+        if(userResult?.data?.user){
+          const user=userResult.data.user;
+          kwCurrentUser=user;
+          if(!kwCurrentProfile){
+            const profileResult=await kwSupabase.from("profiles")
+              .select("id,full_name,phone,role")
+              .eq("id",user.id).maybeSingle();
+            if(!profileResult.error) kwCurrentProfile=profileResult.data||null;
+          }
+          updateAccountButton(kwCurrentUser,kwCurrentProfile);
+          if(typeof updateAccountHoverMenu==="function")updateAccountHoverMenu(kwCurrentUser,kwCurrentProfile);
+          return kwCurrentUser;
+        }
+      }catch(error){
+        console.warn("MarketKita account menu auth recovery:",error);
+      }
     }
-    return user;
+    return null;
   }
 
   window.openAccountMenuSection=async function(section){
@@ -7212,29 +7232,41 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
 
     const user=await ensureHoverAccountSession();
     if(!user){
+      // Only a genuinely unauthenticated visitor sees login.
       marketKitaOpenAccountFallback();
       return;
     }
 
     const overlay=document.getElementById("authOverlay");
+    const guest=document.getElementById("authGuest");
+    const account=document.getElementById("authUser");
+
     if(overlay){
       overlay.classList.add("show","account-expanded");
       overlay.setAttribute("aria-hidden","false");
     }
+    if(guest)guest.style.display="none";
+    if(account)account.classList.add("show");
+
+    // Re-hydrate the account view from the authenticated user instead of
+    // invoking the login flow.
+    updateAccountButton(kwCurrentUser,kwCurrentProfile);
+    populateAccountProfile();
     if(typeof updateAccountHoverMenu==="function")updateAccountHoverMenu(kwCurrentUser,kwCurrentProfile);
+
     if(typeof showAccountSection==="function"){
       showAccountSection(section);
-    }else{
-      console.warn("MarketKita: showAccountSection tidak tersedia.");
     }
   };
 
   window.openSellerCenterFromAccountMenu=async function(){
     const user=await ensureHoverAccountSession();
     if(!user){marketKitaOpenAccountFallback();return;}
+
     const role=String(kwCurrentProfile?.role||user.user_metadata?.role||"buyer").trim().toLowerCase();
     const menu=document.getElementById("mk2AccountHoverMenu");
     if(menu)menu.classList.remove("is-open");
+
     if(role!=="seller" && role!=="admin"){
       if(typeof showKwNotice==="function")showKwNotice("Seller Center hanya dapat diakses oleh akun Seller atau Admin.","Akses Seller Center");
       return;
