@@ -2227,11 +2227,13 @@ async function calculateCheckoutShipping(){
   const summary=document.getElementById("checkoutShippingSummary");
   const calcKey=JSON.stringify({
     postal,
+    couriers:"jne:sicepat:jnt:ninja:tiki:lion:anteraja:pos:wahana",
     items:((typeof cart!=="undefined"?cart:[])||[]).map(x=>({
       product_id:x.product_id||((typeof products!=="undefined"?products:[])?.[x.productIndex]?.id),
+      store_id:x.store_id||((typeof products!=="undefined"?products:[])?.[x.productIndex]?.store_id)||"",
       size:x.size,
       quantity:x.quantity
-    })).sort((a,b)=>(String(a.product_id)+String(a.size)).localeCompare(String(b.product_id)+String(b.size)))
+    })).sort((a,b)=>(String(a.product_id)+String(a.store_id)+String(a.size)).localeCompare(String(b.product_id)+String(b.store_id)+String(b.size)))
   });
 
   // Never invalidate a successful quote before checking whether the inputs
@@ -2888,7 +2890,23 @@ function openCheckout(){
   window.marketCheckoutShippingQuoteId=null;
   window.marketCheckoutShippingSelections=[];
   window.marketCheckoutShippingFee=0;
+  window.marketCheckoutIdempotencyKey=crypto.randomUUID();
+  kwShippingCalcKey="";
+  kwShippingCalcPromise=null;
+  kwShippingCalcPromiseKey="";
+  // A checkout session starts from a clean location state. This prevents a previous checkout from silently reusing its province/city/district.
+  kwLocationPicker.province=null;kwLocationPicker.city=null;kwLocationPicker.district=null;
+  kwLocationPicker.subdistrict=null;kwLocationPicker.postal="";
+  kwLocationPicker.level="province";kwLocationPicker.searchMode=false;kwLocationPicker.searchRows=[];
+  kwLocationPicker.cityRows=[];kwLocationPicker.districtRows=[];kwLocationPicker.subdistrictRows=[];
   const mode=document.getElementById("buyerAddressMode");if(mode)mode.value="manual";
+  const locButton=document.getElementById("buyerLocationPickerButton");if(locButton)locButton.classList.remove("has-value");
+  const locText=document.getElementById("buyerLocationPickerText");if(locText)locText.textContent="Pilih provinsi, kota/kabupaten, kecamatan & kode pos";
+  ["buyerManualProvince","buyerManualCity","buyerManualDistrictId","buyerManualSubdistrictId","buyerManualDistrict","buyerManualSubdistrict","buyerManualPostalCode","buyerManualAddressLine","buyerManualHouseNumber","buyerAddress"].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    if(el.tagName==="SELECT")el.innerHTML="<option value=\"\">Pilih lokasi</option>";
+    else el.value="";
+  });
   const shippingRoot=document.getElementById("checkoutShippingOptions");if(shippingRoot)shippingRoot.innerHTML='<div class="checkout-shipping-empty">Pilih provinsi dan kota/kabupaten untuk menghitung ongkir.</div>';
   const voucherInput=document.getElementById("checkoutVoucher");if(voucherInput)voucherInput.value="";
   const voucherMsg=document.getElementById("checkoutVoucherMessage");if(voucherMsg)voucherMsg.textContent="";
@@ -3025,11 +3043,16 @@ async function startPayment(e){
       voucher_id:window.marketCheckoutVoucherId || null
     };
 
+    const checkoutIdempotencyKey=String(window.marketCheckoutIdempotencyKey||crypto.randomUUID());
+    window.marketCheckoutIdempotencyKey=checkoutIdempotencyKey;
+    payload.idempotency_key=checkoutIdempotencyKey;
+    const sessionForCheckout=kwSupabase ? (await kwSupabase.auth.getSession()).data?.session : null;
     const res=await fetch("/api/create-transaction",{
       method:"POST",
       headers:{
         "Content-Type":"application/json",
-        ...(kwSupabase ? ((await kwSupabase.auth.getSession()).data?.session?.access_token ? {Authorization:`Bearer ${(await kwSupabase.auth.getSession()).data.session.access_token}`} : {}) : {})
+        "Idempotency-Key":checkoutIdempotencyKey,
+        ...(sessionForCheckout?.access_token ? {Authorization:"Bearer "+sessionForCheckout.access_token} : {})
       },
       body:JSON.stringify(payload)
     });
