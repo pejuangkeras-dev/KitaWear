@@ -1,3 +1,4 @@
+// Cloudflare Pages deployment verification: valid ESM syntax.
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
