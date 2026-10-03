@@ -32,3 +32,6 @@ jobs:
       - name: P26 production readiness and payment smoke tests
         run: |
           npx playwright test tests/priority26.spec.mjs
+      - name: P27 Seller Center smoke tests
+        run: |
+          npx playwright test tests/priority27.spec.mjs
