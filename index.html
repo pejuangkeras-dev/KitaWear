@@ -5912,5 +5912,119 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
 <script src="/search-discovery-p30.js?v=20261003-p30"></script>
 <script src="/trust-safety-p32.js?v=20261003-p32"></script>
 <script src="/recommendations-g2.js?v=20261003-g2"></script>
+<script id="marketkita-menu-functionality-final">
+(function(){
+  function goProducts(category){
+    const input=document.getElementById("marketplaceSearch");
+    const cat=document.getElementById("marketplaceCategory");
+    if(input){input.value="";marketFilters.query="";}
+    if(cat){
+      const wanted=String(category||"").trim().toLowerCase();
+      const opt=[...cat.options].find(o=>String(o.textContent||"").trim().toLowerCase()===wanted || String(o.value||"").trim().toLowerCase()===wanted);
+      cat.value=opt?opt.value:"";
+      marketFilters.category=cat.value;
+    }
+    render();
+    document.getElementById("produk")?.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  function categoryFromLabel(label){
+    const s=String(label||"").trim().toLowerCase();
+    const map={
+      "elektronik":"Elektronik",
+      "fashion":"Fashion",
+      "fashion pria":"Fashion",
+      "fashion wanita":"Fashion",
+      "rumah & gaya hidup":"Rumah & Gaya Hidup",
+      "kesehatan & kecantikan":"Kesehatan & Kecantikan",
+      "ibu & anak":"Ibu & Anak",
+      "olahraga":"Olahraga",
+      "otomotif":"Otomotif",
+      "makanan & minuman":"Makanan & Minuman",
+      "hobi & koleksi":"Hobi & Koleksi",
+      "buku & alat tulis":"Buku & Alat Tulis"
+    };
+    return map[s]||label;
+  }
+
+  function openBuyerChatMenu(){
+    if(!kwCurrentUser){
+      setAuthMode("login");
+      const m=document.getElementById("authMessage");
+      if(m)m.textContent="Silakan masuk untuk membuka Chat MarketKita.";
+      openAccount();
+      return;
+    }
+    openAccount();
+    setTimeout(()=>showAccountSection("messages"),80);
+  }
+
+  function bindMarketplaceMenus(){
+    document.querySelectorAll(".mk2-catnav .mk2-cat").forEach(btn=>{
+      if(btn.dataset.mkBound)return;
+      btn.dataset.mkBound="1";
+      btn.addEventListener("click",()=>{
+        const label=btn.textContent.replace(/[☰⌄]/g,"").trim();
+        if(label==="Semua Kategori"){
+          goProducts("");
+          return;
+        }
+        if(label==="Lainnya"){
+          const cat=document.getElementById("marketplaceCategory");
+          if(cat){
+            const known=new Set([...cat.options].map(o=>String(o.value||"").toLowerCase()));
+            const others=[...cat.options].find(o=>o.value && !["elektronik","fashion","rumah & gaya hidup","kesehatan & kecantikan","ibu & anak","olahraga","otomotif","makanan & minuman","hobi & koleksi","buku & alat tulis"].includes(String(o.value).toLowerCase()));
+            if(others){cat.value=others.value;marketFilters.category=others.value;render();document.getElementById("produk")?.scrollIntoView({behavior:"smooth"});return;}
+          }
+          goProducts("");
+          return;
+        }
+        goProducts(categoryFromLabel(label));
+      });
+      btn.removeAttribute("onclick");
+    });
+
+    document.querySelectorAll(".mk2-cat-card").forEach(card=>{
+      if(card.dataset.mkBound)return;
+      card.dataset.mkBound="1";
+      card.addEventListener("click",e=>{
+        e.preventDefault();
+        goProducts(categoryFromLabel(card.textContent.replace(/[📱👕👗🏠🧴🧸🏋️🚗🍴🎮📚•]/g,"").trim()));
+      });
+      card.removeAttribute("href");
+    });
+
+    const headerChat=[...document.querySelectorAll(".mk2-action")].find(x=>x.textContent.includes("Chat"));
+    if(headerChat&&!headerChat.dataset.mkBound){
+      headerChat.dataset.mkBound="1";
+      headerChat.addEventListener("click",e=>{e.preventDefault();openBuyerChatMenu();});
+      headerChat.removeAttribute("onclick");
+    }
+
+    const localBanner=document.querySelector(".mk2-banner.local");
+    if(localBanner&&!localBanner.dataset.mkBound){
+      localBanner.dataset.mkBound="1";
+      localBanner.style.cursor="pointer";
+      localBanner.addEventListener("click",()=>goProducts(""));
+    }
+
+    const freeBanner=document.querySelector(".mk2-banner:not(.local)");
+    if(freeBanner&&!freeBanner.dataset.mkBound){
+      freeBanner.dataset.mkBound="1";
+      freeBanner.style.cursor="pointer";
+      freeBanner.addEventListener("click",()=>document.getElementById("produk")?.scrollIntoView({behavior:"smooth",block:"start"}));
+    }
+
+    document.querySelectorAll(".mk2-see").forEach(link=>{
+      if(link.dataset.mkBound)return;
+      link.dataset.mkBound="1";
+      link.addEventListener("click",e=>{e.preventDefault();document.getElementById("produk")?.scrollIntoView({behavior:"smooth",block:"start"});});
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded",()=>setTimeout(bindMarketplaceMenus,1200));
+  window.marketKitaBindMenus=bindMarketplaceMenus;
+})();
+</script>
 </body>
 </html>
