@@ -29,3 +29,6 @@ jobs:
       - name: P25 final production audit smoke tests
         run: |
           npx playwright test tests/priority25.spec.mjs
+      - name: P26 production readiness and payment smoke tests
+        run: |
+          npx playwright test tests/priority26.spec.mjs
