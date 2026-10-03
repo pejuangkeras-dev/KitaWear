@@ -1930,6 +1930,137 @@ a{color:inherit}
 }
 </style>
 
+<style id="mk-account-banner-ultimate-fix">
+/* FINAL OVERRIDE: restore the large account banner after older hide rules */
+#authOverlay.account-expanded .account-main > .account-hero{
+  display:flex!important;
+  visibility:visible!important;
+  position:relative!important;
+  width:100%!important;
+  min-height:190px!important;
+  height:auto!important;
+  max-height:none!important;
+  margin:0 0 18px!important;
+  padding:32px 38px!important;
+  overflow:hidden!important;
+  opacity:1!important;
+  border:1px solid #c7e1fb!important;
+  border-radius:18px!important;
+  background:linear-gradient(105deg,#dff1ff 0%,#c9e7ff 52%,#eef8ff 100%)!important;
+  box-shadow:0 10px 28px rgba(35,117,190,.10)!important;
+  color:#123b72!important;
+  box-sizing:border-box!important;
+  z-index:5!important;
+}
+#authOverlay.account-expanded .account-main > .account-hero .account-hero-copy{
+  display:block!important;
+  visibility:visible!important;
+  position:relative!important;
+  z-index:6!important;
+  max-width:590px!important;
+  height:auto!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:visible!important;
+  opacity:1!important;
+}
+#authOverlay.account-expanded .account-main > .account-hero .account-hero-kicker{
+  display:block!important;
+  visibility:visible!important;
+  height:auto!important;
+  max-height:none!important;
+  margin:0 0 8px!important;
+  padding:0!important;
+  color:#0878f8!important;
+}
+#authOverlay.account-expanded .account-main > .account-hero h3{
+  display:block!important;
+  visibility:visible!important;
+  height:auto!important;
+  max-height:none!important;
+  margin:0 0 8px!important;
+  padding:0!important;
+  color:#102f5e!important;
+  font-size:31px!important;
+  line-height:1.08!important;
+}
+#authOverlay.account-expanded .account-main > .account-hero p{
+  display:block!important;
+  visibility:visible!important;
+  height:auto!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  color:#4e6d91!important;
+}
+#authOverlay.account-expanded .account-main > .account-hero .account-hero-art{
+  display:block!important;
+  visibility:visible!important;
+  position:absolute!important;
+  right:18px!important;
+  top:0!important;
+  bottom:0!important;
+  width:44%!important;
+  height:auto!important;
+  opacity:1!important;
+  overflow:visible!important;
+  z-index:5!important;
+}
+#authOverlay.account-expanded .account-main{
+  padding-top:26px!important;
+}
+#authOverlay.account-expanded .auth-head{
+  position:fixed!important;
+  top:12px!important;
+  right:18px!important;
+  z-index:1000000!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  width:auto!important;
+  height:auto!important;
+  padding:0!important;
+}
+#authOverlay.account-expanded .auth-head::before,
+#authOverlay.account-expanded .auth-head::after{
+  content:none!important;
+  display:none!important;
+}
+#authOverlay.account-expanded .auth-box > .auth-head .auth-close{
+  position:relative!important;
+  z-index:1000001!important;
+  display:grid!important;
+  place-items:center!important;
+  width:40px!important;
+  height:40px!important;
+  margin:0!important;
+  padding:0!important;
+  border-radius:50%!important;
+  background:#fff!important;
+  color:#111827!important;
+  border:1px solid #d9e5f2!important;
+  box-shadow:0 6px 20px rgba(0,0,0,.18)!important;
+}
+@media(max-width:650px){
+  #authOverlay.account-expanded .account-main > .account-hero{
+    min-height:165px!important;
+    padding:24px 20px!important;
+  }
+  #authOverlay.account-expanded .account-main > .account-hero h3{
+    font-size:24px!important;
+    max-width:62%!important;
+  }
+  #authOverlay.account-expanded .account-main > .account-hero p{
+    font-size:10px!important;
+    max-width:58%!important;
+  }
+  #authOverlay.account-expanded .account-main > .account-hero .account-hero-art{
+    right:-45px!important;
+    width:62%!important;
+  }
+}
+</style>
 </head>
 
 <body>
