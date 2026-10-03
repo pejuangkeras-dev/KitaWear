@@ -76,3 +76,7 @@ jobs:
       - name: G9 Operations Center smoke tests
         run: |
           npx playwright test tests/g9-operations.spec.mjs
+
+      - name: G10 Marketplace BI smoke tests
+        run: |
+          npx playwright test tests/g10-marketplace-bi.spec.mjs
