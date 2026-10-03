@@ -41,6 +41,15 @@ test.describe('Priority 18 Buyer Order Tracking', () => {
     }
   });
 
+  test('buyer tracking has provider-cache fallback to protect RajaOngkir HIT limits', async () => {
+    const fs = await import('node:fs');
+    const source = fs.readFileSync('functions/api/shipping-track.js', 'utf8');
+    expect(source).toContain('tracking_checked_at');
+    expect(source).toContain('source:"cache"');
+    expect(source).toContain('stale:true');
+    expect(source).toContain('60000');
+  });
+
   test('public config does not expose private shipping/payment secrets', async ({ request }) => {
     const response = await request.get(`${BASE_URL}/api/public-config`);
     expect(response.ok()).toBeTruthy();
