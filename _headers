@@ -14,3 +14,18 @@
 /seller.html
   Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0
   CDN-Cache-Control: no-store
+
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  CDN-Cache-Control: no-store
+
+/manifest.webmanifest
+  Cache-Control: public, max-age=3600
+  CDN-Cache-Control: public, max-age=3600
+
+/icons/*
+  Cache-Control: public, max-age=2592000, immutable
+
+/pwa-p35.js
+  Cache-Control: public, max-age=3600
+  CDN-Cache-Control: public, max-age=3600
