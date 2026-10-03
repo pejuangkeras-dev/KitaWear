@@ -18,6 +18,11 @@ async function user(context,url,anon){
   if(!r.ok)return null; const d=await r.json().catch(()=>null); return d?.id?d:null;
 }
 function rajaKey(env){return String(env.RAJAONGKIR_API_KEY||"").trim();}
+async function sha256Hex(value){
+  const bytes=new TextEncoder().encode(String(value||""));
+  const digest=await crypto.subtle.digest("SHA-256",bytes);
+  return [...new Uint8Array(digest)].map(x=>x.toString(16).padStart(2,"0")).join("");
+}
 async function raja(env,path,method="GET",body=null){
   const key=rajaKey(env);
   if(!key) throw new Error("RAJAONGKIR_API_KEY belum dipasang di Cloudflare.");
@@ -158,6 +163,34 @@ export async function onRequestPost(context){
     }
 
     const courierList=String(body.couriers||"jne:sicepat:jnt:ninja:tiki:lion:anteraja:pos:wahana").trim().replace(/,/g,":");
+    // Stable server-side fingerprint prevents concurrent UI events from
+    // creating duplicate active quotes and consuming additional provider HITs.
+    const requestHash=await sha256Hex(JSON.stringify({
+      postal_code:String(address.postal_code||""),
+      couriers:courierList,
+      items:normalizedItems.map(item=>({
+        product_id:item.product_id,
+        store_id:String(rawItems.find(x=>String(x.product_id||"")===item.product_id&&String(x.size||"").trim().toUpperCase()===item.size)?.store_id||""),
+        size:item.size,
+        quantity:item.quantity
+      }))
+    }));
+    try{
+      await sb(url,key,"/rest/v1/shipping_quotes?buyer_id=eq."+encodeURIComponent(buyer.id)+"&request_hash=eq."+encodeURIComponent(requestHash)+"&status=eq.active&expires_at=lte."+encodeURIComponent(new Date().toISOString()),{
+        method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"expired"})
+      });
+    }catch(expireError){
+      console.warn("MarketKita expired shipping quote cleanup:",expireError?.message||expireError);
+    }
+    try{
+      const exact=await sb(url,key,"/rest/v1/shipping_quotes?select=id,total_fee,expires_at,selections,request_snapshot,created_at&buyer_id=eq."+encodeURIComponent(buyer.id)+"&request_hash=eq."+encodeURIComponent(requestHash)+"&status=eq.active&expires_at=gt."+encodeURIComponent(new Date().toISOString())+"&order=created_at.desc&limit=1");
+      const existing=Array.isArray(exact)?exact[0]:null;
+      if(existing?.selections){
+        return json({quote_id:existing.id,expires_at:existing.expires_at,total_fee:Number(existing.total_fee||0),sellers:existing.selections,cached:true,deduplicated:true},200);
+      }
+    }catch(dedupError){
+      console.warn("MarketKita shipping quote dedup lookup:",dedupError?.message||dedupError);
+    }
     const selections=[];
     const sellerQuotes=[];
     // Resolve the destination once per checkout, not once per seller.
@@ -205,10 +238,26 @@ export async function onRequestPost(context){
           quantity:Number(item.quantity||0)
         }))
       };
-      return sb(url,key,"/rest/v1/shipping_quotes",{
-        method:"POST",headers:{Prefer:"return=representation"},
-        body:JSON.stringify({id:quoteId,buyer_id:buyer.id,total_fee:totalFee,status:"active",expires_at:expires,selections:sellerQuotes,request_snapshot:snapshot})
-      }).then(()=>json({quote_id:quoteId,expires_at:expires,total_fee:totalFee,sellers:sellerQuotes},200));
+      return (async()=>{
+        try{
+          await sb(url,key,"/rest/v1/shipping_quotes",{
+            method:"POST",headers:{Prefer:"return=representation"},
+            body:JSON.stringify({id:quoteId,buyer_id:buyer.id,total_fee:totalFee,status:"active",expires_at:expires,selections:sellerQuotes,request_snapshot:{...snapshot,request_hash:requestHash},request_hash:requestHash})
+          });
+          return json({quote_id:quoteId,expires_at:expires,total_fee:totalFee,sellers:sellerQuotes},200);
+        }catch(insertError){
+          try{
+            const rows=await sb(url,key,"/rest/v1/shipping_quotes?select=id,total_fee,expires_at,selections,request_snapshot,created_at&buyer_id=eq."+encodeURIComponent(buyer.id)+"&request_hash=eq."+encodeURIComponent(requestHash)+"&status=eq.active&expires_at=gt."+encodeURIComponent(new Date().toISOString())+"&order=created_at.desc&limit=1");
+            const existing=Array.isArray(rows)?rows[0]:null;
+            if(existing?.selections){
+              return json({quote_id:existing.id,expires_at:existing.expires_at,total_fee:Number(existing.total_fee||0),sellers:existing.selections,cached:true,deduplicated:true},200);
+            }
+          }catch(raceError){
+            console.warn("MarketKita shipping quote race recovery:",raceError?.message||raceError);
+          }
+          throw insertError;
+        }
+      })();
     })();
   }catch(error){
     console.error("MarketKita shipping quote error:",error?.message||error);
