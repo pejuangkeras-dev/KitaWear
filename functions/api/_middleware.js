@@ -48,7 +48,7 @@ async function checkLimit(request,config){
   }
   try{
     await cache.put(key,new Response(JSON.stringify(next),{
-      headers:{"Content-Type":"application/json","Cache-Control:"+"max-age="+config.window}
+      headers:{"Content-Type":"application/json","Cache-Control":"max-age="+config.window}
     }));
   }catch{}
   return {allowed:true,remaining,resetAt:next.resetAt};
