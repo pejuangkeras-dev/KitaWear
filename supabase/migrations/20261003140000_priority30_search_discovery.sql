@@ -34,7 +34,7 @@ with params as (
     lower(trim(coalesce(p_store_slug,''))) store_slug,
     greatest(coalesce(p_min_price,0),0) min_price,
     greatest(coalesce(p_max_price,0),0) max_price,
-    case when p_sort in ('relevance','price_asc','price_desc','rating_desc','newest') then p_sort else 'relevance' end sort_mode,
+    case when p_sort in ('relevance','price_asc','price_desc','name_asc','rating_desc','newest') then p_sort else 'relevance' end sort_mode,
     greatest(coalesce(p_page,1),1) page_no,
     least(greatest(coalesce(p_page_size,24),1),48) page_size
 ),
@@ -90,6 +90,7 @@ paged as (
     case when (select sort_mode from params)='rating_desc' then c.product_rating end desc,
     case when (select sort_mode from params)='price_asc' then c.price end asc,
     case when (select sort_mode from params)='price_desc' then c.price end desc,
+    case when (select sort_mode from params)='name_asc' then lower(c.name) end asc,
     case when (select sort_mode from params)='newest' then c.created_at end desc,
     c.created_at desc
   offset (select (page_no-1)*page_size from params)
