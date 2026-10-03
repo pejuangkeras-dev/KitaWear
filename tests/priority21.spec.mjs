@@ -15,3 +15,12 @@ test('shipping production readiness reports provider mode without exposing crede
   expect(body).not.toHaveProperty('base_url');
   if (body.mode === 'sandbox') expect(body.safe_to_create).toBe(false);
 });
+
+
+test('shipping create source enforces the production gate server-side', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const source = fs.readFileSync(path.resolve(process.cwd(), 'functions/api/shipping-create.js'), 'utf8');
+  expect(source).toContain('if(providerMode !== "production")return json');
+  expect(source).toContain('safe_to_create:false');
+});
