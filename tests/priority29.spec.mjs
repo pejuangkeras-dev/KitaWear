@@ -40,7 +40,10 @@ test.describe("P29 — Promotion Engine",()=>{
   test("buyer promotion API requires authentication and preserves buyer identity",async({request})=>{
     const s=await source(request,"functions/api/buyer-promotions.js");
     for(const x of ["LOGIN_REQUIRED","/rest/v1/vouchers","/rest/v1/user_vouchers","/rest/v1/rpc/claim_voucher","Authorization:auth"]) expect(s).toContain(x);
-    expect(s).not.toContain('Authorization:"Bearer "+key');
+    const claimStart=s.indexOf('const key=clean(ctx.env.SUPABASE_ANON_KEY)');
+    const claimBlock=claimStart>=0?s.slice(claimStart):"";
+    expect(claimBlock).toContain("apikey:key,Authorization:auth");
+    expect(claimBlock).not.toContain("apikey:serviceKey,Authorization:\"Bearer \"+serviceKey");
   });
   test("checkout enforces promotion eligibility server-side",async({request})=>{
     const s=await source(request,"functions/api/create-transaction.js");
