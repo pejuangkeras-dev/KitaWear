@@ -28,4 +28,4 @@ const originalShow=window.showAccountSection;
 window.showAccountSection=function(section){if(typeof originalShow==="function")originalShow(section);if(section==="wishlist"||section==="follows")setTimeout(()=>{section==="wishlist"?loadG3Wishlist():loadG3Follows()},0);};
 document.addEventListener("DOMContentLoaded",()=>setTimeout(()=>window.loadG3Social?.(),900));
 })();
-const g6=document.createElement("script");g6.src="/loyalty-g6.js?v=20261003-g6";g6.defer=true;document.head.appendChild(g6);
+const g6=document.createElement("script");g6.src="/loyalty-g6.js?v=20261003-g6";g6.defer=true;document.head.appendChild(g6);const g7=document.createElement("script");g7.src="/communication-g7.js?v=20261003-g7";g7.defer=true;document.head.appendChild(g7);
