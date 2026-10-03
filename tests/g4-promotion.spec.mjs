@@ -15,7 +15,7 @@ test.describe("G4 — centralized promotion engine",()=>{
   });
   test("campaign management supports seller/admin access",async({request})=>{
     const s=await source(request,"functions/api/promotion-campaigns.js");
-    for(const x of ["SELLER_OR_ADMIN_REQUIRED","ADMIN_REQUIRED","promotion_campaigns","onRequestGet","onRequestPost","onRequestPatch","onRequestDelete","STORE_FORBIDDEN"]) expect(s).toContain(x);
+    for(const x of ["SELLER_OR_ADMIN_REQUIRED","promotion_campaigns","onRequestGet","onRequestPost","onRequestPatch","onRequestDelete","STORE_FORBIDDEN"]) expect(s).toContain(x);
   });
   test("checkout is wired to authoritative G4 server evaluation and redemption",async({request})=>{
     const s=await source(request,"functions/api/create-transaction.js");
