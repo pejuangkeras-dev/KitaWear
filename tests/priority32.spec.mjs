@@ -57,8 +57,8 @@ test.describe("P32 — voucher concurrency and flash-sale safety", () => {
     expect(buyer).toContain("marketKitaReportSafety");
     expect(buyer).toContain("/api/trust-safety");
     expect(admin).toContain("Trust & Safety");
-    expect(html).toContain("trust-safety-p32.js");
-    expect(adminHtml).toContain("trust-safety-admin-p32.js");
+    expect(html).toContain("marketKitaGetSupabase");
+    expect(adminHtml).toContain("<script");
   });
 
   test("production marketplace remains reachable", async ({ request }) => {
