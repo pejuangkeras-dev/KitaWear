@@ -555,6 +555,10 @@ body{background:var(--bg);color:var(--ink)}
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MarketKita">
 <meta name="mobile-web-app-capable" content="yes">
+
+<style id="g1-search-2">
+.mk-search-suggestions{position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:260;background:#fff;border:1px solid #ded9cf;border-radius:12px;box-shadow:0 14px 35px rgba(0,0,0,.12);padding:5px;max-height:300px;overflow:auto}.mk-search-suggestions[hidden]{display:none}.mk-search-suggestions button{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;border:0;background:#fff;padding:10px 11px;border-radius:8px;text-align:left}.mk-search-suggestions button:hover{background:#f4f1eb}.mk-search-suggestions span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mk-search-suggestions small{font-size:10px;color:#888;text-transform:capitalize}
+</style>
 </head>
 
 <body>
@@ -590,7 +594,7 @@ body{background:var(--bg);color:var(--ink)}
 <input id="marketplaceSearch" class="filter-search" type="search" placeholder="Cari nama produk atau toko..." autocomplete="off">
 <select id="marketplaceCategory" aria-label="Kategori"><option value="">Semua kategori</option></select>
 <select id="marketplaceStore" aria-label="Toko"><option value="">Semua toko</option></select>
-<select id="marketplaceSort" aria-label="Urutkan"><option value="default">Urutan default</option><option value="price_asc">Harga terendah</option><option value="price_desc">Harga tertinggi</option><option value="name_asc">Nama A–Z</option></select>
+<select id="marketplaceSort" aria-label="Urutkan"><option value="default">Urutan default</option><option value="price_asc">Harga terendah</option><option value="price_desc">Harga tertinggi</option><option value="name_asc">Nama A–Z</option><option value="rating_desc">Rating tertinggi</option><option value="newest">Terbaru</option></select>
 <input id="marketplaceMin" type="number" min="0" placeholder="Min Rp" aria-label="Harga minimum">
 <input id="marketplaceMax" type="number" min="0" placeholder="Max Rp" aria-label="Harga maksimum">
 <button type="button" id="wishlistToolbarButton" onclick="openWishlist()">♡ Wishlist <span id="wishlistToolbarCount">0</span></button>
