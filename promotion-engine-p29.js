@@ -9,13 +9,16 @@ async function validate(){
  const input=document.getElementById("checkoutVoucher"),msg=document.getElementById("checkoutVoucherMessage");const code=String(input?.value||"").trim().toUpperCase();
  if(!code){window.marketCheckoutVoucherId=null;if(msg)msg.textContent="Masukkan kode voucher.";return}
  try{
-  const r=await api("/api/buyer-promotions?subtotal="+encodeURIComponent(subtotal()));const d=await r.json();if(!r.ok)throw new Error(d.error||"Gagal memuat promosi.");
-  const v=(d.vouchers||[]).find(x=>String(x.code).toUpperCase()===code);
-  if(!v){window.marketCheckoutVoucherId=null;if(msg)msg.textContent="Voucher tidak tersedia, belum diklaim, atau tidak memenuhi syarat.";return}
+  const list=await api("/api/buyer-promotions?subtotal="+encodeURIComponent(subtotal()));const ld=await list.json();if(!list.ok)throw new Error(ld.error||"Gagal memuat promosi.");
+  const v=(ld.vouchers||[]).find(x=>String(x.code).toUpperCase()===code);
+  if(!v){window.marketCheckoutVoucherId=null;if(msg)msg.textContent="Voucher tidak tersedia atau belum diklaim.";return}
   if(v.used){window.marketCheckoutVoucherId=null;if(msg)msg.textContent="Voucher sudah digunakan.";return}
   if(!v.claimed){window.marketCheckoutVoucherId=null;if(msg)msg.textContent="Klaim voucher ini dari Voucher Saya terlebih dahulu.";return}
-  if(Number(v.estimated_discount||0)<=0&&subtotal()<Number(v.min_order_amount||0)){window.marketCheckoutVoucherId=null;if(msg)msg.textContent="Minimum transaksi belum terpenuhi.";return}
-  window.marketCheckoutVoucherId=v.id;if(msg)msg.textContent="Voucher "+v.code+" siap digunakan. Diskon perkiraan "+(Number(v.estimated_discount||0)).toLocaleString("id-ID")+". Final dihitung server.";
+  const productIds=[...new Set((window.cart||[]).map(x=>x.product_id).filter(Boolean))];
+  const storeIds=[...new Set((window.cart||[]).map(x=>x.store_id).filter(Boolean))];
+  const vr=await api("/api/buyer-promotions",{method:"POST",body:JSON.stringify({action:"validate",voucher_id:v.id,subtotal:subtotal(),product_ids:productIds,store_ids:storeIds})});
+  const vd=await vr.json();if(!vr.ok||!vd.promotion?.valid){window.marketCheckoutVoucherId=null;const codeMap={PROMOTION_NOT_ELIGIBLE:"Voucher tidak berlaku untuk produk/toko pada keranjang ini.",FIRST_ORDER_ONLY:"Voucher ini hanya berlaku untuk pesanan pertama.",MIN_ORDER_NOT_MET:"Minimum transaksi voucher belum terpenuhi.",VOUCHER_NOT_CLAIMED:"Klaim voucher terlebih dahulu.",VOUCHER_ALREADY_USED:"Voucher sudah digunakan.",VOUCHER_UNAVAILABLE:"Voucher tidak tersedia atau sudah kedaluwarsa."};if(msg)msg.textContent=codeMap[vd.promotion?.code]||vd.error||"Voucher tidak memenuhi syarat.";return}
+  window.marketCheckoutVoucherId=v.id;if(msg)msg.textContent="Voucher "+v.code+" siap digunakan. Diskon "+Number(vd.promotion.discount_amount||0).toLocaleString("id-ID")+".";
  }catch(e){if(msg)msg.textContent=e.message==="LOGIN_REQUIRED"?"Login diperlukan untuk menggunakan voucher.":e.message||"Gagal memvalidasi voucher."}
 }
 async function claim(id){
