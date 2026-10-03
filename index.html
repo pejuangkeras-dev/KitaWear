@@ -1286,6 +1286,42 @@ a{color:inherit}
  }
 }
 </style>
+<style id="marketkita-account-final-fix">
+/* Role-based account navigation: only ADMIN can see Admin Center. */
+#adminAccountLink,
+#adminAccountLink[hidden],
+#adminAccountLink[aria-hidden="true"]{
+  display:none!important;
+}
+#adminAccountLink.is-admin-visible{
+  display:flex!important;
+}
+/* Ensure the profile action label remains readable on the blue CTA. */
+.account-profile-preview .account-card-btn{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:36px!important;
+  padding:0 14px!important;
+  border:0!important;
+  border-radius:9px!important;
+  background:#0878f8!important;
+  color:#fff!important;
+  font-size:10px!important;
+  font-weight:850!important;
+  line-height:1!important;
+  text-decoration:none!important;
+  white-space:nowrap!important;
+}
+.account-profile-preview .account-card-btn:hover{
+  background:#0666d8!important;
+  color:#fff!important;
+}
+.account-profile-preview .account-card-btn:focus-visible{
+  outline:3px solid rgba(8,120,248,.2)!important;
+  outline-offset:2px!important;
+}
+</style>
 </head>
 
 <body>
@@ -4218,9 +4254,16 @@ function updateAccountButton(user,profile){
   const role=document.getElementById("accountRole");
   const adminLink=document.getElementById("adminAccountLink");
 
+  const normalizedRole=String(profile?.role || "buyer").trim().toLowerCase();
   if(name) name.textContent=label;
-  if(role) role.textContent=(profile?.role || "buyer").toUpperCase();
-  if(adminLink) adminLink.style.display=profile?.role==="admin" ? "flex" : "none";
+  if(role) role.textContent=normalizedRole.toUpperCase();
+  if(adminLink){
+    const isAdmin=normalizedRole==="admin";
+    adminLink.hidden=!isAdmin;
+    adminLink.setAttribute("aria-hidden",isAdmin ? "false" : "true");
+    adminLink.style.setProperty("display",isAdmin ? "flex" : "none","important");
+    adminLink.classList.toggle("is-admin-visible",isAdmin);
+  }
 }
 
 function marketKitaOpenAccountFallback(event){
