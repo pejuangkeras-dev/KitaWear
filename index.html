@@ -559,6 +559,13 @@ body{background:var(--bg);color:var(--ink)}
 <style id="g1-search-2">
 .mk-search-suggestions{position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:260;background:#fff;border:1px solid #ded9cf;border-radius:12px;box-shadow:0 14px 35px rgba(0,0,0,.12);padding:5px;max-height:300px;overflow:auto}.mk-search-suggestions[hidden]{display:none}.mk-search-suggestions button{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;border:0;background:#fff;padding:10px 11px;border-radius:8px;text-align:left}.mk-search-suggestions button:hover{background:#f4f1eb}.mk-search-suggestions span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mk-search-suggestions small{font-size:10px;color:#888;text-transform:capitalize}
 </style>
+<style id="g2-recommendations">
+.recommendation-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.recommendation-grid .card{height:100%}
+@media(max-width:1100px){.recommendation-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.recommendation-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.recommendation-grid .body{padding:6px}.recommendation-grid .body h3{font-size:10px;min-height:26px}.recommendation-grid .price{font-size:14px}.recommendation-grid .smallbtn{height:28px;font-size:7.5px}.recommendation-grid .size-select{height:27px;font-size:8px}}
+@media(max-width:430px){.recommendation-grid{grid-template-columns:1fr}}
+</style>
 </head>
 
 <body>
@@ -5009,5 +5016,6 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
 <script src="/promotion-engine-p29.js?v=20261003-p29"></script>
 <script src="/search-discovery-p30.js?v=20261003-p30"></script>
 <script src="/trust-safety-p32.js?v=20261003-p32"></script>
+<script src="/recommendations-g2.js?v=20261003-g2"></script>
 </body>
 </html>
