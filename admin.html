@@ -811,6 +811,9 @@ tr:last-child td{
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MarketKita">
+<style>
+.g9-ops{margin:0 0 26px}.g9-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:20px;border-bottom:1px solid var(--line)}.g9-head h2{margin:0;font-size:19px}.g9-head p{margin:5px 0 0;color:var(--muted);font-size:12px}.g9-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:18px}.g9-card{background:#faf8f3;border:1px solid var(--line);border-radius:13px;padding:14px}.g9-card span{display:block;color:var(--muted);font-size:11px;font-weight:750}.g9-card strong{display:block;font-size:22px;margin-top:6px}.g9-card.attention{border-color:#e4c987;background:#fff9e9}.g9-foot{border-top:1px solid var(--line);padding:15px 18px;color:var(--muted);font-size:11px;display:flex;justify-content:space-between;gap:15px}.g9-status-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.g9-status-list span{background:#f1eee7;border-radius:999px;padding:5px 8px}.g9-status-list em{font-style:normal;font-weight:800;color:var(--ink)}.g9-loading,.g9-error{padding:30px;text-align:center;color:var(--muted)}.g9-error{color:var(--red)}@media(max-width:1050px){.g9-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:650px){.g9-grid{grid-template-columns:repeat(2,1fr)}.g9-foot{flex-direction:column}}
+</style>
 </head>
 
 <body>
@@ -968,6 +971,9 @@ tr:last-child td{
 
 
 <main>
+<section class="panel g9-ops"><div class="g9-head"><div><h2>G9 · Operations Center</h2><p>Antrian operasional marketplace: order, retur, sengketa, refund, payout, dan pengiriman.</p></div><button class="btn" type="button" onclick="loadG9Operations()">↻ Refresh</button></div><div id="g9OperationsBody" class="g9-loading">Memuat operational health...</div></section>
+
+
 
 <div class="wrap">
 
@@ -4104,5 +4110,6 @@ $("adminChatRefresh")?.addEventListener("click",loadAdminChat);
 <script src="/performance-p33.js?v=20261003-p33"></script>
 <script src="/pwa-p35.js?v=20261003-p35"></script>
 <script src="/promotion-management-g4.js?v=20261003-g4"></script>
+<script src="/admin-operations-g9.js?v=20261003-g9" defer></script>
 </body>
 </html>
