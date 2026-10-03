@@ -54,3 +54,6 @@ jobs:
       - name: P33 Performance & Scale smoke tests
         run: |
           npx playwright test tests/priority33.spec.mjs
+      - name: G4 Promotion Engine smoke tests
+        run: |
+          npx playwright test tests/g4-promotion.spec.mjs
