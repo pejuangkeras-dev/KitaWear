@@ -751,6 +751,17 @@ export async function onRequestPost(context) {
     promotionResult.discount_amount = promotionDiscount;
     promotionResult.shipping_discount_amount = promotionShippingDiscount;
     promotionResult.payable_reduction = promotionDiscount + promotionShippingDiscount;
+    if (Array.isArray(promotionResult.selected_campaigns)) {
+      let remainingDiscount = promotionDiscount;
+      let remainingShipping = promotionShippingDiscount;
+      promotionResult.selected_campaigns = promotionResult.selected_campaigns.map((campaign) => {
+        const d = Math.min(safeInteger(campaign?.discount_amount, 0), remainingDiscount);
+        const s = Math.min(safeInteger(campaign?.shipping_discount_amount, 0), remainingShipping);
+        remainingDiscount -= d;
+        remainingShipping -= s;
+        return { ...campaign, discount_amount: d, shipping_discount_amount: s };
+      });
+    }
     const total = subtotal - discountAmount - promotionDiscount + shippingFee - promotionShippingDiscount;
 
     const orderNumber =
