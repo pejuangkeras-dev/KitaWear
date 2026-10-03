@@ -568,107 +568,173 @@ body{background:var(--bg);color:var(--ink)}
 </style>
 <style id="g3-social-css">.g3-wishlist-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.g3-wishlist-card{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden;cursor:pointer}.g3-wishlist-card img{width:100%;aspect-ratio:1/1.15;object-fit:cover;background:#f3f1ec}.g3-wishlist-card>div{padding:11px}.g3-wishlist-card strong,.g3-wishlist-card span{display:block}.g3-wishlist-card strong{font-size:12px}.g3-wishlist-card span{font-size:12px;font-weight:900;margin-top:5px}.g3-wishlist-card button{margin-top:9px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 9px;font-size:10px}.g3-follow-list{display:grid;gap:9px}.g3-follow-row{display:grid;grid-template-columns:42px minmax(0,1fr) auto auto;align-items:center;gap:11px;border:1px solid var(--line);border-radius:13px;background:#fff;padding:11px}.g3-follow-avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#f0eee8;font-weight:900}.g3-follow-row strong,.g3-follow-row small{display:block}.g3-follow-row small{color:#77736c;font-size:10px;margin-top:2px}.g3-follow-row a,.g3-follow-row button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 10px;font-size:10px;text-decoration:none}.g3-follow-row a{background:#171817;color:#fff}@media(max-width:900px){.g3-wishlist-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:600px){.g3-wishlist-grid{grid-template-columns:repeat(2,1fr)}.g3-follow-row{grid-template-columns:38px minmax(0,1fr);}.g3-follow-row a,.g3-follow-row button{grid-column:2}.g3-follow-avatar{width:38px;height:38px}}</style>
 <link rel="stylesheet" href="/marketkita-brand.css?v=20261003-brand">
+
+<style id="marketkita-home-v2">
+:root{
+ --mk-blue:#0868f7;--mk-blue-2:#2a8cff;--mk-navy:#071b49;--mk-bg:#f7faff;
+ --mk-card:#fff;--mk-line:#e7edf5;--mk-muted:#6f7d92;--mk-shadow:0 8px 26px rgba(20,55,100,.08)
+}
+body{background:var(--mk-bg)!important;color:var(--mk-navy)!important;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}
+.mk2-top{height:32px;background:linear-gradient(90deg,#0757c9,#1785f7);color:#fff;font-size:10px}
+.mk2-top .container{height:100%;display:flex;align-items:center;justify-content:space-between}
+.mk2-header{background:#fff;border-bottom:1px solid #edf1f6;position:sticky;top:0;z-index:45}
+.mk2-header .container{min-height:72px;display:flex;align-items:center;gap:22px}
+.mk2-logo{display:flex;align-items:center;flex:0 0 auto}.mk2-logo img{width:210px!important;height:auto!important}
+.mk2-search{height:44px;display:flex;align-items:center;border:1px solid #dfe7f1;border-radius:12px;background:#fff;flex:1;max-width:560px;overflow:hidden}
+.mk2-search input{border:0;outline:0;flex:1;height:100%;padding:0 15px;font-size:13px;color:#10234a}
+.mk2-search button{height:100%;width:58px;border:0;background:var(--mk-blue);color:#fff;font-size:22px}
+.mk2-actions{margin-left:auto;display:flex;align-items:center;gap:15px}.mk2-action{border:0;background:transparent;color:var(--mk-navy);display:flex;flex-direction:column;align-items:center;gap:2px;min-width:46px;font-size:10px;white-space:nowrap}.mk2-action i{font-style:normal;font-size:20px;line-height:1}.mk2-account{height:40px;padding:0 17px;border:0;border-radius:11px;background:var(--mk-blue);color:#fff;font-weight:800;font-size:12px}
+.mk2-catnav{background:#fff;border-bottom:1px solid #edf1f6}.mk2-catnav .container{display:flex;align-items:center;gap:7px;min-height:48px;overflow:auto;white-space:nowrap}.mk2-cat{border:0;background:transparent;color:var(--mk-navy);font-size:12px;padding:9px 12px;border-radius:9px}.mk2-cat:first-child{background:#eaf3ff;color:var(--mk-blue);font-weight:850}
+.mk2-main{padding:18px 0 0}.mk2-hero-grid{display:grid;grid-template-columns:minmax(0,2.05fr) minmax(300px,.85fr);gap:12px}
+.mk2-hero-main{position:relative;min-height:332px;border-radius:16px;overflow:hidden;background:#d9edff}
+.mk2-hero-main img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.mk2-hero-main:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(237,248,255,.98) 0%,rgba(237,248,255,.92) 33%,rgba(237,248,255,.28) 62%,rgba(237,248,255,0) 82%)}
+.mk2-hero-copy{position:relative;z-index:2;padding:38px 46px;max-width:590px}.mk2-kicker{font-size:13px;color:#0870ef;font-weight:800;letter-spacing:.04em;text-transform:uppercase}.mk2-hero-copy h1{font-size:47px;line-height:.98;letter-spacing:-.055em;margin:8px 0 14px;color:#082352}.mk2-hero-copy h1 span{color:#096df3}.mk2-hero-copy p{font-size:14px;line-height:1.55;max-width:410px;color:#18345e;margin:0 0 18px}.mk2-primary{display:inline-flex;align-items:center;gap:10px;background:var(--mk-blue);color:#fff;border:0;border-radius:999px;padding:12px 20px;font-weight:850;font-size:13px;box-shadow:0 9px 22px rgba(8,104,247,.22)}
+.mk2-side{display:grid;grid-template-rows:1fr 1fr;gap:12px}.mk2-banner{position:relative;overflow:hidden;border-radius:16px;min-height:160px;color:#082352;padding:22px 22px;background:#dff0ff}.mk2-banner h3{margin:0;font-size:24px;line-height:1.05;letter-spacing:-.04em;max-width:270px}.mk2-banner p{margin:8px 0 0;font-size:12px}.mk2-banner strong{display:inline-block;margin-top:9px;background:#fff;border-radius:999px;padding:6px 11px;font-size:10px}.mk2-banner img{position:absolute;right:0;bottom:0;width:52%;height:100%;object-fit:cover;mix-blend-mode:multiply;opacity:.9}.mk2-banner.local{background:linear-gradient(135deg,#167af6,#2b96ff);color:#fff}.mk2-banner.local img{width:56%;mix-blend-mode:normal;opacity:.92}
+.mk2-cats{display:grid;grid-template-columns:repeat(12,1fr);gap:10px;padding:16px 0 12px}.mk2-cat-card{background:#fff;border:1px solid #edf1f6;border-radius:12px;min-height:82px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 12px rgba(20,55,100,.035);font-size:10px;font-weight:750;text-align:center}.mk2-cat-icon{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:20px;background:#edf5ff}
+.mk2-trust{background:#fff;border-radius:14px;display:grid;grid-template-columns:repeat(5,1fr);border:1px solid #edf1f6;margin:0 0 18px}.mk2-trust-item{display:flex;align-items:center;gap:10px;padding:15px 18px;border-right:1px solid #e6edf6}.mk2-trust-item:last-child{border-right:0}.mk2-trust-icon{font-size:22px}.mk2-trust strong{display:block;font-size:11px}.mk2-trust span{display:block;color:var(--mk-muted);font-size:9px;margin-top:3px}
+.mk2-flash{background:#e9f4ff;border-radius:16px;padding:14px 14px 16px;margin:0 0 24px;border:1px solid #dbeeff}.mk2-flash-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:10px}.mk2-flash-title{display:flex;align-items:center;gap:10px}.mk2-flash-title h2{font-size:23px;margin:0;color:#0868f7;letter-spacing:-.04em}.mk2-timer{display:flex;gap:4px}.mk2-timer b{background:#0b75f5;color:#fff;border-radius:5px;padding:5px 6px;font-size:12px}.mk2-see{font-size:11px;color:#0868f7;font-weight:800}
+.mk2-flash-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:9px}.mk2-sale-card{background:#fff;border-radius:11px;overflow:hidden;position:relative;border:1px solid #edf1f6}.mk2-sale-card .discount{position:absolute;top:7px;left:7px;background:#ff2633;color:#fff;border-radius:5px;padding:4px 6px;font-size:9px;font-weight:900;z-index:2}.mk2-sale-photo{aspect-ratio:1/1;background:#f6f8fb;padding:6px}.mk2-sale-photo img{width:100%;height:100%;object-fit:contain}.mk2-sale-body{padding:8px 9px 10px}.mk2-sale-body strong{font-size:10px;line-height:1.25;display:block;min-height:25px}.mk2-price{color:#f12626;font-weight:950;font-size:13px;margin-top:4px}.mk2-old{font-size:9px;color:#8b95a3;text-decoration:line-through}.mk2-sold{font-size:8px;color:#7a8798;margin-top:6px}
+.mk2-products-section{padding:18px 0 28px}.mk2-section-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:14px}.mk2-section-head h2{margin:0;font-size:26px;letter-spacing:-.05em}.mk2-section-head p{margin:0;color:var(--mk-muted);font-size:10px}
+#produk .marketplace-toolbar{background:#fff!important;border:1px solid #e6edf5!important;border-radius:12px!important;box-shadow:none!important;padding:10px!important;margin-bottom:12px!important}
+#produk .marketplace-toolbar input,#produk .marketplace-toolbar select,#produk .marketplace-toolbar button{height:38px!important;border-color:#dce5ef!important;border-radius:9px!important;background:#fff!important;font-size:10px!important;color:#33415a!important}
+#produk .marketplace-toolbar button:last-child{background:#f3f7fb!important}
+#produk .products{display:grid!important;grid-template-columns:repeat(6,1fr)!important;gap:12px!important}
+#produk .card{border:1px solid #e6edf5!important;border-radius:12px!important;background:#fff!important;box-shadow:none!important;overflow:hidden}
+#produk .card:hover{transform:translateY(-2px)!important;box-shadow:0 10px 24px rgba(20,55,100,.08)!important}
+#produk .photo{aspect-ratio:1/1!important;background:#f7f9fc!important}
+#produk .body{padding:10px!important}.body h3{font-size:12px!important;line-height:1.3!important;color:#17294b}.price{font-size:14px!important;color:#f12626!important}.smallbtn{background:#0b73f5!important;border-radius:8px!important;height:36px!important;font-size:10px!important}
+#rekomendasi{padding-top:10px!important}#rekomendasi .recommendation-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+#rekomendasi .recommendation-grid .card{border:1px solid #e6edf5!important;border-radius:12px!important;background:#fff!important}
+#rekomendasi .recommendation-grid .photo{aspect-ratio:1/1!important}
+#tentang{padding-top:18px!important}
+@media(max-width:1200px){.mk2-cats{grid-template-columns:repeat(6,1fr)}.mk2-flash-grid{grid-template-columns:repeat(4,1fr)}#produk .products,#rekomendasi .recommendation-grid{grid-template-columns:repeat(4,1fr)!important}}
+@media(max-width:900px){.mk2-header .container{gap:10px}.mk2-logo img{width:160px!important}.mk2-actions{gap:5px}.mk2-action{min-width:38px}.mk2-hero-grid{grid-template-columns:1fr}.mk2-side{grid-template-columns:1fr 1fr;grid-template-rows:1fr}.mk2-trust{grid-template-columns:repeat(3,1fr)}.mk2-trust-item:nth-child(3){border-right:0}.mk2-trust-item:nth-child(n+4){display:none}}
+@media(max-width:700px){.mk2-top{display:none}.mk2-header{position:relative}.mk2-header .container{min-height:62px;flex-wrap:wrap;padding:8px 0}.mk2-logo img{width:145px!important}.mk2-search{order:3;flex-basis:100%;max-width:none}.mk2-actions{gap:2px}.mk2-action{font-size:8px;min-width:34px}.mk2-action i{font-size:17px}.mk2-account{height:36px;padding:0 11px;font-size:10px}.mk2-catnav .container{min-height:42px}.mk2-cat{font-size:10px;padding:7px 9px}.mk2-main{padding-top:8px}.mk2-hero-copy{padding:28px 24px 30px}.mk2-hero-copy h1{font-size:36px}.mk2-hero-main{min-height:360px}.mk2-side{grid-template-columns:1fr;grid-template-rows:1fr 1fr}.mk2-banner{min-height:135px}.mk2-cats{grid-template-columns:repeat(4,1fr);gap:7px}.mk2-cat-card{min-height:74px;font-size:9px}.mk2-trust{grid-template-columns:1fr 1fr}.mk2-trust-item{border-right:0;border-bottom:1px solid #e6edf6}.mk2-flash-grid{grid-template-columns:repeat(2,1fr)}#produk .products,#rekomendasi .recommendation-grid{grid-template-columns:repeat(2,1fr)!important}.mk2-section-head{align-items:start;gap:8px;flex-direction:column}}
+</style>
 </head>
 
 <body>
+<div class="mk2-top"><div class="container"><span>🚚 Gratis ongkir minimal pembelian Rp 200.000</span><span>Diskon 10% untuk pembelian pertama</span><span>Tersedia dalam 5 bahasa · ID · EN · VI · TH · CH</span></div></div>
 
-<div class="announcement"><div class="container"><span>🚚 Gratis ongkir minimal pembelian Rp 200.000</span><span>Diskon 10% untuk pembelian pertama</span><span>Tersedia dalam 5 bahasa · ID · EN · VI · TH · CH</span></div></div>
-<header class="nav"><div class="container nav-inner">
-<a href="#" class="logo" aria-label="MarketKita"><img src="/icons/marketkita-brand.svg" alt="MarketKita" style="width:190px;height:auto;display:block"></a>
-<nav class="nav-links"><a href="#" data-i18n="nav_home">Beranda</a><a href="#produk" data-i18n="nav_products">Produk</a><a href="#tentang" data-i18n="nav_about">Tentang Kami</a><a href="#kontak" data-i18n="nav_contact">Kontak</a></nav>
-<div class="actions"><button class="icon-btn" type="button" onclick="openSearch()" aria-label="Cari produk">⌕</button><select id="LanguageSelect" class="lang" aria-label="Bahasa"><option value="id">ID</option><option value="en">EN</option><option value="vi">VI</option><option value="th">TH</option><option value="ch">CH</option></select><button class="icon-btn" id="wishlistButton" type="button" onclick="openWishlist()" aria-label="Wishlist">♡<span id="wishlistCount" style="font-size:9px;vertical-align:top;margin-left:2px">0</span></button><button id="accountButton" class="account-btn" type="button" aria-haspopup="dialog" aria-controls="authOverlay" onclick="marketKitaOpenAccountFallback(event)">Masuk</button><button class="cart" type="button" onclick="toggleCart()">🛒 <span id="count">0</span></button></div>
-</div></header>
+<header class="mk2-header">
+  <div class="container">
+    <a href="#" class="mk2-logo" aria-label="MarketKita"><img src="/icons/marketkita-brand.svg" alt="MarketKita"></a>
+    <div class="mk2-search">
+      <input id="mk2SearchInput" type="search" placeholder="Cari produk, toko, atau merek..." autocomplete="off" aria-label="Cari produk">
+      <button type="button" onclick="const q=document.getElementById('mk2SearchInput')?.value||''; const target=document.getElementById('marketplaceSearch'); if(target){target.value=q; target.dispatchEvent(new Event('input',{bubbles:true}));} document.getElementById('produk')?.scrollIntoView({behavior:'smooth'});">⌕</button>
+    </div>
+    <div class="mk2-actions">
+      <button class="mk2-action" type="button" onclick="openSearch()"><i>⌖</i><span>Kirim ke<br><b>Indonesia</b></span></button>
+      <button class="mk2-action" type="button" onclick="toggleCart()"><i>🛒</i><span>Keranjang <b id="mk2CartBadge">0</b></span></button>
+      <button class="mk2-action" type="button" onclick="openWishlist()"><i>♡</i><span>Favorit</span></button>
+      <button class="mk2-action" type="button" onclick="window.location.hash='chat'"><i>▣</i><span>Chat</span></button>
+      <select id="LanguageSelect" class="lang" aria-label="Bahasa" style="display:none"><option value="id">ID</option><option value="en">EN</option><option value="vi">VI</option><option value="th">TH</option><option value="ch">CH</option></select>
+      <button id="accountButton" class="mk2-account" type="button" aria-haspopup="dialog" aria-controls="authOverlay" onclick="marketKitaOpenAccountFallback(event)">Masuk</button>
+    </div>
+  </div>
+</header>
 
-<main>
-  <section class="hero"><div class="container hero-grid"><div class="hero-photo"><img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1400&q=78" alt="MarketKita collection" width="1400" height="900" fetchpriority="high" decoding="async"></div><div class="hero-copy"><div><div class="eyebrow" data-i18n="hero_eyebrow">Koleksi terbaru MarketKita</div><h1 data-i18n="hero_title">Simple Style.<br>Everyday Confidence.</h1><p data-i18n="hero_text">Pakaian simpel, nyaman, dan mudah dipadukan untuk menemani aktivitas sehari-hari.</p><a class="hero-btn" href="#produk" data-i18n="hero_button">Belanja Sekarang →</a></div></div></div></section>
+<nav class="mk2-catnav"><div class="container">
+  <button class="mk2-cat" type="button" onclick="document.getElementById('produk')?.scrollIntoView({behavior:'smooth'})">☰ &nbsp; Semua Kategori</button>
+  <button class="mk2-cat" type="button">Elektronik</button><button class="mk2-cat" type="button">Fashion</button><button class="mk2-cat" type="button">Rumah & Gaya Hidup</button><button class="mk2-cat" type="button">Kesehatan & Kecantikan</button><button class="mk2-cat" type="button">Ibu & Anak</button><button class="mk2-cat" type="button">Olahraga</button><button class="mk2-cat" type="button">Otomotif</button><button class="mk2-cat" type="button">Makanan & Minuman</button><button class="mk2-cat" type="button">Hobi & Koleksi</button><button class="mk2-cat" type="button">Buku & Alat Tulis</button><button class="mk2-cat" type="button">Lainnya⌄</button>
+</div></nav>
 
-  <section class="section" style="padding-bottom:24px"><div class="container"><div class="section-head"><div class="eyebrow">MarketKita</div><h2>Cari Berdasarkan Kategori</h2></div><div class="category-grid">
-<a class="category-card" href="#produk"><img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=520&q=72" alt="Kaos" width="520" height="520" loading="lazy" decoding="async"><div class="category-content"><strong>Kaos</strong><span>Lihat Semua →</span></div></a>
-<a class="category-card" href="#produk"><img src="https://images.unsplash.com/photo-1603252110481-7ba873bf42ab?auto=format&fit=crop&w=520&q=72" alt="Kemeja" width="520" height="520" loading="lazy" decoding="async"><div class="category-content"><strong>Kemeja</strong><span>Lihat Semua →</span></div></a>
-<a class="category-card" href="#produk"><img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=520&q=72" alt="Hoodie" width="520" height="520" loading="lazy" decoding="async"><div class="category-content"><strong>Hoodie</strong><span>Lihat Semua →</span></div></a>
-<a class="category-card" href="#produk"><img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=520&q=72" alt="Celana" width="520" height="520" loading="lazy" decoding="async"><div class="category-content"><strong>Celana</strong><span>Lihat Semua →</span></div></a>
-<a class="category-card" href="#produk"><img src="https://images.unsplash.com/photo-1543076447-215ad9ba6923?auto=format&fit=crop&w=520&q=72" alt="Jaket" width="520" height="520" loading="lazy" decoding="async"><div class="category-content"><strong>Jaket</strong><span>Lihat Semua →</span></div></a>
-<a class="category-card" href="#produk"><img src="https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=520&q=72" alt="Atasan" width="520" height="520" loading="lazy" decoding="async"><div class="category-content"><strong>Atasan</strong><span>Lihat Semua →</span></div></a>
-</div></div></section>
-<section id="produk" class="section">
-    <div class="container">
-      <div class="section-head">
-        <div>
-          <div class="eyebrow" data-i18n="products_eyebrow">MarketKita</div>
-          <h2 data-i18n="products_title">Pilihan Produk</h2>
-        </div>
-        <p data-i18n="products_hint">Klik foto untuk melihat detail.</p>
+<main class="mk2-main">
+<section class="container">
+  <div class="mk2-hero-grid">
+    <div class="mk2-hero-main">
+      <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1500&q=82" alt="Belanja di MarketKita" fetchpriority="high">
+      <div class="mk2-hero-copy">
+        <div class="mk2-kicker">MARKETKITA</div>
+        <h1>Belanja Mudah<br>Semua Ada<br>di <span>MarketKita</span></h1>
+        <p>Temukan produk dari berbagai penjual dengan harga terbaik, pengiriman cepat, dan pembayaran aman.</p>
+        <a class="mk2-primary" href="#produk">Mulai Belanja →</a>
       </div>
-      <div class="marketplace-toolbar" aria-label="Filter produk">
-<input id="marketplaceSearch" class="filter-search" type="search" placeholder="Cari nama produk atau toko..." autocomplete="off">
-<select id="marketplaceCategory" aria-label="Kategori"><option value="">Semua kategori</option></select>
-<select id="marketplaceStore" aria-label="Toko"><option value="">Semua toko</option></select>
-<select id="marketplaceSort" aria-label="Urutkan"><option value="default">Urutan default</option><option value="price_asc">Harga terendah</option><option value="price_desc">Harga tertinggi</option><option value="name_asc">Nama A–Z</option><option value="rating_desc">Rating tertinggi</option><option value="newest">Terbaru</option></select>
-<input id="marketplaceMin" type="number" min="0" placeholder="Min Rp" aria-label="Harga minimum">
-<input id="marketplaceMax" type="number" min="0" placeholder="Max Rp" aria-label="Harga maksimum">
-<button type="button" id="wishlistToolbarButton" onclick="openWishlist()">♡ Wishlist <span id="wishlistToolbarCount">0</span></button>
-<button type="button" id="clearMarketplaceFilters">Reset</button>
-</div>
-<div id="marketplaceResultInfo" class="search-info" style="margin:-10px 0 18px"></div>
-<div id="products" class="products"></div>
+    </div>
+    <div class="mk2-side">
+      <div class="mk2-banner">
+        <h3>Gratis Ongkir<br>ke Seluruh Indonesia</h3><p>Min. Belanja Rp 50.000 &nbsp; ➜</p><strong>FREE 🚚</strong>
+      </div>
+      <div class="mk2-banner local">
+        <h3>Produk Lokal<br>Kualitas Global</h3><p>Dukung UMKM Indonesia</p><strong>Lihat Koleksi →</strong>
+        <img src="https://images.unsplash.com/photo-1523779917675-b6ed3a42a561?auto=format&fit=crop&w=700&q=78" alt="Produk lokal">
+      </div>
+    </div>
+  </div>
+
+  <div class="mk2-cats">
+    <a class="mk2-cat-card" href="#produk"><span class="mk2-cat-icon">📱</span>Elektronik</a>
+    <a class="mk2-cat-card" href="#produk"><span class="mk2-cat-icon">👕</span>Fashion Pria</a>
+    <a class="mk2-cat-card" href="#produk"><span class="mk2-cat-icon">👗</span>Fashion Wanita</a>
+    <a class="mk2-cat-card" href="#produk"><span class="mk2-cat-icon">🏠</span>Rumah &<br>Gaya Hidup</a>
+    <a class="mk2-cat-card" href="#produk"><span class="mk2-cat-icon">🧴</span>Kesehatan &<br>Kecantikan</a>
+    <a class="mk2-cat-card" href="#produk"><span class="mk2-cat-icon">🧸</span>Ibu & Anak</a>
+    <a class="mk2-cat-card" href="#produk"><span class="mk2-cat-icon">🏋️</span>Olahraga</a>
+    <a class="mk2-cat-card" href="#produk"><span class="mk2-cat-icon">🚗</span>Otomotif</a>
+    <a class="mk2-cat-card" href="#produk"><span class="mk2-cat-icon">🍴</span>Makanan &<br>Minuman</a>
+    <a class="mk2-cat-card" href="#produk"><span class="mk2-cat-icon">🎮</span>Hobi & Koleksi</a>
+    <a class="mk2-cat-card" href="#produk"><span class="mk2-cat-icon">📚</span>Buku & Alat Tulis</a>
+    <a class="mk2-cat-card" href="#produk"><span class="mk2-cat-icon">•••</span>Lainnya</a>
+  </div>
+
+  <div class="mk2-trust">
+    <div class="mk2-trust-item"><span class="mk2-trust-icon">🛡️</span><div><strong>Pembayaran Aman</strong><span>Berbagai metode pembayaran</span></div></div>
+    <div class="mk2-trust-item"><span class="mk2-trust-icon">🚚</span><div><strong>Pengiriman Cepat</strong><span>Ke seluruh Indonesia</span></div></div>
+    <div class="mk2-trust-item"><span class="mk2-trust-icon">✓</span><div><strong>Pasti Ori</strong><span>Produk original & berkualitas</span></div></div>
+    <div class="mk2-trust-item"><span class="mk2-trust-icon">🎧</span><div><strong>Layanan Pelanggan</strong><span>Siap membantu Anda</span></div></div>
+    <div class="mk2-trust-item"><span class="mk2-trust-icon">🏪</span><div><strong>Banyak Pilihan Toko</strong><span>Dari UMKM hingga brand</span></div></div>
+  </div>
+
+  <section class="mk2-flash" aria-label="Flash Sale">
+    <div class="mk2-flash-head"><div class="mk2-flash-title"><h2>⚡ Flash Sale</h2><div class="mk2-timer"><b>06</b><b>:</b><b>24</b><b>:</b><b>18</b></div></div><a class="mk2-see" href="#produk">Lihat Semua ›</a></div>
+    <div class="mk2-flash-grid">
+      <div class="mk2-sale-card"><span class="discount">-45%</span><div class="mk2-sale-photo"><img src="https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?auto=format&fit=crop&w=500&q=78" alt="TWS"></div><div class="mk2-sale-body"><strong>TWS Bluetooth 5.3 Noise Cancellation</strong><div class="mk2-price">Rp 179.000</div><div class="mk2-old">Rp 329.000</div><div class="mk2-sold">120+ terjual</div></div></div>
+      <div class="mk2-sale-card"><span class="discount">-32%</span><div class="mk2-sale-photo"><img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=500&q=78" alt="Tas"></div><div class="mk2-sale-body"><strong>Tas Ransel Laptop Waterproof</strong><div class="mk2-price">Rp 149.000</div><div class="mk2-old">Rp 219.000</div><div class="mk2-sold">85+ terjual</div></div></div>
+      <div class="mk2-sale-card"><span class="discount">-50%</span><div class="mk2-sale-photo"><img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=78" alt="Smartwatch"></div><div class="mk2-sale-body"><strong>Smartwatch AMOLED 1.85"</strong><div class="mk2-price">Rp 399.000</div><div class="mk2-old">Rp 799.000</div><div class="mk2-sold">200+ terjual</div></div></div>
+      <div class="mk2-sale-card"><span class="discount">-40%</span><div class="mk2-sale-photo"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=78" alt="Sneakers"></div><div class="mk2-sale-body"><strong>Sepatu Sneakers Pria Casual</strong><div class="mk2-price">Rp 239.000</div><div class="mk2-old">Rp 399.000</div><div class="mk2-sold">150+ terjual</div></div></div>
+      <div class="mk2-sale-card"><span class="discount">-35%</span><div class="mk2-sale-photo"><img src="https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=500&q=78" alt="Skincare"></div><div class="mk2-sale-body"><strong>Skincare Glow Set 5in1</strong><div class="mk2-price">Rp 129.000</div><div class="mk2-old">Rp 199.000</div><div class="mk2-sold">90+ terjual</div></div></div>
+      <div class="mk2-sale-card"><span class="discount">-28%</span><div class="mk2-sale-photo"><img src="https://images.unsplash.com/photo-1585515320310-259814833e62?auto=format&fit=crop&w=500&q=78" alt="Air fryer"></div><div class="mk2-sale-body"><strong>Air Fryer 5L Low Watt</strong><div class="mk2-price">Rp 449.000</div><div class="mk2-old">Rp 629.000</div><div class="mk2-sold">60+ terjual</div></div></div>
+      <div class="mk2-sale-card"><span class="discount">-41%</span><div class="mk2-sale-photo"><img src="https://images.unsplash.com/photo-1584184805815-d2f0d9f4e4b2?auto=format&fit=crop&w=500&q=78" alt="Hijab"></div><div class="mk2-sale-body"><strong>Hijab Premium Segi Empat</strong><div class="mk2-price">Rp 59.000</div><div class="mk2-old">Rp 99.000</div><div class="mk2-sold">300+ terjual</div></div></div>
+      <div class="mk2-sale-card"><span class="discount">-37%</span><div class="mk2-sale-photo"><img src="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=500&q=78" alt="Panci"></div><div class="mk2-sale-body"><strong>Panci Granite Set Anti Lengket</strong><div class="mk2-price">Rp 299.000</div><div class="mk2-old">Rp 479.000</div><div class="mk2-sold">75+ terjual</div></div></div>
     </div>
   </section>
+</section>
 
-  <section id="rekomendasi" class="section marketplace-recommendations" style="padding-bottom:24px">
+<section id="produk" class="mk2-products-section">
   <div class="container">
-    <div class="section-head">
-      <div><div class="eyebrow">MarketKita</div><h2>Rekomendasi Untuk Anda</h2></div>
-      <p>Dipilih dari minat, rating, dan produk yang sedang tersedia.</p>
+    <div class="mk2-section-head"><div><div class="mk2-kicker">MARKETKITA</div><h2>Pilihan Produk</h2></div><p>Klik foto untuk melihat detail.</p></div>
+    <div class="marketplace-toolbar" aria-label="Filter produk">
+      <input id="marketplaceSearch" class="filter-search" type="search" placeholder="Cari nama produk atau toko..." autocomplete="off">
+      <select id="marketplaceCategory" aria-label="Kategori"><option value="">Semua kategori</option></select>
+      <select id="marketplaceStore" aria-label="Toko"><option value="">Semua toko</option></select>
+      <select id="marketplaceSort" aria-label="Urutkan"><option value="default">Urutan default</option><option value="price_asc">Harga terendah</option><option value="price_desc">Harga tertinggi</option><option value="name_asc">Nama A–Z</option><option value="rating_desc">Rating tertinggi</option><option value="newest">Terbaru</option></select>
+      <input id="marketplaceMin" type="number" min="0" placeholder="Min Rp" aria-label="Harga minimum">
+      <input id="marketplaceMax" type="number" min="0" placeholder="Max Rp" aria-label="Harga maksimum">
+      <button type="button" id="wishlistToolbarButton" onclick="openWishlist()">♡ Wishlist <span id="wishlistToolbarCount">0</span></button>
+      <button type="button" id="clearMarketplaceFilters">Reset</button>
     </div>
+    <div id="marketplaceResultInfo" class="search-info" style="margin:-2px 0 12px"></div>
+    <div id="products" class="products"></div>
+  </div>
+</section>
+
+<section id="rekomendasi" class="section marketplace-recommendations" style="padding:18px 0 30px">
+  <div class="container">
+    <div class="mk2-section-head"><div><div class="mk2-kicker">MARKETKITA</div><h2>Rekomendasi Untuk Anda</h2></div><a class="mk2-see" href="#produk">Lihat Semua ›</a></div>
     <div id="recommendationProducts" class="recommendation-grid"></div>
   </div>
 </section>
 
 <section id="tentang" class="section" style="padding-top:10px">
-    <div class="container">
-      <div class="benefits">
-        <div class="benefit">
-          <strong data-i18n="benefit_1_title">Gaya simpel</strong>
-          <p data-i18n="benefit_1_text">Desain yang mudah dipadukan untuk berbagai aktivitas.</p>
-        </div>
-        <div class="benefit">
-          <strong data-i18n="benefit_2_title">Belanja praktis</strong>
-          <p data-i18n="benefit_2_text">Pilih produk, ukuran, masukkan ke keranjang, lalu lanjutkan pembayaran.</p>
-        </div>
-        <div class="benefit">
-          <strong data-i18n="benefit_3_title">Pembayaran aman</strong>
-          <p data-i18n="benefit_3_text">Pembayaran online diproses melalui Midtrans.</p>
-        </div>
-      </div>
-
-      <div class="about-block">
-        <div class="about-copy">
-          <div class="eyebrow">MarketKita</div>
-          <h2 data-i18n="about_title">Simple pieces. Confident days.</h2>
-          <p data-i18n="about_text">Dirancang untuk menemani rutinitas sehari-hari dengan siluet yang simpel, pilihan warna yang mudah dipadukan, dan pengalaman belanja yang praktis.</p>
-        </div>
-        <div class="about-photo">
-          <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1000&q=74" alt="MarketKita everyday fashion" width="1000" height="760" loading="lazy" decoding="async">
-        </div>
-      </div>
-    </div>
-  </section>
-</main>
-
-<section class="section" id="cerita"><div class="container"><div class="premium-story"><div class="premium-story-copy"><div class="eyebrow" style="color:#bdb8af">KITАWEAR</div><h2>More Than<br>Just Clothes.</h2><p>Kualitas, kenyamanan, dan gaya dalam satu pilihan. MarketKita, lebih dari sekadar pakaian.</p><a class="hero-btn" href="#produk" style="background:#fff;color:#171817">Jelajahi Koleksi →</a></div><div class="premium-story-photo"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=85" alt="MarketKita premium packaging"></div></div></div></section>
-<footer id="kontak" class="footer kw-footer">
   <div class="container">
-    <div class="kw-footer-top">
-      <div class="kw-footer-brand"><div class="kw-footer-logo"><span class="kw-footer-hanger">⌁</span> MarketKita</div><p data-i18n="footer_text">Simple Style. Everyday Confidence.</p><p class="kw-footer-note">Pakaian simpel untuk aktivitas sehari-hari.</p><div class="kw-socials"><a href="#">IG</a><a href="#">TK</a><a href="https://wa.me/6287797878149" target="_blank" rel="noopener">WA</a></div></div>
-      <div class="kw-footer-col"><h4>MarketKita</h4><a href="#">Beranda</a><a href="#produk" data-i18n="nav_products">Produk</a><a href="#tentang" data-i18n="nav_about">Tentang Kami</a><a href="#kontak" data-i18n="nav_contact">Kontak</a></div>
-      <div class="kw-footer-col"><h4>Layanan</h4><a href="#produk">Cara Belanja</a><a href="#produk">Ukuran Produk</a><a href="#">Pengiriman</a><a href="#">Pembayaran</a></div>
-      <div class="kw-footer-col"><h4>Hubungi Kami</h4><a href="https://wa.me/6287797878149" target="_blank" rel="noopener">WhatsApp</a><span>Indonesia</span><span>Senin – Sabtu · 09.00–18.00</span></div>
+    <div class="benefits">
+      <div class="benefit"><strong>Belanja praktis</strong><p>Pilih produk, masukkan ke keranjang, lalu lanjutkan pembayaran.</p></div>
+      <div class="benefit"><strong>Pembayaran aman</strong><p>Pembayaran online diproses melalui Midtrans.</p></div>
+      <div class="benefit"><strong>Pengiriman terintegrasi</strong><p>Ongkir dan proses pengiriman terhubung dengan alur marketplace.</p></div>
     </div>
-    <div class="kw-footer-mid"><div><strong>Belanja lebih mudah.</strong><span>Pilih produk → pilih ukuran → bayar online.</span></div><a class="kw-footer-wa" href="https://wa.me/6287797878149" target="_blank" rel="noopener">Chat WhatsApp →</a></div>
-    <div class="kw-footer-bottom"><span>© 2026 MarketKita. All rights reserved.</span><div class="kw-payment"><span>BCA</span><span>BRI</span><span>Mandiri</span><span>VISA</span><span>QRIS</span></div><button type="button" class="kw-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Kembali ke atas">↑</button></div>
   </div>
-</footer>
-
+</section>
+</main>
 <!-- CART -->
 <div id="drawer" class="drawer" onclick="toggleCart()">
   <aside class="drawer-panel" onclick="event.stopPropagation()">
