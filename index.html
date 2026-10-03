@@ -2156,7 +2156,122 @@ a{color:inherit}
 .mk2-account-hover-divider{height:1px;background:#eef1f4;margin:5px 0}
 .mk2-account-hover-logout{color:#c43c3c}
 @media(max-width:700px){.mk2-account-hover-menu{right:-10px;width:250px}}
-</style></head>
+</style>
+<style id="marketkita-fresh-blue-design">
+:root{
+  --mk-blue:#1769e8;
+  --mk-blue-dark:#0d4fbe;
+  --mk-blue-soft:#eef6ff;
+  --mk-ink:#17233b;
+  --mk-muted:#718096;
+  --mk-bg:#f6f8fc;
+  --mk-border:#e4eaf2;
+  --mk-radius:14px;
+}
+html{background:var(--mk-bg)}
+body{background:var(--mk-bg)!important;color:var(--mk-ink)!important;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}
+.mk2-top{background:#0f5dcc!important;color:#fff!important;border:0!important;height:30px!important}
+.mk2-top .container{height:30px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;font-size:10px!important}
+.mk2-header{position:sticky!important;top:0!important;z-index:100!important;background:rgba(255,255,255,.96)!important;border-bottom:1px solid var(--mk-border)!important;box-shadow:0 2px 12px rgba(25,54,95,.06)!important}
+.mk2-header .container{min-height:66px!important;gap:18px!important}
+.mk2-logo img{width:146px!important;height:auto!important}
+.mk2-search{height:42px!important;border:1px solid #cfd9e7!important;border-radius:10px!important;background:#fff!important;box-shadow:none!important;flex:1!important;max-width:650px!important}
+.mk2-search:focus-within{border-color:var(--mk-blue)!important;box-shadow:0 0 0 3px rgba(23,105,232,.10)!important}
+.mk2-search input{font-size:12px!important}
+.mk2-search button{width:46px!important;background:var(--mk-blue)!important;color:#fff!important;border-radius:0 9px 9px 0!important}
+.mk2-actions{gap:3px!important}
+.mk2-action{min-width:54px!important;padding:5px 6px!important;color:#506078!important}
+.mk2-action i{font-size:17px!important;color:#24415f!important}
+.mk2-action span{font-size:9px!important}
+.mk2-account{background:var(--mk-blue)!important;color:#fff!important;border:0!important;border-radius:9px!important;height:38px!important;padding:0 17px!important;font-weight:800!important}
+.mk2-account:hover{background:var(--mk-blue-dark)!important}
+.mk2-catnav{background:#fff!important;border-bottom:1px solid var(--mk-border)!important;box-shadow:none!important}
+.mk2-catnav .container{height:44px!important;overflow-x:auto!important;white-space:nowrap!important;scrollbar-width:none!important}
+.mk2-catnav .container::-webkit-scrollbar{display:none}
+.mk2-cat{height:44px!important;border:0!important;background:transparent!important;color:#526176!important;font-size:10px!important;font-weight:700!important;padding:0 13px!important}
+.mk2-cat:hover,.mk2-cat:focus{color:var(--mk-blue)!important;background:#f3f7fd!important}
+.mk2-home-link{color:var(--mk-blue)!important;font-weight:850!important}
+.mk2-main{padding-top:12px!important}
+.mk2-hero-grid{gap:10px!important;min-height:260px!important;height:260px!important}
+.mk2-hero-main{border-radius:16px!important;overflow:hidden!important}
+.mk2-hero-main .mk2-slide img{filter:saturate(.94)!important}
+.mk2-hero-copy{padding:30px 34px!important;max-width:55%!important}
+.mk2-kicker{font-size:10px!important;letter-spacing:.08em!important;color:var(--mk-blue)!important;font-weight:900!important}
+.mk2-hero-copy h1{font-size:34px!important;line-height:1.02!important;letter-spacing:-.045em!important;margin:6px 0 10px!important}
+.mk2-hero-copy h1 span{color:var(--mk-blue)!important}
+.mk2-hero-copy p{font-size:11px!important;line-height:1.55!important;max-width:390px!important}
+.mk2-primary{background:var(--mk-blue)!important;border-radius:9px!important;padding:10px 15px!important;font-size:10px!important;box-shadow:0 7px 18px rgba(23,105,232,.20)!important}
+.mk2-primary:hover{background:var(--mk-blue-dark)!important}
+.mk2-hero-side{border-radius:16px!important}
+.mk2-banner{border-radius:14px!important}
+.mk2-cats{gap:8px!important;padding:12px 0!important}
+.mk2-cat-card{min-height:72px!important;border-radius:12px!important;border-color:var(--mk-border)!important;box-shadow:0 2px 8px rgba(24,50,90,.035)!important}
+.mk2-cat-card:hover{border-color:#bcd3f5!important;transform:translateY(-1px)!important}
+.mk2-cat-icon{width:34px!important;height:34px!important;border-radius:10px!important;background:var(--mk-blue-soft)!important}
+.mk2-trust{border-radius:13px!important;margin-bottom:14px!important;box-shadow:0 2px 8px rgba(24,50,90,.025)!important}
+.mk2-trust-item{padding:12px 15px!important}
+.mk2-trust-icon{font-size:18px!important}
+.mk2-flash{background:#fff!important;border:1px solid var(--mk-border)!important;border-radius:14px!important;padding:13px!important;box-shadow:0 3px 12px rgba(24,50,90,.035)!important}
+.mk2-flash-title h2{color:var(--mk-ink)!important;font-size:20px!important}
+.mk2-timer b{background:var(--mk-blue)!important}
+.mk2-see{color:var(--mk-blue)!important}
+.mk2-flash-grid{gap:8px!important}
+.mk2-sale-card{border-radius:11px!important;border-color:var(--mk-border)!important}
+.mk2-sale-card .discount{background:#f04444!important}
+.mk2-products-section{padding:14px 0 24px!important}
+.mk2-section-head{margin-bottom:10px!important}
+.mk2-section-head h2{font-size:23px!important;color:var(--mk-ink)!important}
+#produk .marketplace-toolbar{position:sticky!important;top:111px!important;z-index:25!important}
+#produk .products{grid-template-columns:repeat(6,1fr)!important;gap:10px!important}
+#produk .card,#rekomendasi .recommendation-grid .card{border-radius:12px!important;border-color:var(--mk-border)!important}
+#produk .card:hover{transform:translateY(-3px)!important;box-shadow:0 10px 25px rgba(24,50,90,.09)!important}
+#produk .body{padding:9px!important}
+#produk .body h3{font-size:11px!important;min-height:29px!important}
+#produk .price{font-size:13px!important}
+#rekomendasi .recommendation-grid{gap:10px!important}
+#mk2CsPanel{width:340px!important;max-width:calc(100vw - 28px)!important;border-radius:16px!important;box-shadow:0 16px 45px rgba(20,47,85,.20)!important;border:1px solid #dce5f0!important;overflow:hidden!important}
+#mk2CsPanel .mk2-cs-head,#mk2CsPanel .cs-head{background:var(--mk-blue)!important}
+#mk2CsMessages{max-height:300px!important;background:#f7f9fc!important;padding:12px!important}
+#mk2CsTicketBox{border-radius:10px!important}
+#mk2CsForm{padding:8px!important;background:#fff!important;border-top:1px solid var(--mk-border)!important}
+#mk2CsInput{border-radius:9px!important;border:1px solid #d8e1ec!important}
+#mk2CsForm button{background:var(--mk-blue)!important;border-radius:9px!important}
+#mk2CsButton{background:var(--mk-blue)!important;box-shadow:0 8px 22px rgba(23,105,232,.25)!important;border-radius:12px!important}
+@media(max-width:1000px){
+  .mk2-header .container{flex-wrap:wrap;padding:8px 0!important}
+  .mk2-logo img{width:132px!important}
+  .mk2-search{order:3;flex-basis:100%;max-width:none!important}
+  .mk2-actions{margin-left:auto}
+  .mk2-hero-grid{height:230px!important;min-height:230px!important}
+  #produk .products,#rekomendasi .recommendation-grid{grid-template-columns:repeat(4,1fr)!important}
+}
+@media(max-width:700px){
+  .mk2-top .container span:nth-child(2),.mk2-top .container span:nth-child(3){display:none!important}
+  .mk2-top .container{justify-content:center}
+  .mk2-header .container{gap:8px!important}
+  .mk2-logo img{width:118px!important}
+  .mk2-action:nth-child(1),.mk2-action:nth-child(3),.mk2-action:nth-child(4){display:none!important}
+  .mk2-account{padding:0 11px!important;font-size:10px!important}
+  .mk2-main{padding-top:8px!important}
+  .mk2-hero-grid{display:block!important;height:220px!important;min-height:220px!important}
+  .mk2-hero-side{display:none!important}
+  .mk2-hero-copy{padding:22px!important;max-width:72%!important}
+  .mk2-hero-copy h1{font-size:27px!important}
+  .mk2-hero-copy p{font-size:10px!important}
+  .mk2-cats{display:flex!important;overflow-x:auto!important;scrollbar-width:none!important}
+  .mk2-cat-card{min-width:78px!important}
+  .mk2-trust{display:flex!important;overflow-x:auto!important}
+  .mk2-trust-item{min-width:170px!important}
+  .mk2-flash-grid{display:flex!important;overflow-x:auto!important}
+  .mk2-sale-card{min-width:145px!important}
+  #produk .marketplace-toolbar{position:static!important}
+  #produk .products,#rekomendasi .recommendation-grid{grid-template-columns:repeat(2,1fr)!important;gap:8px!important}
+  #produk .body h3{font-size:10px!important}
+  #produk .price{font-size:12px!important}
+  #mk2CsPanel{width:calc(100vw - 24px)!important;right:12px!important;bottom:70px!important}
+}
+</style>
+</head>
 
 <body>
 <div class="mk2-top"><div class="container"><span>🚚 Gratis ongkir minimal pembelian Rp 200.000</span><span>Diskon 10% untuk pembelian pertama</span><span>Tersedia dalam 5 bahasa · ID · EN · VI · TH · CH</span></div></div>
