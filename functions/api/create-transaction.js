@@ -243,6 +243,9 @@ function groupByStore(items) {
 export async function onRequestPost(context) {
   let createdOrderId = null;
   let voucherConsumed = false;
+  let promotionRedeemed = false;
+  let promotionCampaignIds = [];
+  let promotionResult = null;
   let voucherId = "";
   let buyerUser = null;
   let idem = null;
@@ -326,6 +329,7 @@ export async function onRequestPost(context) {
       String(customer.address || "").trim();
 
     voucherId = String(body?.voucher_id || "").trim();
+    promotionCampaignIds = Array.isArray(body?.promotion_campaign_ids) ? body.promotion_campaign_ids.filter(x => /^[0-9a-f-]{36}$/i.test(String(x))) : [];
     const shippingQuoteId = String(body?.shipping_quote_id || "").trim();
     const shippingSelections = Array.isArray(body?.shipping_selections) ? body.shipping_selections : [];
 
@@ -350,6 +354,7 @@ export async function onRequestPost(context) {
         quantity: Number(x?.quantity || 0)
       })).sort((a,b) => JSON.stringify(a).localeCompare(JSON.stringify(b))) : [],
       voucher_id: body?.voucher_id || null,
+      promotion_campaign_ids: promotionCampaignIds.slice().sort(),
       shipping_quote_id: body?.shipping_quote_id || null,
       shipping_selections: body?.shipping_selections || []
     });
@@ -714,7 +719,39 @@ export async function onRequestPost(context) {
       discountAmount = safeInteger(promotionResult.discount_amount, 0);
     }
 
-    const total = subtotal - discountAmount + shippingFee;
+    const promotionEvaluation = await supabaseRequest(
+      supabaseUrl,
+      serviceRoleKey,
+      "/rest/v1/rpc/evaluate_promotion_campaigns",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          p_user_id: buyerUser.id,
+          p_items: items,
+          p_subtotal: subtotal,
+          p_shipping_fee: shippingFee,
+          p_voucher_id: voucherId || null,
+          p_campaign_ids: promotionCampaignIds.length ? promotionCampaignIds : null
+        })
+      }
+    );
+    if (!promotionEvaluation?.valid) {
+      return json({ error: "Promosi tidak dapat diterapkan.", code: promotionEvaluation?.code || "PROMOTION_INVALID" }, 400);
+    }
+    promotionResult = promotionEvaluation;
+    promotionCampaignIds = Array.isArray(promotionEvaluation.campaign_ids) ? promotionEvaluation.campaign_ids.filter(x => /^[0-9a-f-]{36}$/i.test(String(x))) : [];
+    const promotionDiscount = Math.min(
+      safeInteger(promotionEvaluation.discount_amount, 0),
+      Math.max(0, subtotal - discountAmount)
+    );
+    const promotionShippingDiscount = Math.min(
+      safeInteger(promotionEvaluation.shipping_discount_amount, 0),
+      shippingFee
+    );
+    promotionResult.discount_amount = promotionDiscount;
+    promotionResult.shipping_discount_amount = promotionShippingDiscount;
+    promotionResult.payable_reduction = promotionDiscount + promotionShippingDiscount;
+    const total = subtotal - discountAmount - promotionDiscount + shippingFee - promotionShippingDiscount;
 
     const orderNumber =
       makeOrderNumber();
@@ -810,7 +847,7 @@ export async function onRequestPost(context) {
               voucherId || null,
 
             discount_amount:
-              discountAmount
+              discountAmount + safeInteger(promotionResult.discount_amount, 0)
           })
         }
       );
@@ -991,6 +1028,25 @@ export async function onRequestPost(context) {
       }
     );
 
+    // Reserve the selected G4 campaigns atomically before creating Midtrans.
+    if (promotionCampaignIds.length) {
+      await supabaseRequest(
+        supabaseUrl,
+        serviceRoleKey,
+        "/rest/v1/rpc/redeem_promotion_campaigns",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            p_order_id: createdOrderId,
+            p_user_id: buyerUser.id,
+            p_campaign_ids: promotionCampaignIds,
+            p_discount: { campaigns: promotionResult?.selected_campaigns || [] }
+          })
+        }
+      );
+      promotionRedeemed = true;
+    }
+
     // Consume the voucher atomically before creating the Midtrans transaction.
     // This prevents a race where Midtrans succeeds but voucher consumption fails.
     if (voucherId && buyerUser?.id && discountAmount > 0) {
@@ -1058,6 +1114,22 @@ export async function onRequestPost(context) {
         price: -discountAmount,
         quantity: 1,
         name: "Voucher " + (voucherRow?.code || "MarketKita")
+      });
+    }
+    if (promotionResult && safeInteger(promotionResult.discount_amount, 0) > 0) {
+      itemDetails.push({
+        id: "PROMOTION-" + String(promotionCampaignIds[0] || "DISCOUNT"),
+        price: -safeInteger(promotionResult.discount_amount, 0),
+        quantity: 1,
+        name: "Promo MarketKita"
+      });
+    }
+    if (promotionResult && safeInteger(promotionResult.shipping_discount_amount, 0) > 0) {
+      itemDetails.push({
+        id: "PROMO-SHIPPING",
+        price: -safeInteger(promotionResult.shipping_discount_amount, 0),
+        quantity: 1,
+        name: "Diskon Ongkir"
       });
     }
 
@@ -1166,6 +1238,16 @@ export async function onRequestPost(context) {
       !midtransResponse.ok ||
       !midtransResult.token
     ) {
+      if (promotionRedeemed) {
+        await supabaseRequest(
+          supabaseUrl,
+          serviceRoleKey,
+          "/rest/v1/rpc/release_promotion_campaigns",
+          { method: "POST", body: JSON.stringify({ p_order_id: createdOrderId }) }
+        ).catch(() => {});
+        promotionRedeemed = false;
+      }
+
       if (voucherConsumed) {
         await supabaseRequest(
           supabaseUrl,
@@ -1280,7 +1362,12 @@ export async function onRequestPost(context) {
         supabaseUrl &&
         serviceRoleKey
       ) {
-        if (voucherConsumed && voucherId && buyerUser?.id) {
+        if (promotionRedeemed && createdOrderId) {
+      await supabaseRequest(supabaseUrl, serviceRoleKey, "/rest/v1/rpc/release_promotion_campaigns", { method: "POST", body: JSON.stringify({ p_order_id: createdOrderId }) }).catch(() => {});
+      promotionRedeemed = false;
+    }
+
+    if (voucherConsumed && voucherId && buyerUser?.id) {
           await supabaseRequest(
             supabaseUrl,
             serviceRoleKey,
