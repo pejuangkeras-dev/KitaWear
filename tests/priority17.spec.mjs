@@ -24,6 +24,23 @@ test.describe('Priority 17 Order Lifecycle & Fulfillment', () => {
     await expect(page.getByText('Menunggu konfirmasi pembeli')).toBeAttached();
   });
 
+  test('seller UI never creates a sandbox shipment automatically', async () => {
+    const fs = await import('node:fs');
+    const seller = fs.readFileSync('seller.html', 'utf8');
+    expect(seller).toContain("safe_to_create===true");
+    expect(seller).toContain("Layanan pembuatan pengiriman otomatis belum aktif di mode production");
+    expect(seller).toContain("seller_set_tracking_number");
+    expect(seller).toContain("seller_update_order_status");
+  });
+
+  test('buyer confirmation UI and lifecycle RPC are wired', async () => {
+    const fs = await import('node:fs');
+    const index = fs.readFileSync('index.html', 'utf8');
+    expect(index).toContain('buyer_confirm_order_received');
+    expect(index).toContain('Pesanan Diterima');
+    expect(index).toContain('trackBuyerShipment');
+  });
+
   test('public config does not expose server shipping secrets', async ({ request }) => {
     const response = await request.get(`${BASE_URL}/api/public-config`);
     expect(response.ok()).toBeTruthy();
