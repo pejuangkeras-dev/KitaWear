@@ -34,6 +34,33 @@ test.describe("P32 — voucher concurrency and flash-sale safety", () => {
     expect(text).toContain("revoke execute on function public.release_user_voucher(uuid,uuid) from public,anon,authenticated");
   });
 
+  test("P32 Trust & Safety API requires authentication", async ({ request }) => {
+    const response = await request.get(baseURL + "/api/trust-safety");
+    expect(response.status()).toBe(401);
+  });
+
+  test("report and block actions are server-authorized", async ({ request }) => {
+    const text = await source(request, "functions/api/trust-safety.js");
+    for (const marker of ["LOGIN_REQUIRED","submit_safety_report","toggle_user_block","admin_moderate_safety_report","ADMIN_REQUIRED","Authorization:h"]) expect(text).toContain(marker);
+  });
+
+  test("Trust & Safety database uses RLS and least privilege", async ({ request }) => {
+    const text = await source(request, "supabase/migrations/20261003150000_priority32_trust_safety.sql");
+    for (const marker of ["safety_reports","user_blocks","safety_moderation_actions","enable row level security","safety_reports_select_own","user_blocks_own","search_path=''","grant execute on function public.admin_moderate_safety_report"]) expect(text).toContain(marker);
+  });
+
+  test("buyer and admin moderation UIs are wired", async ({ request }) => {
+    const buyer = await source(request, "trust-safety-p32.js");
+    const admin = await source(request, "trust-safety-admin-p32.js");
+    const html = await source(request, "index.html");
+    const adminHtml = await source(request, "admin.html");
+    expect(buyer).toContain("marketKitaReportSafety");
+    expect(buyer).toContain("/api/trust-safety");
+    expect(admin).toContain("Trust & Safety");
+    expect(html).toContain("trust-safety-p32.js");
+    expect(adminHtml).toContain("trust-safety-admin-p32.js");
+  });
+
   test("production marketplace remains reachable", async ({ request }) => {
     const response = await request.get(baseURL + "/");
     expect(response.ok()).toBeTruthy();
