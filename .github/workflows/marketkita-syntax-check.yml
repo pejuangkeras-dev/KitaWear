@@ -48,3 +48,6 @@ jobs:
       - name: P31 Marketplace Finance smoke tests
         run: |
           npx playwright test tests/priority31.spec.mjs
+      - name: P32 Trust & Safety smoke tests
+        run: |
+          npx playwright test tests/priority32.spec.mjs
