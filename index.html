@@ -4143,6 +4143,176 @@ button,input,select{font-family:inherit!important}
   setTimeout(cleanHiddenOverlays,500);
 })();
 </script>
+<style id="marketkita-design-a-no-orange-final">
+/* FINAL DESIGN A CORRECTION
+   User explicitly requested blue Modern & Clean.
+   No orange accent. Restore strong text contrast.
+*/
+:root{
+  --mk-a-blue:#1769e8!important;
+  --mk-a-blue-dark:#0d55c7!important;
+  --mk-a-blue-soft:#eaf4ff!important;
+  --mk-a-navy:#102b57!important;
+  --mk-a-text:#344b68!important;
+  --mk-a-muted:#71839a!important;
+  --mk-a-line:#d7e4f0!important;
+  --mk-a-bg:#f5f9fe!important;
+}
+
+/* PRODUCT: blue-only CTA and readable text */
+#productDetailModal .product-detail-title,
+#productDetailModal .product-detail-section h4,
+#productDetailModal .detail-full-section h3{color:#102b57!important}
+#productDetailModal .product-detail-eyebrow,
+#productDetailModal .product-detail-desc{color:#61748c!important}
+#productDetailModal .product-detail-price{color:#1769e8!important}
+#productDetailModal .product-detail-btn.dark{
+  background:#1769e8!important;
+  border-color:#1769e8!important;
+  color:#fff!important;
+}
+#productDetailModal .product-detail-btn.light{
+  background:#fff!important;
+  border-color:#1769e8!important;
+  color:#1769e8!important;
+}
+#productDetailModal .product-detail-size.active{
+  background:#1769e8!important;
+  border-color:#1769e8!important;
+  color:#fff!important;
+}
+#productDetailModal .product-detail-rating,
+#productDetailModal .seller-card,
+#productDetailModal .seller-review-summary,
+#productDetailModal .review-item{color:#344b68!important}
+#productDetailModal .seller-actions button{
+  color:#1769e8!important;
+  border-color:#c5ddfa!important;
+  background:#fff!important;
+}
+#productDetailModal .seller-actions button:last-child{
+  background:#eaf4ff!important;
+}
+#productDetailModal .detail-description-box{
+  color:#526a84!important;
+}
+
+/* CHECKOUT: blue-only action, no orange */
+#checkoutModal .kw-co-pay{
+  background:#1769e8!important;
+  border-color:#1769e8!important;
+  color:#fff!important;
+}
+#checkoutModal .kw-co-pay:hover{background:#0d55c7!important}
+#checkoutModal .kw-co-total strong{color:#1769e8!important}
+#checkoutModal .kw-co-title strong,
+#checkoutModal .kw-co-title small,
+#checkoutModal .kw-co-section,
+#checkoutModal .kw-co-items{color:#344b68!important}
+#checkoutModal .field label{color:#425a75!important}
+#checkoutModal input,
+#checkoutModal textarea,
+#checkoutModal select,
+#checkoutModal .kw-location-trigger{color:#243f60!important}
+
+/* ACCOUNT: remove any dim/filter/translucency and restore contrast */
+#authOverlay.account-expanded{
+  opacity:1!important;
+  filter:none!important;
+  background:#f5f9fe!important;
+  background-image:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+#authOverlay.account-expanded::before,
+#authOverlay.account-expanded::after{
+  content:none!important;
+  display:none!important;
+}
+#authOverlay.account-expanded .auth-box,
+#authOverlay.account-expanded .account-dashboard,
+#authOverlay.account-expanded .account-main{
+  opacity:1!important;
+  filter:none!important;
+  background:#f5f9fe!important;
+  color:#102b57!important;
+}
+#authOverlay.account-expanded .account-sidebar{
+  opacity:1!important;
+  filter:none!important;
+  background:#fff!important;
+  color:#344b68!important;
+}
+#authOverlay.account-expanded .account-nav-item{
+  color:#344b68!important;
+  opacity:1!important;
+}
+#authOverlay.account-expanded .account-nav-item.active{
+  color:#1769e8!important;
+  background:#eaf4ff!important;
+}
+#authOverlay.account-expanded .account-page-head,
+#authOverlay.account-expanded .profile-form,
+#authOverlay.account-expanded .account-card,
+#authOverlay.account-expanded .account-user-card{
+  opacity:1!important;
+  filter:none!important;
+  background:#fff!important;
+  color:#344b68!important;
+  border-color:#d7e4f0!important;
+}
+#authOverlay.account-expanded .account-main:before{
+  color:#6b7f96!important;
+}
+#authOverlay.account-expanded .account-hero{
+  background:linear-gradient(105deg,#dff1ff,#c9e7ff 54%,#eef8ff)!important;
+  color:#102b57!important;
+}
+#authOverlay.account-expanded .account-hero h3,
+#authOverlay.account-expanded .account-hero strong,
+#authOverlay.account-expanded .account-hero p{
+  color:#102b57!important;
+}
+#authOverlay.account-expanded .account-hero p{color:#4e6d91!important}
+#authOverlay.account-expanded .profile-row label,
+#authOverlay.account-expanded .profile-form label{
+  color:#344b68!important;
+}
+#authOverlay.account-expanded input,
+#authOverlay.account-expanded select,
+#authOverlay.account-expanded textarea{
+  color:#243f60!important;
+  background:#fff!important;
+  border-color:#cbdbea!important;
+}
+#authOverlay.account-expanded .profile-save,
+#authOverlay.account-expanded .account-card-btn{
+  background:#1769e8!important;
+  border-color:#1769e8!important;
+  color:#fff!important;
+}
+
+/* Homepage must not be dimmed by an account overlay when it is closed */
+#authOverlay[aria-hidden="true"]{
+  display:none!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+
+/* Header still scrolls normally */
+.mk2-header,.mk2-catnav{
+  position:relative!important;
+  top:auto!important;
+}
+
+/* Mobile keeps the same blue-only visual language */
+@media(max-width:700px){
+  #authOverlay.account-expanded .account-dashboard{
+    background:#f5f9fe!important;
+  }
+}
+</style>
 </head>
 
 <body>
