@@ -51,3 +51,6 @@ jobs:
       - name: P32 Trust & Safety smoke tests
         run: |
           npx playwright test tests/priority32.spec.mjs
+      - name: P33 Performance & Scale smoke tests
+        run: |
+          npx playwright test tests/priority33.spec.mjs
