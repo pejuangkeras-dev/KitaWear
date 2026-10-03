@@ -7133,20 +7133,25 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
     if(!user){const msgs=document.getElementById("mk2CsMessages");msgs.insertAdjacentHTML("beforeend",'<div class="mk2-cs-msg me">'+esc(text)+'</div>');setTimeout(()=>{msgs.insertAdjacentHTML("beforeend",'<div class="mk2-cs-msg them">'+esc(botReply(text))+'</div>');msgs.scrollTop=msgs.scrollHeight},350);return;}
     const t=await ensureThread();if(!t)return;
     if(t.ticket_status==="active"){
-      const r=await kwSupabase.from("cs_messages").insert({thread_id:t.id,sender_id:user.id,sender_role:"customer",body:text});
+      const r=await kwSupabase.from("cs_messages").insert({thread_id:t.id,sender_id:user.id,sender_role:"customer",is_bot:false,body:text});
       if(r.error){alert(r.error.message||"Pesan gagal dikirim.");return;}
+      await kwSupabase.from("cs_threads").update({updated_at:new Date().toISOString(),last_message_at:new Date().toISOString()}).eq("id",t.id);
       csMessages.push({sender_role:"customer",body:text});
       ui();
       return;
     }
     if(t.ticket_status==="resolved"){return;}
-    const r=await kwSupabase.from("cs_messages").insert({thread_id:t.id,sender_id:user.id,sender_role:"customer",body:text});
+    const r=await kwSupabase.from("cs_messages").insert({thread_id:t.id,sender_id:user.id,sender_role:"customer",is_bot:false,body:text});
     if(r.error){alert(r.error.message||"Pesan gagal dikirim.");return;}
+    await kwSupabase.from("cs_threads").update({updated_at:new Date().toISOString(),last_message_at:new Date().toISOString()}).eq("id",t.id);
     csMessages.push({sender_role:"customer",body:text});
     setTimeout(async()=>{
       const reply=botReply(text);
       const b=await kwSupabase.from("cs_messages").insert({thread_id:t.id,sender_id:user.id,sender_role:"admin",is_bot:true,body:reply});
-      if(!b.error)csMessages.push({sender_role:"admin",is_bot:true,body:reply});
+      if(!b.error){
+        await kwSupabase.from("cs_threads").update({updated_at:new Date().toISOString(),last_message_at:new Date().toISOString()}).eq("id",t.id);
+        csMessages.push({sender_role:"admin",is_bot:true,body:reply});
+      }
       ui();
     },450);
     ui();
