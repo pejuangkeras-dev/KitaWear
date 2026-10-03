@@ -3845,7 +3845,7 @@ async function loadAdminReviews(){
       : 0;
 
     $('adminProductReviewCount').textContent=String(rows.length);
-    $('adminSellerReviewCount').textContent=String(stores.size);
+    $('adminSellerReviewCount').textContent=String(storeStats.size);
     $('adminProductAvgRating').textContent=rows.length?(totalRating/rows.length).toFixed(1)+' ★':'0';
     $('adminSellerAvgRating').textContent=sellerAverages.length?sellerRating.toFixed(1)+' ★':'0';
 
