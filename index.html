@@ -1473,6 +1473,193 @@ a{color:inherit}
 @media(max-width:900px){.mk2-mega-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.mk2-cs{right:12px;bottom:12px}}
 @media(max-width:600px){.mk2-mega-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.mk2-mega-grid a{font-size:8px}.mk2-mega-grid h3{font-size:9px}.mk2-cs-panel{height:70vh}.mk2-cs-button b{font-size:12px}}
 </style>
+<style id="marketkita-auth-hotfix-v7">
+/* FINAL AUTH MODAL HOTFIX: eliminate legacy flex/overlay logo collision */
+#authOverlay:not(.account-expanded) .auth-box{
+  width:min(460px,calc(100vw - 32px)) !important;
+  max-width:460px !important;
+  padding:0 !important;
+  overflow:hidden !important;
+  background:#fff !important;
+  border:1px solid #d9e6f2 !important;
+  border-radius:20px !important;
+  color:#10254a !important;
+}
+#authOverlay:not(.account-expanded) .auth-head{
+  position:relative !important;
+  display:block !important;
+  width:100% !important;
+  min-height:0 !important;
+  box-sizing:border-box !important;
+  margin:0 !important;
+  padding:24px 64px 20px 24px !important;
+  background:#fff !important;
+  border-bottom:1px solid #e3ebf4 !important;
+  text-align:left !important;
+}
+#authOverlay:not(.account-expanded) .auth-head:before{
+  content:none !important;
+  display:none !important;
+}
+#authOverlay:not(.account-expanded) .auth-head:after{
+  content:none !important;
+  display:none !important;
+}
+#authOverlay:not(.account-expanded) .auth-head h3{
+  display:block !important;
+  position:static !important;
+  width:auto !important;
+  margin:0 0 7px !important;
+  padding:0 !important;
+  color:#10254a !important;
+  font-size:24px !important;
+  line-height:1.15 !important;
+  font-weight:900 !important;
+  letter-spacing:-.035em !important;
+  text-align:left !important;
+}
+#authOverlay:not(.account-expanded) .auth-head h3:before{
+  content:"MK" !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  vertical-align:middle !important;
+  width:30px !important;
+  height:30px !important;
+  margin:0 9px 3px 0 !important;
+  border-radius:9px !important;
+  background:linear-gradient(135deg,#0878f8,#21a0ff) !important;
+  color:#fff !important;
+  font-size:11px !important;
+  font-weight:950 !important;
+  letter-spacing:0 !important;
+  box-shadow:0 5px 12px rgba(8,120,248,.18) !important;
+}
+#authOverlay:not(.account-expanded) .auth-head .auth-close{
+  position:absolute !important;
+  top:18px !important;
+  right:18px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:34px !important;
+  height:34px !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:1px solid #d5e1ed !important;
+  border-radius:50% !important;
+  background:#fff !important;
+  color:#52647b !important;
+  font-size:18px !important;
+  line-height:1 !important;
+  z-index:5 !important;
+  cursor:pointer !important;
+}
+#authOverlay:not(.account-expanded) .auth-head .auth-close:hover{
+  background:#eaf4ff !important;
+  color:#0878f8 !important;
+}
+#authOverlay:not(.account-expanded) #authGuest{
+  display:block !important;
+  padding:20px 24px 24px !important;
+  background:#fff !important;
+}
+#authOverlay:not(.account-expanded) .auth-tabs{
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  width:100% !important;
+  box-sizing:border-box !important;
+  margin:0 0 18px !important;
+  padding:4px !important;
+  gap:4px !important;
+  background:#f1f5f9 !important;
+  border:1px solid #dce7f1 !important;
+  border-radius:10px !important;
+}
+#authOverlay:not(.account-expanded) .auth-tab{
+  display:block !important;
+  width:100% !important;
+  height:40px !important;
+  margin:0 !important;
+  padding:0 10px !important;
+  border:0 !important;
+  border-radius:7px !important;
+  background:transparent !important;
+  color:#53657d !important;
+  font-size:11px !important;
+  font-weight:850 !important;
+}
+#authOverlay:not(.account-expanded) .auth-tab.active{
+  background:#0878f8 !important;
+  color:#fff !important;
+  border:0 !important;
+  box-shadow:0 5px 12px rgba(8,120,248,.18) !important;
+}
+#authOverlay:not(.account-expanded) .auth-form .field{
+  display:block !important;
+  margin:0 0 13px !important;
+}
+#authOverlay:not(.account-expanded) .auth-form .field label{
+  display:block !important;
+  margin:0 0 6px !important;
+  color:#243a58 !important;
+  font-size:10px !important;
+  font-weight:850 !important;
+}
+#authOverlay:not(.account-expanded) .auth-form .field input{
+  display:block !important;
+  width:100% !important;
+  height:44px !important;
+  box-sizing:border-box !important;
+  margin:0 !important;
+  padding:0 12px !important;
+  border:1px solid #cbd9e8 !important;
+  border-radius:9px !important;
+  background:#fff !important;
+  color:#10254a !important;
+  font-size:11px !important;
+}
+#authOverlay:not(.account-expanded) .auth-submit{
+  display:block !important;
+  width:100% !important;
+  height:44px !important;
+  margin:3px 0 0 !important;
+  border:0 !important;
+  border-radius:9px !important;
+  background:#0878f8 !important;
+  color:#fff !important;
+  font-size:11px !important;
+  font-weight:900 !important;
+}
+#authOverlay:not(.account-expanded) .auth-forgot{
+  display:block !important;
+  width:max-content !important;
+  margin:13px auto 0 !important;
+  color:#0878f8 !important;
+}
+#authOverlay:not(.account-expanded) .auth-note{
+  display:block !important;
+  margin:18px 0 0 !important;
+  padding:11px 12px !important;
+  border:1px solid #dce8f3 !important;
+  border-radius:9px !important;
+  background:#f6faff !important;
+  color:#60738c !important;
+}
+@media(max-width:600px){
+  #authOverlay:not(.account-expanded){padding:10px !important}
+  #authOverlay:not(.account-expanded) .auth-box{
+    width:calc(100vw - 20px) !important;
+    max-width:none !important;
+    border-radius:16px !important;
+  }
+  #authOverlay:not(.account-expanded) .auth-head{
+    padding:20px 58px 17px 18px !important;
+  }
+  #authOverlay:not(.account-expanded) .auth-head h3{font-size:21px !important}
+  #authOverlay:not(.account-expanded) #authGuest{padding:17px 18px 20px !important}
+}
+</style>
 </head>
 
 <body>
