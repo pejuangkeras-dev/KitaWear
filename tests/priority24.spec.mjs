@@ -28,4 +28,13 @@ test.describe("P24 — Chat & Social Marketplace",()=>{
     const s=await r.text();
     for(const marker of ["chat_threads_buyer_store_unique","revoke execute on function public.open_chat_thread(uuid) from anon","alter function public.open_chat_thread(uuid) set search_path = ''","create table if not exists public.store_follows","alter table public.store_follows enable row level security","store_follows_insert_own","store_follows_delete_own"])expect(s).toContain(marker);
   });
+
+  test("chat concurrency and message validation hardening is committed",async({request})=>{
+    const r=await request.get("https://raw.githubusercontent.com/pejuangkeras-dev/MarketKita/main/supabase/migrations/20261003101000_priority24_chat_concurrency_hardening.sql");
+    expect(r.ok()).toBeTruthy();
+    const sql=await r.text();
+    expect(sql).toContain("chat_messages_body_length_check");
+    expect(sql).toContain("exception when unique_violation");
+    expect(sql).toContain("set search_path = ''");
+  });
 });
