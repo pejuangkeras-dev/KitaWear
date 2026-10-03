@@ -1420,6 +1420,26 @@ a{color:inherit}
   pointer-events:none!important;
 }
 </style>
+<style id="marketkita-hero-slider-final">
+/* New marketplace hero: visual structure matches the supplied reference and rotates automatically. */
+.mk2-slider{position:relative!important;min-height:332px!important;background:#d9edff!important;isolation:isolate}
+.mk2-slide{position:absolute;inset:0;opacity:0;visibility:hidden;transform:translateX(18px);transition:opacity .55s ease,transform .65s ease,visibility .55s;overflow:hidden}
+.mk2-slide.is-active{opacity:1;visibility:visible;transform:translateX(0);z-index:1}
+.mk2-slide>img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important}
+.mk2-slide:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(236,247,255,.97) 0%,rgba(236,247,255,.91) 31%,rgba(236,247,255,.38) 58%,rgba(236,247,255,0) 83%);z-index:1;pointer-events:none}
+.mk2-slide .mk2-hero-copy{position:relative;z-index:2}
+.mk2-slider-dots{position:absolute;z-index:5;left:50%;bottom:14px;transform:translateX(-50%);display:flex;align-items:center;gap:7px}
+.mk2-slider-dots button{width:9px;height:9px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.62);box-shadow:0 1px 4px rgba(0,0,0,.12);cursor:pointer;transition:width .2s,background .2s,transform .2s}
+.mk2-slider-dots button.is-active{width:24px;border-radius:99px;background:#0878f8}
+.mk2-slider-dots button:hover{transform:scale(1.12)}
+@media(max-width:820px){
+  .mk2-slider{min-height:300px!important}
+  .mk2-slide:after{background:linear-gradient(90deg,rgba(236,247,255,.96) 0%,rgba(236,247,255,.78) 48%,rgba(236,247,255,.12) 82%,rgba(236,247,255,0) 100%)}
+  .mk2-hero-copy{padding:28px 24px!important;max-width:78%!important}
+  .mk2-hero-copy h1{font-size:34px!important}
+  .mk2-hero-copy p{font-size:11px!important}
+}
+</style>
 </head>
 
 <body>
@@ -1451,13 +1471,38 @@ a{color:inherit}
 <main class="mk2-main">
 <section class="container">
   <div class="mk2-hero-grid">
-    <div class="mk2-hero-main">
-      <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1500&q=82" alt="Belanja di MarketKita" fetchpriority="high">
-      <div class="mk2-hero-copy">
-        <div class="mk2-kicker">MARKETKITA</div>
-        <h1>Belanja Mudah<br>Semua Ada<br>di <span>MarketKita</span></h1>
-        <p>Temukan produk dari berbagai penjual dengan harga terbaik, pengiriman cepat, dan pembayaran aman.</p>
-        <a class="mk2-primary" href="#produk">Mulai Belanja →</a>
+    <div class="mk2-hero-main mk2-slider" aria-roledescription="carousel" aria-label="Promosi MarketKita">
+      <div class="mk2-slide is-active" data-slide="0">
+        <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1500&q=86" alt="Fashion MarketKita" fetchpriority="high">
+        <div class="mk2-hero-copy">
+          <div class="mk2-kicker">MARKETKITA</div>
+          <h1>Belanja Mudah<br>Semua Ada<br>di <span>MarketKita</span></h1>
+          <p>Temukan jutaan produk dari berbagai penjual dengan harga terbaik, pengiriman cepat, dan pembayaran aman.</p>
+          <a class="mk2-primary" href="#produk">Mulai Belanja →</a>
+        </div>
+      </div>
+      <div class="mk2-slide" data-slide="1" aria-hidden="true">
+        <img src="https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1500&q=86" alt="Koleksi fashion MarketKita">
+        <div class="mk2-hero-copy">
+          <div class="mk2-kicker">KOLEKSI MARKETKITA</div>
+          <h1>Gaya Baru<br>Untuk Setiap<br><span>Aktivitas</span></h1>
+          <p>Temukan fashion pilihan, harga bersahabat, dan koleksi yang selalu diperbarui.</p>
+          <a class="mk2-primary" href="#produk">Lihat Koleksi →</a>
+        </div>
+      </div>
+      <div class="mk2-slide" data-slide="2" aria-hidden="true">
+        <img src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1500&q=86" alt="Belanja aman di MarketKita">
+        <div class="mk2-hero-copy">
+          <div class="mk2-kicker">BELANJA AMAN</div>
+          <h1>Semua Kebutuhan<br>Dalam Satu<br><span>Market</span></h1>
+          <p>Checkout lebih mudah, pembayaran aman, dan pengiriman ke seluruh Indonesia.</p>
+          <a class="mk2-primary" href="#produk">Mulai Belanja →</a>
+        </div>
+      </div>
+      <div class="mk2-slider-dots" role="tablist" aria-label="Pilih banner">
+        <button type="button" class="is-active" data-slide-to="0" aria-label="Banner 1" aria-selected="true"></button>
+        <button type="button" data-slide-to="1" aria-label="Banner 2" aria-selected="false"></button>
+        <button type="button" data-slide-to="2" aria-label="Banner 3" aria-selected="false"></button>
       </div>
     </div>
     <div class="mk2-side">
@@ -6066,6 +6111,60 @@ window.marketKitaGetCurrentUser=()=>kwCurrentUser;
 
   document.addEventListener("DOMContentLoaded",()=>setTimeout(bindMarketplaceMenus,1200));
   window.marketKitaBindMenus=bindMarketplaceMenus;
+})();
+</script>
+<script id="marketkita-hero-slider-final-js">
+(function(){
+  function initMarketKitaHeroSlider(){
+    const root=document.querySelector(".mk2-slider");
+    if(!root || root.dataset.sliderReady)return;
+    const slides=[...root.querySelectorAll(".mk2-slide")];
+    const dots=[...root.querySelectorAll(".mk2-slider-dots button")];
+    if(slides.length<2)return;
+    root.dataset.sliderReady="1";
+    let index=0;
+    let timer=null;
+    const setSlide=(next,announce=true)=>{
+      index=(next+slides.length)%slides.length;
+      slides.forEach((slide,i)=>{
+        const active=i===index;
+        slide.classList.toggle("is-active",active);
+        slide.setAttribute("aria-hidden",active?"false":"true");
+      });
+      dots.forEach((dot,i)=>{
+        const active=i===index;
+        dot.classList.toggle("is-active",active);
+        dot.setAttribute("aria-selected",active?"true":"false");
+      });
+    };
+    const restart=()=>{
+      if(timer)clearInterval(timer);
+      timer=setInterval(()=>setSlide(index+1,false),5000);
+    };
+    dots.forEach((dot,i)=>{
+      dot.addEventListener("click",()=>{
+        setSlide(i);
+        restart();
+      });
+    });
+    root.addEventListener("mouseenter",()=>{if(timer)clearInterval(timer)});
+    root.addEventListener("mouseleave",restart);
+    root.addEventListener("focusin",()=>{if(timer)clearInterval(timer)});
+    root.addEventListener("focusout",e=>{if(!root.contains(e.relatedTarget))restart()});
+    let startX=null;
+    root.addEventListener("touchstart",e=>{startX=e.touches[0]?.clientX??null},{passive:true});
+    root.addEventListener("touchend",e=>{
+      if(startX===null)return;
+      const endX=e.changedTouches[0]?.clientX??startX;
+      if(Math.abs(endX-startX)>45)setSlide(index+(endX<startX?1:-1));
+      startX=null;
+      restart();
+    },{passive:true});
+    setSlide(0);
+    restart();
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(initMarketKitaHeroSlider,150));
+  else setTimeout(initMarketKitaHeroSlider,150);
 })();
 </script>
 </body>
