@@ -1664,7 +1664,7 @@ function openProductDetail(i){
         <div class="product-detail-section"><h4>Deskripsi</h4><div class="product-detail-desc">${escDetail(p.desc||"Produk MarketKita.")}</div></div>
         <div class="product-detail-section"><h4>Pilih Ukuran</h4><div id="detailSizes" class="product-detail-sizes">${detailSizes.map((size,j)=>`<button class="product-detail-size ${j===0?"active":""}" type="button" onclick="selectDetailSize(this,'${escDetail(size)}')">${escDetail(size)}</button>`).join("")}</div></div>
         <div class="product-detail-actions"><button class="product-detail-btn light" type="button" onclick="detailAddToCart()">🛒 Tambah ke Keranjang</button><button class="product-detail-btn dark" type="button" onclick="detailBuyNow()">Beli Sekarang</button></div>
-        <div class="seller-card">
+        <div class="seller-card" data-store-id="${escDetail(store.id||"")}">
           <div class="seller-card-top"><div class="seller-avatar">${escDetail(initial)}</div><div class="seller-meta"><strong>${escDetail(storeName)}</strong><span>${escDetail(store.slug?"@"+store.slug:"Toko MarketKita")} · ${store.description?escDetail(store.description):"Seller MarketKita"}</span></div><div class="seller-rating"><strong id="detailSellerRating">—</strong><span id="detailSellerReviewCount">0 ulasan</span></div></div>
           <div class="seller-actions"><button type="button" onclick="openSellerChat()">Chat Seller</button><button type="button" onclick="scrollProductDetailTo('sellerReviewSection')">Ulasan Toko</button></div>
         </div>
