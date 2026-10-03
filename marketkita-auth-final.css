@@ -1,0 +1,158 @@
+/* MarketKita Auth final redesign + contrast fix */
+.auth-overlay{
+  background:rgba(7,25,52,.66)!important;
+  backdrop-filter:blur(8px)!important;
+  -webkit-backdrop-filter:blur(8px)!important;
+  padding:24px!important;
+}
+.auth-box{
+  width:min(430px,calc(100vw - 32px))!important;
+  max-height:min(720px,calc(100vh - 40px))!important;
+  overflow:auto!important;
+  padding:0!important;
+  background:#fff!important;
+  border:1px solid #D8E5F5!important;
+  border-radius:20px!important;
+  box-shadow:0 24px 80px rgba(4,25,58,.28)!important;
+  color:#10213D!important;
+}
+.auth-head{
+  margin:0!important;
+  padding:22px 22px 18px!important;
+  background:linear-gradient(135deg,#0757C9,#0878F9)!important;
+  border-radius:20px 20px 0 0!important;
+  color:#fff!important;
+  align-items:flex-start!important;
+}
+.auth-head h3{
+  margin:0!important;
+  color:#fff!important;
+  font-size:22px!important;
+  font-weight:900!important;
+  letter-spacing:-.03em!important;
+}
+.auth-head:before{
+  content:"MARKETKITA ACCOUNT";
+  display:block;
+  position:absolute;
+  margin-top:-15px;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.16em;
+  color:rgba(255,255,255,.78);
+}
+.auth-close{
+  width:34px!important;height:34px!important;
+  flex:0 0 34px!important;
+  border:1px solid rgba(255,255,255,.45)!important;
+  background:rgba(255,255,255,.14)!important;
+  color:#fff!important;
+  font-size:18px!important;
+  cursor:pointer!important;
+}
+.auth-tabs{
+  margin:18px 22px 16px!important;
+  padding:4px!important;
+  background:#EEF5FD!important;
+  border:1px solid #D8E7F7!important;
+  border-radius:11px!important;
+  gap:4px!important;
+}
+.auth-tab{
+  height:40px!important;
+  border:0!important;
+  border-radius:8px!important;
+  background:transparent!important;
+  color:#39516F!important;
+  font-weight:850!important;
+  cursor:pointer!important;
+}
+.auth-tab.active{
+  background:#0878F9!important;
+  color:#fff!important;
+  border-color:#0878F9!important;
+  box-shadow:0 5px 14px rgba(8,120,249,.22)!important;
+}
+.auth-form{
+  padding:0 22px!important;
+}
+.auth-form .field{
+  margin-bottom:13px!important;
+}
+.auth-form .field label{
+  display:block!important;
+  margin-bottom:6px!important;
+  color:#193250!important;
+  font-size:10px!important;
+  font-weight:850!important;
+}
+.auth-form .field input{
+  width:100%!important;
+  height:43px!important;
+  box-sizing:border-box!important;
+  border:1px solid #C9D8EA!important;
+  border-radius:9px!important;
+  background:#fff!important;
+  color:#10213D!important;
+  padding:0 12px!important;
+  outline:none!important;
+}
+.auth-form .field input:focus{
+  border-color:#0878F9!important;
+  box-shadow:0 0 0 3px rgba(8,120,249,.12)!important;
+}
+.auth-submit{
+  height:44px!important;
+  margin-top:3px!important;
+  background:#0878F9!important;
+  color:#fff!important;
+  border:0!important;
+  border-radius:9px!important;
+  font-weight:900!important;
+  cursor:pointer!important;
+  box-shadow:0 7px 18px rgba(8,120,249,.22)!important;
+}
+.auth-submit:hover{background:#0757C9!important;color:#fff!important}
+.auth-forgot{
+  display:block!important;
+  margin:14px auto 0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  color:#0757C9!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  cursor:pointer!important;
+}
+.auth-message{
+  margin:10px 22px 0!important;
+  min-height:18px!important;
+  color:#B3261E!important;
+  font-size:10px!important;
+}
+.auth-note{
+  margin:18px 22px 22px!important;
+  padding:11px 12px!important;
+  border:1px solid #D8E7F7!important;
+  border-radius:9px!important;
+  background:#F5F9FE!important;
+  color:#536A84!important;
+  font-size:9px!important;
+  line-height:1.5!important;
+}
+.reset-password-panel{
+  padding:0 22px!important;
+}
+.reset-password-panel .field label{
+  color:#193250!important;
+}
+.reset-password-panel input{
+  color:#10213D!important;
+  background:#fff!important;
+  border:1px solid #C9D8EA!important;
+}
+@media(max-width:600px){
+ .auth-overlay{padding:12px!important}
+ .auth-box{width:100%!important;max-height:calc(100vh - 24px)!important;border-radius:18px!important}
+ .auth-head{border-radius:18px 18px 0 0!important}
+}
