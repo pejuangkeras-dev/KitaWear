@@ -4412,16 +4412,172 @@ body{
  #produk .mk2-section-head h2,#rekomendasi .mk2-section-head h2{font-size:22px!important}
 }
 </style>
+
+<!-- MARKETKITA DESIGN REPLACEMENT V3: supplied marketplace reference -->
+<style id="marketkita-design-replacement-v3">
+:root{
+  --mk-v3-blue:#1264f4;
+  --mk-v3-blue2:#0a55d9;
+  --mk-v3-navy:#102b57;
+  --mk-v3-text:#263b59;
+  --mk-v3-muted:#73839a;
+  --mk-v3-bg:#f4f8fd;
+  --mk-v3-card:#fff;
+  --mk-v3-line:#dbe6f2;
+  --mk-v3-soft:#edf6ff;
+  --mk-v3-red:#ff3044;
+  --mk-v3-radius:14px;
+  --mk-v3-shadow:0 5px 18px rgba(18,70,130,.07);
+}
+html,body{background:var(--mk-v3-bg)!important;color:var(--mk-v3-text)!important}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}
+.container{width:min(1440px,calc(100% - 32px))!important}
+.mk2-top{height:27px!important;background:linear-gradient(90deg,#0c5bd2,#146df5)!important;color:#fff!important}
+.mk2-top .container{height:27px!important;min-height:27px!important;font-size:9px!important}
+.mk2-header{background:#fff!important;border-bottom:1px solid var(--mk-v3-line)!important;box-shadow:0 2px 10px rgba(30,70,120,.05)!important;position:relative!important}
+.mk2-header .container{min-height:64px!important;display:flex!important;align-items:center!important;gap:14px!important}
+.mk2-logo img{width:150px!important;height:auto!important}
+.mk2-search{height:39px!important;flex:1!important;max-width:670px!important;border:1px solid #cad8e8!important;border-radius:9px!important;background:#fff!important;box-shadow:none!important;display:flex!important}
+.mk2-search:focus-within{border-color:var(--mk-v3-blue)!important;box-shadow:0 0 0 3px rgba(18,100,244,.09)!important}
+.mk2-search input{font-size:10px!important;color:var(--mk-v3-navy)!important}
+.mk2-search button{width:42px!important;background:var(--mk-v3-blue)!important;border-radius:0 8px 8px 0!important}
+.mk2-actions{gap:4px!important}
+.mk2-action{min-width:55px!important;height:42px!important;padding:3px 4px!important;color:#314968!important;border-radius:9px!important}
+.mk2-action:hover{background:var(--mk-v3-soft)!important;color:var(--mk-v3-blue)!important}
+.mk2-action i{font-size:17px!important;color:#17385f!important}
+.mk2-action span{font-size:8px!important;line-height:1.1!important}
+.mk2-account{height:37px!important;padding:0 14px!important;border-radius:9px!important;background:var(--mk-v3-blue)!important;font-size:10px!important}
+.mk2-catnav{background:#fff!important;border-bottom:1px solid var(--mk-v3-line)!important}
+.mk2-catnav .container{min-height:39px!important;height:39px!important;gap:3px!important}
+.mk2-cat{height:34px!important;padding:7px 10px!important;border-radius:7px!important;font-size:9px!important;color:#304661!important}
+.mk2-cat:hover,.mk2-cat:first-child{background:#edf5ff!important;color:var(--mk-v3-blue)!important}
+.mk2-main{max-width:1440px!important;margin:0 auto!important;padding:12px 0 35px!important}
+.mk2-hero-grid{grid-template-columns:minmax(0,2.08fr) minmax(285px,.82fr)!important;gap:10px!important;height:285px!important}
+.mk2-hero-main,.mk2-slider{height:285px!important;min-height:285px!important;border-radius:13px!important;box-shadow:var(--mk-v3-shadow)!important}
+.mk2-slide>img{object-position:center!important}
+.mk2-slide:after{background:linear-gradient(90deg,rgba(231,245,255,.98) 0%,rgba(231,245,255,.91) 33%,rgba(231,245,255,.35) 61%,rgba(231,245,255,0) 86%)!important}
+.mk2-hero-copy{padding:30px 33px!important;max-width:520px!important}
+.mk2-kicker{font-size:9px!important;letter-spacing:.13em!important;color:var(--mk-v3-blue)!important;font-weight:900!important}
+.mk2-hero-copy h1{font-size:34px!important;line-height:1.01!important;letter-spacing:-.055em!important;color:var(--mk-v3-navy)!important;margin:7px 0 8px!important}
+.mk2-hero-copy h1 span{color:var(--mk-v3-blue)!important}
+.mk2-hero-copy p{font-size:10px!important;line-height:1.5!important;color:#254a74!important;margin:0 0 8px!important;max-width:310px!important}
+.mk2-hero-benefits{display:flex!important;flex-wrap:wrap!important;gap:4px 6px!important;margin:0 0 10px!important;max-width:340px!important}
+.mk2-hero-benefits span{background:rgba(255,255,255,.78)!important;border:1px solid rgba(18,100,244,.14)!important;border-radius:999px!important;padding:4px 7px!important;font-size:7px!important;font-weight:800!important;color:#17406e!important}
+.mk2-primary{padding:9px 14px!important;border-radius:8px!important;background:var(--mk-v3-blue)!important;font-size:9px!important;box-shadow:0 7px 18px rgba(18,100,244,.2)!important}
+.mk2-side{height:285px!important;min-height:285px!important;gap:10px!important}
+.mk2-banner{min-height:137px!important;padding:17px!important;border-radius:13px!important;box-shadow:var(--mk-v3-shadow)!important}
+.mk2-banner h3{font-size:17px!important;line-height:1.02!important;max-width:190px!important}
+.mk2-banner p{font-size:8px!important;margin:5px 0 0!important}
+.mk2-banner strong{font-size:7px!important;margin-top:7px!important;padding:5px 8px!important;background:var(--mk-v3-blue)!important;color:#fff!important}
+.mk2-banner.local{background:linear-gradient(135deg,#dff1ff,#cbe8ff)!important;color:var(--mk-v3-navy)!important}
+.mk2-banner.local strong{background:var(--mk-v3-blue)!important;color:#fff!important}
+.mk2-banner.local img{width:54%!important;opacity:.86!important}
+.mk2-banner.mk2-promo-discount{background:linear-gradient(135deg,#fff2d6,#ffe8c0)!important;color:var(--mk-v3-navy)!important}
+.mk2-banner.mk2-promo-discount strong{background:var(--mk-v3-blue)!important}
+.mk2-banner.mk2-promo-discount img{width:54%!important;opacity:.9!important}
+.mk2-cats{grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:7px!important;padding:10px 0 9px!important}
+.mk2-cat-card{min-height:64px!important;border:1px solid var(--mk-v3-line)!important;border-radius:11px!important;box-shadow:0 3px 9px rgba(20,65,115,.04)!important;font-size:8px!important;color:#334c68!important}
+.mk2-cat-icon{width:29px!important;height:29px!important;border-radius:9px!important;font-size:15px!important;background:#edf5ff!important}
+.mk2-cat-card:nth-child(2n) .mk2-cat-icon{background:#f4efff!important}
+.mk2-cat-card:nth-child(3n) .mk2-cat-icon{background:#fff0f6!important}
+.mk2-trust{margin-bottom:12px!important;border:1px solid var(--mk-v3-line)!important;border-radius:11px!important;box-shadow:0 3px 10px rgba(20,65,115,.035)!important}
+.mk2-trust-item{padding:9px 12px!important;gap:7px!important}
+.mk2-trust-icon{font-size:15px!important}
+.mk2-trust strong{font-size:8px!important;color:var(--mk-v3-navy)!important}
+.mk2-trust span{font-size:6px!important;margin-top:2px!important}
+.mk2-flash{background:linear-gradient(90deg,#fff4f6,#fff8fa)!important;border:1px solid #ffdfe4!important;border-radius:13px!important;padding:10px!important;margin-bottom:14px!important;box-shadow:var(--mk-v3-shadow)!important}
+.mk2-flash-head{margin-bottom:8px!important}
+.mk2-flash-title{gap:7px!important}
+.mk2-flash-title h2{font-size:17px!important;color:#112c57!important}
+.mk2-timer b{font-size:9px!important;padding:4px 5px!important;background:var(--mk-v3-red)!important}
+.mk2-see{font-size:8px!important;color:var(--mk-v3-blue)!important}
+.mk2-flash-grid{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:7px!important}
+.mk2-sale-card{border-radius:9px!important;border:1px solid #e3eaf2!important}
+.mk2-sale-card .discount{font-size:7px!important;padding:3px 5px!important;background:var(--mk-v3-red)!important}
+.mk2-sale-photo{padding:5px!important}
+.mk2-sale-body{padding:6px 7px 8px!important}
+.mk2-sale-body strong{font-size:8px!important;min-height:22px!important;color:#233b5b!important}
+.mk2-price{font-size:10px!important;color:#f02336!important}
+.mk2-old{font-size:7px!important}
+.mk2-sold{font-size:6px!important;margin-top:3px!important}
+.mk2-products-section{padding:10px 0 18px!important}
+.mk2-section-head{margin-bottom:9px!important}
+.mk2-section-head h2{font-size:20px!important;color:var(--mk-v3-navy)!important}
+.mk2-section-head p{font-size:8px!important}
+#produk .marketplace-toolbar{padding:7px!important;margin-bottom:8px!important;border-radius:9px!important}
+#produk .marketplace-toolbar input,#produk .marketplace-toolbar select,#produk .marketplace-toolbar button{height:31px!important;font-size:7px!important}
+#produk .products,#rekomendasi .recommendation-grid{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:8px!important}
+#produk .card,#rekomendasi .card{border-radius:10px!important;border:1px solid var(--mk-v3-line)!important;box-shadow:0 2px 8px rgba(20,65,115,.035)!important}
+#produk .photo,#rekomendasi .photo{aspect-ratio:1/1!important;background:#f7f9fc!important}
+#produk .body,#rekomendasi .body{padding:7px!important}
+#produk .body h3,#rekomendasi .body h3{font-size:9px!important;line-height:1.22!important;min-height:23px!important;color:var(--mk-v3-navy)!important}
+#produk .price,#rekomendasi .price{font-size:11px!important;color:#ed2637!important;margin-bottom:4px!important}
+#produk .product-card-actions{gap:4px!important;margin-top:5px!important}
+#produk .product-card-btn{height:27px!important;font-size:7px!important;border-radius:7px!important}
+#produk .smallbtn{height:27px!important;font-size:7px!important;background:var(--mk-v3-blue)!important}
+#rekomendasi{padding:7px 0 20px!important}
+#rekomendasi .mk2-section-head h2{font-size:20px!important}
+.mk2-mobile-nav{display:none!important}
+.footer{background:#082a60!important}
+@media(max-width:1200px){
+ .mk2-hero-grid{grid-template-columns:minmax(0,1.9fr) minmax(250px,.8fr)!important}
+ .mk2-cats{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+ #produk .products,#rekomendasi .recommendation-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+}
+@media(max-width:700px){
+ .container{width:calc(100% - 14px)!important}
+ .mk2-top{display:none!important}
+ .mk2-header .container{min-height:55px!important;padding:5px 0!important;gap:6px!important}
+ .mk2-logo img{width:112px!important}
+ .mk2-search{height:34px!important;min-width:0!important}
+ .mk2-search input{font-size:8px!important}
+ .mk2-search button{width:35px!important}
+ .mk2-actions{gap:1px!important}
+ .mk2-action{min-width:32px!important;height:34px!important}
+ .mk2-action i{font-size:14px!important}
+ .mk2-action span{display:none!important}
+ .mk2-account{height:32px!important;padding:0 8px!important;font-size:8px!important}
+ .mk2-catnav .container{height:36px!important;min-height:36px!important}
+ .mk2-cat{font-size:7px!important;padding:6px 7px!important}
+ .mk2-main{padding-top:7px!important}
+ .mk2-hero-grid{display:block!important;height:auto!important}
+ .mk2-hero-main,.mk2-slider{height:195px!important;min-height:195px!important}
+ .mk2-hero-copy{padding:19px 16px!important;max-width:72%!important}
+ .mk2-hero-copy h1{font-size:25px!important}
+ .mk2-hero-copy p{font-size:8px!important;max-width:210px!important}
+ .mk2-hero-benefits{max-width:230px!important;gap:3px!important}
+ .mk2-hero-benefits span{font-size:5px!important;padding:3px 5px!important}
+ .mk2-primary{font-size:7px!important;padding:7px 10px!important}
+ .mk2-side{display:grid!important;grid-template-columns:1fr 1fr!important;height:98px!important;min-height:98px!important;margin-top:7px!important;gap:7px!important}
+ .mk2-banner{min-height:98px!important;padding:10px!important}
+ .mk2-banner h3{font-size:11px!important}
+ .mk2-banner p{font-size:6px!important}
+ .mk2-banner strong{font-size:6px!important}
+ .mk2-cats{display:flex!important;overflow:auto!important;gap:6px!important;padding:7px 0!important}
+ .mk2-cat-card{flex:0 0 67px!important;min-height:65px!important;font-size:6px!important}
+ .mk2-trust{grid-template-columns:repeat(2,1fr)!important}
+ .mk2-trust-item{padding:7px!important}
+ .mk2-trust-item:nth-child(n+5){display:none!important}
+ .mk2-flash-grid{display:flex!important;overflow:auto!important;gap:6px!important}
+ .mk2-sale-card{flex:0 0 138px!important}
+ #produk .products,#rekomendasi .recommendation-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
+ #produk .marketplace-toolbar{overflow:auto!important;display:flex!important}
+ #produk .marketplace-toolbar>*{flex:0 0 auto!important}
+ .mk2-mobile-nav{display:grid!important;position:fixed!important;left:0!important;right:0!important;bottom:0!important;height:58px!important;grid-template-columns:repeat(5,1fr)!important;background:#fff!important;border-top:1px solid var(--mk-v3-line)!important;z-index:5000!important;box-shadow:0 -5px 18px rgba(20,65,115,.10)!important}
+ .mk2-mobile-nav button{border:0!important;background:#fff!important;color:#718198!important;font-size:8px!important}
+ .mk2-mobile-nav button.active{color:var(--mk-v3-blue)!important}
+}
+</style>
 </head>
 
 <body>
-<div class="mk2-top"><div class="container"><span>🚚 Gratis ongkir minimal pembelian Rp 200.000</span><span>Diskon 10% untuk pembelian pertama</span><span>Tersedia dalam 5 bahasa · ID · EN · VI · TH · CH</span></div></div>
+<div class="mk2-top"><div class="container"><span>🚚 Gratis ongkir minimal pembelian Rp 200.000</span><span>Diskon 10% untuk pembelian pertama</span><span>Aman • Cepat • Terpercaya</span></div></div>
 
 <header class="mk2-header">
   <div class="container">
     <a href="#" class="mk2-logo" aria-label="MarketKita"><img src="/icons/marketkita-brand.svg" alt="MarketKita"></a>
     <div class="mk2-search">
-      <input id="mk2SearchInput" type="search" placeholder="Cari produk, toko, atau merek..." autocomplete="off" aria-label="Cari produk">
+      <input id="mk2SearchInput" type="search" placeholder="Cari produk, kategori, atau toko..." autocomplete="off" aria-label="Cari produk">
       <button type="button" onclick="const q=document.getElementById('mk2SearchInput')?.value||''; const target=document.getElementById('marketplaceSearch'); if(target){target.value=q; target.dispatchEvent(new Event('input',{bubbles:true}));} document.getElementById('produk')?.scrollIntoView({behavior:'smooth'});">⌕</button>
     </div>
     <div class="mk2-actions">
@@ -4484,10 +4640,11 @@ body{
       <div class="mk2-slide is-active" data-slide="0">
         <img src="https://images.unsplash.com/photo-1758520387469-30e8ed486f92?auto=format&fit=crop&fm=jpg&q=88&w=1800" alt="Fashion MarketKita" fetchpriority="high">
         <div class="mk2-hero-copy">
-          <div class="mk2-kicker">MARKETKITA · MARKETPLACE MODERN</div>
-          <h1>Belanja Cerdas<br>Lebih Banyak<br><span>Pilihan</span></h1>
-          <p>Temukan produk favorit dari seller lokal dan brand pilihan dengan pengalaman belanja yang cepat, rapi, dan aman.</p>
-          <a class="mk2-primary" href="#produk">Jelajahi Produk →</a>
+          <div class="mk2-kicker">MARKETKITA</div>
+          <h1>Belanja Apa Saja<br>di <span>MarketKita</span></h1>
+          <p>Produk lengkap, harga terbaik, untuk semua kebutuhanmu.</p>
+          <div class="mk2-hero-benefits"><span>✓ Produk Original</span><span>✓ Pembayaran Aman</span><span>✓ Pengiriman Cepat</span><span>✓ Dukungan CS 24/7</span></div>
+          <a class="mk2-primary" href="#produk">Belanja Sekarang →</a>
         </div>
       </div>
       <div class="mk2-slide" data-slide="1" aria-hidden="true">
@@ -4516,11 +4673,11 @@ body{
     </div>
     <div class="mk2-side">
       <div class="mk2-banner local">
-        <h3>Produk Lokal<br>Kualitas Global</h3><p>Dukung UMKM Indonesia</p><strong>Lihat Koleksi →</strong>
+        <h3>GRATIS ONGKIR<br>Ke Seluruh Indonesia</h3><p>Min. Belanja Rp 50.000</p><strong>Lihat Promo →</strong>
         <img src="https://images.unsplash.com/photo-1523779917675-b6ed3a42a561?auto=format&fit=crop&w=700&q=78" alt="Produk lokal">
       </div>
       <div class="mk2-banner mk2-promo-discount">
-        <h3>Diskon Hingga<br><b>50%</b></h3><p>Belanja lebih hemat setiap hari</p><strong>Lihat Promo →</strong>
+        <h3>VOUCHER<br>DISKON Hingga <b>70%</b></h3><p>Belanja lebih hemat setiap hari</p><strong>Klaim Sekarang →</strong>
         <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=700&q=78" alt="Headphone promo">
       </div>
     </div>
@@ -4566,7 +4723,7 @@ body{
 
 <section id="produk" class="mk2-products-section">
   <div class="container">
-    <div class="mk2-section-head"><div><div class="mk2-kicker">MARKETKITA</div><h2>Temukan Produk Favorit</h2></div><p>Pilihan terbaru dari berbagai kategori dan toko.</p></div>
+    <div class="mk2-section-head"><div><div class="mk2-kicker">MARKETKITA</div><h2>Rekomendasi Untukmu</h2></div><p>Pilihan produk terbaik untuk kebutuhanmu.</p></div>
     <div class="marketplace-toolbar" aria-label="Filter produk">
       <input id="marketplaceSearch" class="filter-search" type="search" placeholder="Cari nama produk atau toko..." autocomplete="off">
       <select id="marketplaceCategory" aria-label="Kategori"><option value="">Semua kategori</option></select>
