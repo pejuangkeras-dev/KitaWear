@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#1769e8">
-<title>MarketKita — Semua Ada, Mudah Belanja</title>
+<title>MarketKita — Marketplace Modern Indonesia</title>
 <style>
 :root{
   --ink:#1d211f;--muted:#737773;--bg:#fbfaf7;--paper:#fff;--soft:#f1eee7;
@@ -4389,7 +4389,30 @@ body{
   .mk2-mobile-nav button.active{color:var(--mk-ref-blue)!important}
 }
 </style>
-\n</head>
+\n<!-- MARKETKITA FRESH DESIGN CONTENT V2 -->
+<style id="marketkita-fresh-content-v2">
+/* Fresh-content pass: make the homepage visibly distinct from the legacy storefront. */
+.mk2-hero-main{background:linear-gradient(135deg,#e7f4ff 0%,#d9edff 55%,#f4faff 100%)!important}
+.mk2-hero-copy{max-width:640px!important}
+.mk2-kicker{letter-spacing:.12em!important;font-size:11px!important}
+.mk2-hero-copy h1{font-weight:950!important}
+.mk2-primary{padding:13px 22px!important}
+.mk2-banner strong{box-shadow:0 4px 12px rgba(10,70,150,.10)!important}
+.mk2-cat-card{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease!important}
+.mk2-cat-card:hover{transform:translateY(-3px)!important;border-color:#c8ddf6!important;box-shadow:0 10px 24px rgba(20,70,125,.10)!important}
+.mk2-flash{background:#fff!important;border-color:#dce8f5!important;box-shadow:0 8px 24px rgba(20,70,125,.05)!important}
+.mk2-flash-title h2{color:#102b57!important}
+.mk2-see{font-weight:900!important}
+#produk .mk2-section-head h2,#rekomendasi .mk2-section-head h2{font-size:28px!important;color:#102b57!important}
+#produk .card{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease!important}
+#produk .card:hover{border-color:#c9dcf3!important}
+@media(max-width:700px){
+ .mk2-hero-copy h1{font-size:29px!important}
+ .mk2-kicker{font-size:9px!important}
+ #produk .mk2-section-head h2,#rekomendasi .mk2-section-head h2{font-size:22px!important}
+}
+</style>
+</head>
 
 <body>
 <div class="mk2-top"><div class="container"><span>🚚 Gratis ongkir minimal pembelian Rp 200.000</span><span>Diskon 10% untuk pembelian pertama</span><span>Tersedia dalam 5 bahasa · ID · EN · VI · TH · CH</span></div></div>
@@ -4461,10 +4484,10 @@ body{
       <div class="mk2-slide is-active" data-slide="0">
         <img src="https://images.unsplash.com/photo-1758520387469-30e8ed486f92?auto=format&fit=crop&fm=jpg&q=88&w=1800" alt="Fashion MarketKita" fetchpriority="high">
         <div class="mk2-hero-copy">
-          <div class="mk2-kicker">MARKETKITA</div>
-          <h1>Semua Ada<br>di <span>MarketKita</span></h1>
-          <p>Temukan jutaan produk dari berbagai penjual dengan harga terbaik, pengiriman cepat, dan pembayaran aman.</p>
-          <a class="mk2-primary" href="#produk">Mulai Belanja →</a>
+          <div class="mk2-kicker">MARKETKITA · MARKETPLACE MODERN</div>
+          <h1>Belanja Cerdas<br>Lebih Banyak<br><span>Pilihan</span></h1>
+          <p>Temukan produk favorit dari seller lokal dan brand pilihan dengan pengalaman belanja yang cepat, rapi, dan aman.</p>
+          <a class="mk2-primary" href="#produk">Jelajahi Produk →</a>
         </div>
       </div>
       <div class="mk2-slide" data-slide="1" aria-hidden="true">
@@ -4527,7 +4550,7 @@ body{
   </div>
 
   <section class="mk2-flash" aria-label="Flash Sale">
-    <div class="mk2-flash-head"><div class="mk2-flash-title"><h2>⚡ Flash Sale</h2><div class="mk2-timer"><b>06</b><b>:</b><b>24</b><b>:</b><b>18</b></div></div><a class="mk2-see" href="#produk">Lihat Semua ›</a></div>
+    <div class="mk2-flash-head"><div class="mk2-flash-title"><h2>⚡ Flash Sale</h2><div class="mk2-timer"><b>06</b><b>:</b><b>24</b><b>:</b><b>18</b></div></div><a class="mk2-see" href="#produk">Lihat Semua Produk ›</a></div>
     <div class="mk2-flash-grid">
       <div class="mk2-sale-card"><span class="discount">-45%</span><div class="mk2-sale-photo"><img src="https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?auto=format&fit=crop&w=500&q=78" alt="TWS"></div><div class="mk2-sale-body"><strong>TWS Bluetooth 5.3 Noise Cancellation</strong><div class="mk2-price">Rp 179.000</div><div class="mk2-old">Rp 329.000</div><div class="mk2-sold">120+ terjual</div></div></div>
       <div class="mk2-sale-card"><span class="discount">-32%</span><div class="mk2-sale-photo"><img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=500&q=78" alt="Tas"></div><div class="mk2-sale-body"><strong>Tas Ransel Laptop Waterproof</strong><div class="mk2-price">Rp 149.000</div><div class="mk2-old">Rp 219.000</div><div class="mk2-sold">85+ terjual</div></div></div>
@@ -4543,7 +4566,7 @@ body{
 
 <section id="produk" class="mk2-products-section">
   <div class="container">
-    <div class="mk2-section-head"><div><div class="mk2-kicker">MARKETKITA</div><h2>Pilihan Produk</h2></div><p>Klik foto untuk melihat detail.</p></div>
+    <div class="mk2-section-head"><div><div class="mk2-kicker">MARKETKITA</div><h2>Temukan Produk Favorit</h2></div><p>Pilihan terbaru dari berbagai kategori dan toko.</p></div>
     <div class="marketplace-toolbar" aria-label="Filter produk">
       <input id="marketplaceSearch" class="filter-search" type="search" placeholder="Cari nama produk atau toko..." autocomplete="off">
       <select id="marketplaceCategory" aria-label="Kategori"><option value="">Semua kategori</option></select>
@@ -4561,7 +4584,7 @@ body{
 
 <section id="rekomendasi" class="section marketplace-recommendations" style="padding:18px 0 30px">
   <div class="container">
-    <div class="mk2-section-head"><div><div class="mk2-kicker">MARKETKITA</div><h2>Rekomendasi Untuk Anda</h2></div><a class="mk2-see" href="#produk">Lihat Semua ›</a></div>
+    <div class="mk2-section-head"><div><div class="mk2-kicker">MARKETKITA</div><h2>Dipilih Khusus Untukmu</h2></div><a class="mk2-see" href="#produk">Lihat Semua ›</a></div>
     <div id="recommendationProducts" class="recommendation-grid"></div>
   </div>
 </section>
